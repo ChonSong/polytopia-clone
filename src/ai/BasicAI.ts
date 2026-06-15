@@ -2,7 +2,7 @@ import { HexCoord } from '../hex/HexCoord';
 import { TileData, Biome } from '../hex/Tile';
 import { Tribe } from '../entities/Tribe';
 import { City } from '../entities/City';
-import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS } from '../entities/Unit';
+import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, UNIT_MAX_HEALTH } from '../entities/Unit';
 import { GameState } from '../entities/GameState';
 import { Action, TurnPhase } from '../entities/TurnManager';
 import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost } from '../entities/TechTree';
@@ -325,6 +325,16 @@ export class BasicAI {
 
     for (const unit of this.tribe.units) {
       if (unit.hasActed || !unit.isAlive) continue;
+
+      // Priority 0: GDD §7 — Heal damaged units in friendly territory
+      const belowHalfHp = unit.health < UNIT_MAX_HEALTH[unit.type] / 2;
+      const nearFriendlyCity = this.tribe.cities.some(city =>
+        unit.position.distanceTo(city.position) <= 2,
+      );
+      if (belowHalfHp && nearFriendlyCity) {
+        // Skip this unit — it stays idle and gets healed by healInactiveUnits
+        continue;
+      }
 
       let target: HexCoord | null = null;
 

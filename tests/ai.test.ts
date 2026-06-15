@@ -301,6 +301,69 @@ describe('BasicAI', () => {
   });
 
   // -----------------------------------------------------------------------
+  // GDD §7 — AI heal behavior
+  // -----------------------------------------------------------------------
+
+  it('does not move units below 50% HP near a friendly city (heal instead)', () => {
+    // Unit at (4,4), friendly city at (3,3) — distance 1 < 2
+    const warrior = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    warrior.health = 3; // Below 50% (10/2 = 5)
+    tribe.units.push(warrior);
+
+    const actions = ai.decide(gameState, TurnPhase.MOVE);
+
+    // No MOVE actions for this unit — it should stay idle to heal
+    const moveActions = actions.filter(a => a.type === 'MOVE');
+    expect(moveActions.length).toBe(0);
+    // hasActed should remain false (not marked as acted)
+    expect(warrior.hasActed).toBe(false);
+  });
+
+  it('moves healthy units even when near a friendly city', () => {
+    const warrior = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    warrior.health = 10; // Full health — should not heal
+    tribe.units.push(warrior);
+
+    const actions = ai.decide(gameState, TurnPhase.MOVE);
+
+    const moveActions = actions.filter(a => a.type === 'MOVE');
+    expect(moveActions.length).toBe(1);
+    expect(warrior.hasActed).toBe(true);
+  });
+
+  it('moves damaged units far from friendly cities (no healing available)', () => {
+    // Unit at (14,14), friendly city at (3,3) — distance > 2
+    const warrior = new Unit(new HexCoord(14, 14), UnitType.WARRIOR, 'player');
+    warrior.health = 3; // Below 50%
+    tribe.units.push(warrior);
+
+    const actions = ai.decide(gameState, TurnPhase.MOVE);
+
+    // Should still move since no friendly city is within 2 tiles
+    const moveActions = actions.filter(a => a.type === 'MOVE');
+    expect(moveActions.length).toBe(1);
+    expect(warrior.hasActed).toBe(true);
+  });
+
+  it('prioritizes healing over moving toward enemies when damaged near city', () => {
+    // Unit at (4,4), friendly city at (3,3), enemy unit at (4,3)
+    // Heal check runs before attack-move check — damaged near city = heal
+    const warrior = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    warrior.health = 3; // Below 50%
+    tribe.units.push(warrior);
+
+    const enemyWarrior = new Unit(new HexCoord(4, 3), UnitType.WARRIOR, 'enemy');
+    enemyTribe.units.push(enemyWarrior);
+
+    const actions = ai.decide(gameState, TurnPhase.MOVE);
+
+    // Healing takes priority — damaged units near city skip turn
+    const moveActions = actions.filter(a => a.type === 'MOVE');
+    expect(moveActions.length).toBe(0);
+    expect(warrior.hasActed).toBe(false);
+  });
+
+  // -----------------------------------------------------------------------
   // ATTACK phase
   // -----------------------------------------------------------------------
 
