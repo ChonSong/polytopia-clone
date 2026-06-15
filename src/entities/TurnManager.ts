@@ -22,7 +22,7 @@ const PHASE_ORDER: TurnPhase[] = [
 ];
 
 /** The action types a player/AI can issue. */
-export type ActionType = 'MOVE' | 'ATTACK' | 'BUILD' | 'TRAIN' | 'UPGRADE';
+export type ActionType = 'MOVE' | 'ATTACK' | 'BUILD' | 'TRAIN' | 'UPGRADE' | 'RESEARCH';
 
 export interface Action {
   type: ActionType;
@@ -32,7 +32,7 @@ export interface Action {
 /** Which ActionTypes are legal in each TurnPhase. */
 const PHASE_ACTIONS: Record<TurnPhase, ActionType[]> = {
   [TurnPhase.EXPLORE]: [],
-  [TurnPhase.BUILD]:   ['BUILD', 'TRAIN', 'UPGRADE'],
+  [TurnPhase.BUILD]:   ['BUILD', 'TRAIN', 'UPGRADE', 'RESEARCH'],
   [TurnPhase.MOVE]:    ['MOVE'],
   [TurnPhase.ATTACK]:  ['ATTACK'],
   [TurnPhase.END]:     [],

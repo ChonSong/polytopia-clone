@@ -11,6 +11,7 @@ import { TurnManager, TurnPhase } from '../entities/TurnManager';
 import { BasicAI } from '../ai/BasicAI';
 import { CombatSystem } from '../entities/CombatSystem';
 import { createCity } from '../entities/CityData';
+import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost, UNIT_TECH_GATES } from '../entities/TechTree';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -36,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private skipPhase = false;
   private cityMenu: Phaser.GameObjects.Group | null = null;
   private selectedCity: City | null = null;
+  private techPanel: Phaser.GameObjects.Group | null = null;
 
   private tribeText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
@@ -112,6 +114,19 @@ export class GameScene extends Phaser.Scene {
     btn.on('pointerdown', () => { if (!this.isAiRunning) this.endTurn(); });
     btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#555' }));
     btn.on('pointerout', () => btn.setStyle({ backgroundColor: '#333' }));
+
+    // Tech button
+    const techBtn = this.add.text(530, 10, '[ TECH ]', {
+      fontSize: '16px', color: '#adf', fontFamily: 'monospace',
+      backgroundColor: '#224', padding: { x: 8, y: 6 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    techBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.state.getCurrentTribe() === this.humanTribe) {
+        this.toggleTechPanel();
+      }
+    });
+    techBtn.on('pointerover', () => techBtn.setStyle({ backgroundColor: '#336' }));
+    techBtn.on('pointerout', () => techBtn.setStyle({ backgroundColor: '#224' }));
 
     this.renderAll();
     this.updateUI();
@@ -241,6 +256,15 @@ export class GameScene extends Phaser.Scene {
               }
             }
           }
+        }
+        break;
+      }
+      case 'RESEARCH': {
+        const techId = p.techId as TechId;
+        const cost = (p.cost as number) || 5;
+        if (tribe.stars >= cost) {
+          tribe.researchTech(techId);
+          tribe.stars -= cost;
         }
         break;
       }
@@ -383,6 +407,127 @@ export class GameScene extends Phaser.Scene {
     this.renderAll(); this.updateUI();
   }
 
+  private toggleTechPanel(): void {
+    if (this.techPanel) { this.hideTechPanel(); return; }
+    this.showTechPanel();
+  }
+
+  private showTechPanel(): void {
+    this.hideTechPanel();
+    if (this.state.getCurrentTribe() !== this.humanTribe) return;
+
+    const cur = this.humanTribe;
+    const numCities = cur.cities.filter(c => !c.captured).length;
+    const techGroup = this.add.group();
+
+    // Background panel
+    const bg = this.add.graphics().setScrollFactor(0).setDepth(28);
+    bg.fillStyle(0x111, 0.92);
+    bg.fillRoundedRect(60, 40, 680, 520, 8);
+    techGroup.add(bg);
+
+    const style = { fontSize: '14px', color: '#eee', fontFamily: 'monospace' };
+    const titleStyle = { fontSize: '18px', color: '#ffd', fontFamily: 'monospace' };
+    const headerStyle = { fontSize: '13px', color: '#8af', fontFamily: 'monospace' };
+    const disabledStyle = { ...style, color: '#444' };
+    const ownedStyle = { ...style, color: '#4c4' };
+
+    // Title
+    const title = this.add.text(300, 48, '— RESEARCH —', titleStyle).setScrollFactor(0).setDepth(29);
+    techGroup.add(title);
+
+    // Series columns
+    const colW = 220;
+    const startX = 80;
+    TECH_SERIES_ORDER.forEach((series, si) => {
+      const seriesTechs = TECH_DEFS;
+      const tier1Id = (() => {
+        switch (series) {
+          case 'hunting': return TechId.HUNTING;
+          case 'riding': return TechId.RIDING;
+          case 'fishing': return TechId.FISHING;
+        }
+      })();
+
+      // Series header
+      const header = this.add.text(startX + si * colW, 80, series.toUpperCase(), headerStyle)
+        .setScrollFactor(0).setDepth(29);
+      techGroup.add(header);
+
+      // Tiers
+      for (let tier = 1; tier <= 3; tier++) {
+        const techId = (() => {
+          if (series === 'hunting') {
+            if (tier === 1) return TechId.HUNTING;
+            if (tier === 2) return TechId.ARCHERY;
+            return TechId.MATHEMATICS;
+          }
+          if (series === 'riding') {
+            if (tier === 1) return TechId.RIDING;
+            if (tier === 2) return TechId.FREE_SPIRIT;
+            return TechId.CHIVALRY;
+          }
+          if (series === 'fishing') {
+            if (tier === 1) return TechId.FISHING;
+            if (tier === 2) return TechId.SAILING;
+            return TechId.NAVIGATION;
+          }
+          return TechId.HUNTING;
+        })();
+        const def = TECH_DEFS[techId];
+        const owned = cur.hasTech(techId);
+        const prereqs = def.prerequisites.every(p => cur.hasTech(p));
+        const canResearch = !owned && prereqs;
+
+        const y = 108 + (tier - 1) * 50;
+        const cost = techCost(def.tier, numCities);
+
+        const textStyle = owned ? ownedStyle : (canResearch ? style : disabledStyle);
+        const label = owned
+          ? `✓ ${def.name}`
+          : `${def.name} (${cost}⭐)`;
+        const txt = this.add.text(startX + si * colW, y, label, textStyle)
+          .setScrollFactor(0).setDepth(29);
+        techGroup.add(txt);
+
+        // Description
+        const desc = this.add.text(startX + si * colW, y + 18, def.description, {
+          fontSize: '11px', color: owned ? '#484' : '#888', fontFamily: 'monospace'
+        }).setScrollFactor(0).setDepth(29);
+        techGroup.add(desc);
+
+        if (canResearch && this.humanTribe.stars >= cost) {
+          txt.setInteractive({ useHandCursor: true });
+          txt.on('pointerover', () => txt.setStyle({ color: '#ff0' }));
+          txt.on('pointerout', () => txt.setStyle({ color: '#eee' }));
+          txt.on('pointerdown', () => {
+            if (this.humanTribe.stars >= cost) {
+              cur.researchTech(techId);
+              this.humanTribe.stars -= cost;
+              this.hideTechPanel();
+              this.renderAll(); this.updateUI();
+            }
+          });
+        }
+      }
+    });
+
+    // Close hint
+    const hint = this.add.text(300, 540, '[ click TECH or elsewhere to close ]', {
+      fontSize: '12px', color: '#888', fontFamily: 'monospace'
+    }).setScrollFactor(0).setDepth(29);
+    techGroup.add(hint);
+
+    this.techPanel = techGroup;
+  }
+
+  private hideTechPanel(): void {
+    if (this.techPanel) {
+      this.techPanel.destroy(true);
+      this.techPanel = null;
+    }
+  }
+
   private showCityMenu(city: City, coord: HexCoord): void {
     this.hideCityMenu();
     this.selectedCity = city;
@@ -400,16 +545,11 @@ export class GameScene extends Phaser.Scene {
     const items: string[] = [];
     const handlers: (() => void)[] = [];
 
-    // --- TRAINABLE UNITS ---
-    const trainableUnits: { type: UnitType; label: string }[] = [
-      { type: UnitType.WARRIOR,  label: 'WARRIOR' },
-      { type: UnitType.RIDER,    label: 'RIDER' },
-      { type: UnitType.DEFENDER, label: 'DEFENDER' },
-      { type: UnitType.ARCHER,   label: 'ARCHER' },
-      { type: UnitType.SWORDSMAN,label: 'SWORDSMAN' },
-      { type: UnitType.KNIGHT,   label: 'KNIGHT' },
-      { type: UnitType.CATAPULT, label: 'CATAPULT' },
-    ];
+    // --- TRAINABLE UNITS (filtered by tech) ---
+    const trainableTypes = this.humanTribe.getTrainableUnitTypes();
+    const trainableUnits: { type: UnitType; label: string }[] = trainableTypes.map(t => ({
+      type: t, label: UnitType[t] || t
+    }));
 
     for (const ut of trainableUnits) {
       const cost = UNIT_COSTS[ut.type];

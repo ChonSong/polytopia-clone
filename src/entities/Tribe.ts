@@ -1,5 +1,6 @@
 import { City } from './City';
-import { Unit } from './Unit';
+import { Unit, UnitType } from './Unit';
+import { TechId, TRIBE_STARTING_TECHS, UNIT_TECH_GATES } from './TechTree';
 
 export interface TribeConfig {
   id: string;
@@ -24,6 +25,7 @@ export class Tribe {
   public technologyLevel: number;
   public stars: number;
   public starsPerTurn: number;
+  public techs: Set<TechId>;
 
   constructor(config: TribeConfig) {
     this.id = config.id;
@@ -34,6 +36,7 @@ export class Tribe {
     this.technologyLevel = 1;
     this.stars = 10;
     this.starsPerTurn = 5;
+    this.techs = new Set(TRIBE_STARTING_TECHS[config.id] ?? []);
   }
 
   addCity(city: City): void {
@@ -59,5 +62,27 @@ export class Tribe {
   /** A tribe is defeated when it has no cities and no alive units. */
   isDefeated(): boolean {
     return this.cities.length === 0 && this.getAliveUnits().length === 0;
+  }
+
+  /** Check if this tribe has researched a tech. */
+  hasTech(tech: TechId): boolean {
+    return this.techs.has(tech);
+  }
+
+  /** Research a tech. Returns false if already known. */
+  researchTech(tech: TechId): boolean {
+    if (this.techs.has(tech)) return false;
+    this.techs.add(tech);
+    return true;
+  }
+
+  /** Filter trainable unit types by researched techs. */
+  getTrainableUnitTypes(): UnitType[] {
+    const all: UnitType[] = [UnitType.WARRIOR, UnitType.DEFENDER, UnitType.BOAT];
+    for (const ut of [UnitType.RIDER, UnitType.ARCHER, UnitType.SWORDSMAN, UnitType.KNIGHT, UnitType.CATAPULT]) {
+      const gate = UNIT_TECH_GATES[ut];
+      if (!gate || this.techs.has(gate)) all.push(ut);
+    }
+    return all;
   }
 }

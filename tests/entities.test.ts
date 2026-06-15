@@ -3,6 +3,7 @@ import { HexCoord } from '../src/hex/HexCoord';
 import { Biome } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
 import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
+import { TechId } from '../src/entities/TechTree';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
 
@@ -213,6 +214,43 @@ describe('Tribe', () => {
       tribe.addUnit(dead);
       expect(tribe.getAliveUnits()).toHaveLength(1);
       expect(tribe.getAliveUnits()[0]).toBe(alive);
+    });
+  });
+
+  describe('techs', () => {
+    it('starts with tribe-specific starting techs', () => {
+      const tribe = new Tribe(TRIBE_CONFIGS[0]); // Xin-xi → Riding
+      expect(tribe.hasTech(TechId.RIDING)).toBe(true);
+      expect(tribe.hasTech(TechId.HUNTING)).toBe(false);
+    });
+
+    it('researchTech adds a tech', () => {
+      const tribe = createTestTribe();
+      // Xin-xi starts with Riding, add another
+      const ok = tribe.researchTech(TechId.HUNTING);
+      expect(ok).toBe(true);
+      expect(tribe.hasTech(TechId.HUNTING)).toBe(true);
+    });
+
+    it('researchTech returns false for already-known techs', () => {
+      const tribe = createTestTribe();
+      const ok = tribe.researchTech(TechId.RIDING);
+      expect(ok).toBe(false);
+    });
+
+    it('getTrainableUnitTypes includes Warrior and Defender always', () => {
+      const tribe = createTestTribe();
+      const types = tribe.getTrainableUnitTypes();
+      expect(types).toContain(UnitType.WARRIOR);
+      expect(types).toContain(UnitType.DEFENDER);
+    });
+
+    it('getTrainableUnitTypes includes Archer only after researching Archery', () => {
+      const tribe = createTestTribe();
+      expect(tribe.getTrainableUnitTypes()).not.toContain(UnitType.ARCHER);
+      tribe.researchTech(TechId.HUNTING);
+      tribe.researchTech(TechId.ARCHERY);
+      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.ARCHER);
     });
   });
 });

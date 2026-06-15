@@ -2,9 +2,10 @@ import { HexCoord } from '../hex/HexCoord';
 import { TileData, Biome } from '../hex/Tile';
 import { Tribe } from '../entities/Tribe';
 import { City } from '../entities/City';
-import { Unit, UnitType, UNIT_COSTS } from '../entities/Unit';
+import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS } from '../entities/Unit';
 import { GameState } from '../entities/GameState';
 import { Action, TurnPhase } from '../entities/TurnManager';
+import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost } from '../entities/TechTree';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -214,32 +215,61 @@ export class BasicAI {
     // Priority 1: Train units if we have fewer than minUnitsForUpgrade
     if (this.tribe.units.length < this.options.minUnitsForUpgrade) {
       for (const city of this.tribe.cities) {
-        const cost = UNIT_COSTS[this.options.preferredUnit];
-        if (this.tribe.stars >= cost) {
+        const unitTypes = this.tribe.getTrainableUnitTypes();
+        // Pick the best affordable unit (favor high attack)
+        const best = unitTypes
+          .map(ut => ({ type: ut, cost: UNIT_COSTS[ut] }))
+          .filter(u => this.tribe.stars >= u.cost)
+          .sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack);
+        if (best.length > 0 && city) {
+          const chosen = best[0];
           actions.push({
             type: 'TRAIN',
-            params: { cityId: city.id, unitType: this.options.preferredUnit, cost },
+            params: { cityId: city.id, unitType: chosen.type, cost: chosen.cost },
           });
-          break; // train one unit per turn
+          break;
         }
       }
-      return actions;
+    } else {
+      // Priority 2: Upgrade the cheapest (lowest-level) city
+      const sortedCities = [...this.tribe.cities].sort((a, b) => a.level - b.level);
+      for (const city of sortedCities) {
+        const cost = city.level * 5;
+        if (this.tribe.stars >= cost) {
+          actions.push({
+            type: 'UPGRADE',
+            params: { cityId: city.id, cost },
+          });
+          break;
+        }
+      }
     }
 
-    // Priority 2: Upgrade the cheapest (lowest-level) city
-    const sortedCities = [...this.tribe.cities].sort((a, b) => a.level - b.level);
-    for (const city of sortedCities) {
-      const cost = city.level * 5;
-      if (this.tribe.stars >= cost) {
-        actions.push({
-          type: 'UPGRADE',
-          params: { cityId: city.id, cost },
-        });
-        break;
-      }
+    // If we had no build actions, try researching a tech
+    if (actions.length === 0) {
+      const techAction = this.decideTechResearch(gameState);
+      if (techAction) actions.push(techAction);
     }
 
     return actions;
+  }
+
+  /** Pick a tech to research: cheapest affordable unresearched tech with met prereqs. */
+  private decideTechResearch(gameState: GameState): Action | null {
+    const numCities = this.tribe.cities.filter(c => !c.captured).length;
+    const allTechs = Object.values(TECH_DEFS);
+    // Sort by total cost ascending
+    const affordable = allTechs
+      .filter(t => !this.tribe.hasTech(t.id))
+      .filter(t => t.prerequisites.every(p => this.tribe.hasTech(p)))
+      .map(t => ({ techId: t.id, cost: techCost(t.tier, numCities) }))
+      .filter(t => this.tribe.stars >= t.cost)
+      .sort((a, b) => a.cost - b.cost);
+    if (affordable.length === 0) return null;
+    return {
+      type: 'RESEARCH',
+      params: { techId: affordable[0].techId, cost: affordable[0].cost },
+    };
   }
 
   // -----------------------------------------------------------------------
