@@ -363,6 +363,52 @@ describe('Tribe', () => {
 });
 
 // ---------------------------------------------------------------------------
+// GDD §9.1 — Starting Stars
+// ---------------------------------------------------------------------------
+describe('GDD §9.1 — Starting Stars', () => {
+  it('default Tribe gets AI starting stars (10)', () => {
+    const tribe = createTestTribe();
+    expect(tribe.stars).toBe(10);
+  });
+
+  it('human tribe override sets stars to 15', () => {
+    const human = createTestTribe({ id: 'human', name: 'Human', color: 0x4488ff });
+    human.stars = 15; // GameScene does this after creation
+    expect(human.stars).toBe(15);
+    expect(human.starsPerTurn).toBe(5);
+  });
+
+  it('AI tribe keeps default 10 stars', () => {
+    const ai = createTestTribe({ id: 'ai', name: 'AI', color: 0xff4444 });
+    expect(ai.stars).toBe(10);
+    expect(ai.starsPerTurn).toBe(5);
+  });
+
+  it('human and AI tribes have correct starting star differential', () => {
+    const human = createTestTribe({ id: 'xin-xi', name: 'Xin-xi', color: 0xd4a017 });
+    const ai = createTestTribe({ id: 'bardur', name: 'Bardur', color: 0x5a8f3c });
+    human.stars = 15; // human override
+    // AI keeps default 10
+    expect(human.stars).toBe(15);
+    expect(ai.stars).toBe(10);
+    expect(human.stars - ai.stars).toBe(5);
+  });
+
+  it('City star income contributes to AI income (base 5 + city production)', () => {
+    const tribe = createTestTribe();
+    const city = new City(new HexCoord(0, 0), 'Capital', tribe.id);
+    // City on one adjacent GRASS tile
+    city.levelStarsBonus = 0; // level 1
+    const yields = city.produceResources([Biome.GRASS]);
+    // City total = biome yields (1⭐) + level bonus (0) + building bonus (0)
+    expect(yields.stars).toBe(1);
+    // Tribe base per turn (5) + city star income
+    const totalPerTurn = tribe.starsPerTurn + yields.stars;
+    expect(totalPerTurn).toBe(6);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // City
 // ---------------------------------------------------------------------------
 describe('City', () => {
