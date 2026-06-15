@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-7-ai-heal",
+  "current_task": "gdd-7-ai-tech-priority",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests"},
@@ -13,9 +13,10 @@
     {"task": "gdd-5.3-city-upgrade-choices", "sha": "7bd97fe", "date": "2026-06-15", "summary": "Binary upgrade choice system: Workshop/Explorer, City Wall/Resources, Population Growth/Border Growth, Park/Super Unit", "coach": "approved"},
     {"task": "gdd-5.4-buildings-real-costs", "sha": "fe93c68", "date": "2026-06-15", "summary": "Verify building costs/effects match GDD §5.5 — all match (Lumber Hut 3⭐, Mine 5⭐, Farm 5⭐, Port 7⭐), added verification tests", "coach": "approved"},
     {"task": "gdd-3.2-naval-chain", "sha": "8937c38", "date": "2026-06-16", "summary": "Full naval chain: RAFT/SCOUT/RAMMER/BOMBER unit types, water movement, Port embark/disembark, naval upgrades, AI naval pathfinding, 188 tests"},
-    {"task": "gdd-2.5-villages", "sha": "baac32f", "date": "2026-06-16", "summary": "Neutral villages: spawn at game start with proximity rules, capture by ending turn on them, becomes level-1 city, AI village targeting, 196 tests"}
+    {"task": "gdd-2.5-villages", "sha": "baac32f", "date": "2026-06-16", "summary": "Neutral villages: spawn at game start with proximity rules, capture by ending turn on them, becomes level-1 city, AI village targeting, 196 tests", "coach": "approved"},
+    {"task": "gdd-7-ai-heal", "sha": "6e39de0", "date": "2026-06-16", "summary": "AI heal decision — damaged units (<50% HP) within 2 tiles of friendly city skip turn to heal instead of moving toward enemies", "coach": "approved"}
   ],
-  "health": "196_pass_0_error_0_fail",
-  "last_sha": "baac32f",
+  "health": "200_pass_0_error_0_fail",
+  "last_sha": "6e39de0",
   "blocker": null
 }

@@ -7,6 +7,7 @@ import { Unit, UnitType } from '../src/entities/Unit';
 import { GameState } from '../src/entities/GameState';
 import { TurnPhase } from '../src/entities/TurnManager';
 import { BasicAI, getVisibleTiles, bfsPathStep } from '../src/ai/BasicAI';
+import { TechId } from '../src/entities/TechTree';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -265,6 +266,84 @@ describe('BasicAI', () => {
 
     const actions = ai.decide(gameState, TurnPhase.BUILD);
     expect(actions.length).toBe(0);
+  });
+
+  // -----------------------------------------------------------------------
+  // GDD §7.1 — AI tech priority
+  // -----------------------------------------------------------------------
+
+  it('researches a unit-unlocking tech over a cheaper non-unit tech when stars > 10', () => {
+    // Give tribe enough units so it skips training
+    const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior1, warrior2);
+    // Make city unable to grow (pop < level) so upgrade is skipped → falls through to research
+    tribe.cities[0].population = 0;
+    // Pre-research Hunting (prereq for Archery)
+    tribe.researchTech(TechId.HUNTING);
+    tribe.stars = 20; // enough for anything
+
+    // Fishing (tier 1, 5⭐) does NOT unlock units
+    // Archery (tier 2, 6⭐, prereq Hunting) DOES unlock Archer (atk 2)
+    // The AI should pick Archery even though Fishing is cheaper
+    const actions = ai.decide(gameState, TurnPhase.BUILD);
+    const researchAction = actions.find(a => a.type === 'RESEARCH');
+    expect(researchAction).toBeDefined();
+    expect(researchAction!.params.techId).toBe(TechId.ARCHERY);
+  });
+
+  it('picks the highest-attack unit-unlocking tech when multiple are available', () => {
+    const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior1, warrior2);
+    tribe.cities[0].population = 0; // block upgrade
+    // Pre-research through to Math prereqs
+    tribe.researchTech(TechId.HUNTING);
+    tribe.researchTech(TechId.ARCHERY);
+    tribe.researchTech(TechId.RIDING);
+    tribe.researchTech(TechId.FREE_SPIRIT);
+    tribe.stars = 20;
+
+    // Mathematics (tier 3, 7⭐, unlocks Catapult atk 4)
+    // Chivalry (tier 3, 7⭐, unlocks Swordsman atk 3 + Knight atk 3.5)
+    // AI should pick Mathematics (Catapult atk 4 > Knight atk 3.5)
+    const actions = ai.decide(gameState, TurnPhase.BUILD);
+    const researchAction = actions.find(a => a.type === 'RESEARCH');
+    expect(researchAction).toBeDefined();
+    expect(researchAction!.params.techId).toBe(TechId.MATHEMATICS);
+  });
+
+  it('falls back to cheapest tech when stars <= 10 even if unit-unlocking techs exist', () => {
+    const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior1, warrior2);
+    tribe.cities[0].population = 0; // block upgrade
+    tribe.researchTech(TechId.HUNTING);
+    tribe.researchTech(TechId.RIDING); // remove Riding from contention (same cost as Fishing)
+    tribe.stars = 10; // right at threshold — should pick cheapest
+
+    // Fishing (tier 1, 5⭐) is cheaper than Archery (tier 2, 6⭐)
+    const actions = ai.decide(gameState, TurnPhase.BUILD);
+    const researchAction = actions.find(a => a.type === 'RESEARCH');
+    expect(researchAction).toBeDefined();
+    expect(researchAction!.params.techId).toBe(TechId.FISHING);
+  });
+
+  it('falls back to cheapest tech when no unit-unlocking techs are affordable', () => {
+    const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+    const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior1, warrior2);
+    tribe.cities[0].population = 0; // block upgrade
+    tribe.researchTech(TechId.HUNTING);
+    tribe.researchTech(TechId.RIDING); // remove Riding from contention
+    // Set stars to exactly cover Fishing (5⭐, tier 1) but not Archery (6⭐, tier 2)
+    tribe.stars = 5;
+
+    // Only Fishing is affordable — should pick it
+    const actions = ai.decide(gameState, TurnPhase.BUILD);
+    const researchAction = actions.find(a => a.type === 'RESEARCH');
+    expect(researchAction).toBeDefined();
+    expect(researchAction!.params.techId).toBe(TechId.FISHING);
   });
 
   // -----------------------------------------------------------------------

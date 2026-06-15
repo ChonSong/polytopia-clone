@@ -268,18 +268,48 @@ export class BasicAI {
     return actions;
   }
 
-  /** Pick a tech to research: cheapest affordable unresearched tech with met prereqs. */
+  /**
+   * Pick a tech to research.
+   *
+   * GDD §6, §7.1 — Smart tech priority:
+   * - If the AI has spare stars (>10), prioritize techs that unlock new unit types
+   *   (sorted by the highest attack stat among unlocked units).
+   * - Otherwise (stars <= 10 or no unit-unlocking tech available), pick the cheapest
+   *   affordable unresearched tech with met prereqs (old behaviour).
+   */
   private decideTechResearch(gameState: GameState): Action | null {
     const numCities = this.tribe.cities.filter(c => !c.captured).length;
     const allTechs = Object.values(TECH_DEFS);
-    // Sort by total cost ascending
     const affordable = allTechs
       .filter(t => !this.tribe.hasTech(t.id))
       .filter(t => t.prerequisites.every(p => this.tribe.hasTech(p)))
       .map(t => ({ techId: t.id, cost: techCost(t.tier, numCities) }))
-      .filter(t => this.tribe.stars >= t.cost)
-      .sort((a, b) => a.cost - b.cost);
+      .filter(t => this.tribe.stars >= t.cost);
     if (affordable.length === 0) return null;
+
+    // GDD §7.1 — When AI has spare stars, prioritise unit-unlocking techs
+    if (this.tribe.stars > 10) {
+      const unitTechs = affordable
+        .filter(t => TECH_DEFS[t.techId].unlocksUnits.length > 0)
+        .sort((a, b) => {
+          const aMaxAtk = Math.max(
+            ...TECH_DEFS[a.techId].unlocksUnits.map(ut => UNIT_BASE_STATS[ut].attack),
+          );
+          const bMaxAtk = Math.max(
+            ...TECH_DEFS[b.techId].unlocksUnits.map(ut => UNIT_BASE_STATS[ut].attack),
+          );
+          return bMaxAtk - aMaxAtk; // highest-attack unit first
+        });
+      if (unitTechs.length > 0) {
+        return {
+          type: 'RESEARCH',
+          params: { techId: unitTechs[0].techId, cost: unitTechs[0].cost },
+        };
+      }
+    }
+
+    // Fallback: cheapest affordable tech (original behaviour)
+    affordable.sort((a, b) => a.cost - b.cost);
     return {
       type: 'RESEARCH',
       params: { techId: affordable[0].techId, cost: affordable[0].cost },
