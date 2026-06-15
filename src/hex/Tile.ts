@@ -20,6 +20,8 @@ export interface TileData {
   elevation: number; // 0-1
   resource?: Resource;
   city?: boolean;
+  /** GDD §5.3 — City Wall upgrade gives ×4 defense on this tile. */
+  cityWall?: boolean;
   unit?: boolean;
 }
 

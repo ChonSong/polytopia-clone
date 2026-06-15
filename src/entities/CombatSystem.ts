@@ -129,7 +129,10 @@ export class CombatSystem {
     if (defenderTile.biome === Biome.FOREST || defenderTile.biome === Biome.MOUNTAIN) {
       defBonus = 1.5; // assumes relevant tech is owned — simplified
     }
-    if (defenderTile.city) defBonus = 1.5;
+    if (defenderTile.city) {
+      // GDD §5.3: City Wall upgrade gives ×4 defense
+      defBonus = defenderTile.cityWall ? 4.0 : 1.5;
+    }
     const defenseForce = defender.defense * (defender.health / UNIT_MAX_HEALTH[defender.type]) * defBonus;
     const totalForce = attackForce + defenseForce;
     let damage = (attackForce / totalForce) * attacker.attack * 4.5;

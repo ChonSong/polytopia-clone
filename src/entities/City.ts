@@ -36,6 +36,9 @@ export class City {
   public foodPerTurn: number; // food generated per turn
   public giantSpawned: boolean; // whether the level-5 super unit has been spawned
 
+  /** GDD §5.3 — tracks binary upgrade choices per level (2=A, 3=B, etc.) */
+  public upgradeChoices: Record<number, 'A' | 'B'> = {};
+
   constructor(
     public position: HexCoord,
     public name: string,
@@ -55,26 +58,54 @@ export class City {
     this.giantSpawned = false;
   }
 
+  // ── GDD §5.3 Computed Properties ─────────────────────────────────────
+
+  get hasWorkshop(): boolean { return this.upgradeChoices[2] === 'A'; }
+  get hasExplorer(): boolean { return this.upgradeChoices[2] === 'B'; }
+  get hasCityWall(): boolean { return this.upgradeChoices[3] === 'A'; }
+  get hasResources(): boolean { return this.upgradeChoices[3] === 'B'; }
+  get hasPopulationGrowth(): boolean { return this.upgradeChoices[4] === 'A'; }
+  get hasBorderGrowth(): boolean { return this.upgradeChoices[4] === 'B'; }
+  get hasPark(): boolean { return this.upgradeChoices[5] === 'A'; }
+
+  // ─────────────────────────────────────────────────────────────────────
+
   /** A city can grow (level up) when population >= current level and level < 5. */
   canGrow(): boolean {
     return this.population >= this.level && this.level < 5;
   }
 
-  /** Level up the city. Does nothing if canGrow() is false. */
-  grow(): void {
+  /**
+   * Apply a GDD §5.3 binary upgrade choice and advance the city level.
+   * Does nothing if canGrow() is false.
+   * Immediate effects (spawning scouts, +stars, +pop) must be handled by the caller.
+   */
+  applyLevelUp(choice: 'A' | 'B'): void {
     if (!this.canGrow()) return;
-    this.level++;
-    this.canBuildUnits = this.level >= 2;
-    // Each level adds +1⭐/turn production bonus
+    const newLevel = this.level + 1;
+    this.upgradeChoices[newLevel] = choice;
+    this.level = newLevel;
     this.levelStarsBonus = this.level - 1;
+    this.canBuildUnits = this.level >= 2;
   }
 
-  /** Total stars produced per turn (base yields + level bonus + buildings). */
+  /**
+   * Legacy level-up method (no choice). Used by AI fallback.
+   * Picks a random choice for backward compatibility.
+   */
+  grow(): void {
+    if (!this.canGrow()) return;
+    const choice = Math.random() < 0.5 ? 'A' : 'B';
+    this.applyLevelUp(choice);
+  }
+
+  /** Total stars produced per turn (base yields + level bonus + buildings + workshop). */
   getStarsPerTurn(adjacentBiomes: Biome[]): number {
     let bonus = 0;
     for (const b of this.buildings) {
       bonus += BUILDING_DEFS[b].starsBonus;
     }
+    if (this.hasWorkshop) bonus += 1;
     return this.produceResources(adjacentBiomes).stars + this.levelStarsBonus + bonus;
   }
 

@@ -154,6 +154,9 @@ export class GameScene extends Phaser.Scene {
       const cfg = TRIBE_CONFIGS[i];
       this.tribes[i].addCity(new City(p, cfg.name, cfg.id));
       this.tribes[i].addUnit(new Unit(p, UnitType.WARRIOR, cfg.id));
+      // Mark the city tile for defense bonus calculations
+      const tile = this.tiles.get(p.toString());
+      if (tile) tile.city = true;
     }
   }
 
@@ -219,9 +222,27 @@ export class GameScene extends Phaser.Scene {
         if (!city) break;
         const upgradeCost = (p.cost as number) || city.level * 5;
         if (city.canGrow() && tribe.stars >= upgradeCost) {
-          city.grow();
-          city.population++;
+          const choice = (p.choice as 'A' | 'B') || (Math.random() < 0.5 ? 'A' : 'B');
+          city.applyLevelUp(choice);
           tribe.stars -= upgradeCost;
+          // Apply instant effects for AI
+          const level = city.level;
+          if (level === 2 && choice === 'B') {
+            // Explorer — spawn scouts on adjacent empty tiles
+            for (const dir of HexCoord.DIRECTIONS) {
+              const pos = new HexCoord(city.position.q + dir.q, city.position.r + dir.r);
+              const tile = this.tiles.get(pos.toString());
+              if (tile && !this.findUnit(pos) && !this.findCity(pos)) {
+                tribe.addUnit(new Unit(pos, UnitType.WARRIOR, tribe.id));
+                break; // just one scout for AI simplicity
+              }
+            }
+          } else if (level === 3 && choice === 'B') {
+            tribe.stars += 5; // Resources
+          } else if (level === 4 && choice === 'A') {
+            city.population += 3; // Population Growth
+            city.food = 0;
+          }
         }
         break;
       }
@@ -366,7 +387,80 @@ export class GameScene extends Phaser.Scene {
     const techScore = tribe.techs.size * 50;
     const levelScore = tribe.cities.reduce((sum, c) => sum + c.level * 20, 0);
     const buildingScore = tribe.cities.reduce((sum, c) => sum + c.buildings.length * 25, 0);
-    return cityScore + unitScore + techScore + levelScore + buildingScore;
+    const parkScore = tribe.cities.reduce((sum, c) => sum + (c.hasPark ? 250 : 0), 0);
+    return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore;
+  }
+
+  /** GDD §5.3 — Returns the two binary upgrade choices for a given level. */
+  private getUpgradeChoices(level: number): { id: 'A' | 'B'; label: string }[] {
+    switch (level) {
+      case 2: return [
+        { id: 'A', label: 'Workshop (+1⭐/turn)' },
+        { id: 'B', label: 'Explorer (spawn 2 Scouts)' },
+      ];
+      case 3: return [
+        { id: 'A', label: 'City Wall (×4 defense)' },
+        { id: 'B', label: 'Resources (+5⭐ now)' },
+      ];
+      case 4: return [
+        { id: 'A', label: 'Population Growth (+3 pop)' },
+        { id: 'B', label: 'Border Growth (expand territory)' },
+      ];
+      case 5: return [
+        { id: 'A', label: 'Park (+250 score)' },
+        { id: 'B', label: 'Super Unit (Giant)' },
+      ];
+      default: return [];
+    }
+  }
+
+  /** GDD §5.3 — Apply instant effects of a level-up choice. */
+  private applyUpgradeEffect(city: City, choice: 'A' | 'B'): void {
+    const level = city.level;
+    if (level === 2 && choice === 'B') {
+      // Explorer — spawn 2 scouts on nearby empty tiles
+      for (let i = 0; i < 2; i++) {
+        const pos = this.findNearbyEmptyTile(city.position);
+        if (pos) {
+          this.humanTribe.addUnit(new Unit(pos, UnitType.WARRIOR, this.humanTribe.id));
+        }
+      }
+    } else if (level === 3 && choice === 'B') {
+      // Resources — +5⭐ now
+      this.humanTribe.stars += 5;
+    } else if (level === 4 && choice === 'A') {
+      // Population Growth — +3 pop
+      city.population += 3;
+      // Reset food toward next pop threshold to avoid immediate double-growth
+      city.food = 0;
+    }
+    // City Wall, Workshop, Border Growth, Park, Giant are passive flags
+    // handled by the upgrade choice tracking on the City object
+  }
+
+  /** Find an empty tile adjacent to center (for Explorer spawns). */
+  private findNearbyEmptyTile(center: HexCoord): HexCoord | null {
+    // Try distance 1
+    for (const dir of HexCoord.DIRECTIONS) {
+      const pos = new HexCoord(center.q + dir.q, center.r + dir.r);
+      if (this.tiles.has(pos.toString())) {
+        if (!this.findUnit(pos) && !this.findCity(pos)) {
+          return pos;
+        }
+      }
+    }
+    // Try distance 2
+    for (const d1 of HexCoord.DIRECTIONS) {
+      for (const d2 of HexCoord.DIRECTIONS) {
+        const pos = new HexCoord(center.q + d1.q + d2.q, center.r + d1.r + d2.r);
+        if (this.tiles.has(pos.toString())) {
+          if (!this.findUnit(pos) && !this.findCity(pos)) {
+            return pos;
+          }
+        }
+      }
+    }
+    return center; // fallback — place on the city itself
   }
 
   private handleClick(px: number, py: number): void {
@@ -626,24 +720,34 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // --- UPGRADE CITY ---
-    const upgradeCost = city.level * 5;
-    const canUpgrade = city.canGrow() && this.humanTribe.stars >= upgradeCost;
-    items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐) → +1⭐/turn`);
-    if (canUpgrade) {
-      handlers.push(() => {
-        city.grow();
-        city.population++;
-        this.humanTribe.stars -= upgradeCost;
-        this.hideCityMenu();
-        this.renderAll(); this.updateUI();
-      });
-    } else {
+    // --- LEVEL UP CHOICES (GDD §5.3) ---
+    if (city.canGrow()) {
+      const upgradeCost = city.level * 5;
+      const canAfford = this.humanTribe.stars >= upgradeCost;
+      const nextLv = city.level + 1;
+
+      items.push(`── LEVEL UP Lv${city.level}→${nextLv} (${upgradeCost}⭐) ──`);
       handlers.push(() => {});
+
+      const choices = this.getUpgradeChoices(nextLv);
+      for (const ch of choices) {
+        items.push(`  [${ch.id}] ${ch.label}`);
+        if (canAfford) {
+          handlers.push(() => {
+            city.applyLevelUp(ch.id);
+            this.humanTribe.stars -= upgradeCost;
+            this.applyUpgradeEffect(city, ch.id);
+            this.hideCityMenu();
+            this.renderAll(); this.updateUI();
+          });
+        } else {
+          handlers.push(() => {});
+        }
+      }
     }
 
-    // --- SUPER UNIT (Giant at level 5) ---
-    if (city.level >= 5 && !city.giantSpawned) {
+    // --- GIANT (if Super Unit chosen at L5 and not yet summoned) ---
+    if (city.level >= 5 && city.upgradeChoices[5] === 'B' && !city.giantSpawned) {
       items.push('SUMMON GIANT (0⭐)  40HP 5⚔ 4🛡');
       handlers.push(() => {
         city.giantSpawned = true;
@@ -761,6 +865,12 @@ export class GameScene extends Phaser.Scene {
     for (const t of this.tribes) {
       for (const city of t.cities) {
         if (city.captured) continue;
+        // Sync city/cityWall flags onto the tile for combat defense bonus
+        const tile = this.tiles.get(city.position.toString());
+        if (tile) {
+          tile.city = true;
+          tile.cityWall = city.hasCityWall;
+        }
         const p = city.position.toPixel(HEX_SIZE);
         const cl = COLORS[city.tribeId] || 0x888;
         this.entityGraphics.fillStyle(cl, 1);

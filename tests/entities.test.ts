@@ -381,6 +381,124 @@ describe('City', () => {
     const city = new City(coord(0, 0), 'City', 'test');
     expect(city.captured).toBe(false);
   });
+
+  // ── GDD §5.3 Binary Upgrade Choices ─────────────────────────────────
+
+  describe('upgradeChoices (GDD §5.3)', () => {
+    it('starts with no upgrade choices', () => {
+      const city = new City(coord(0, 0), 'Plain', 'test');
+      expect(city.upgradeChoices).toEqual({});
+      expect(city.hasWorkshop).toBe(false);
+      expect(city.hasExplorer).toBe(false);
+      expect(city.hasCityWall).toBe(false);
+      expect(city.hasResources).toBe(false);
+      expect(city.hasPopulationGrowth).toBe(false);
+      expect(city.hasBorderGrowth).toBe(false);
+      expect(city.hasPark).toBe(false);
+    });
+
+    it('applyLevelUp tracks the choice at the new level', () => {
+      const city = new City(coord(0, 0), 'Choice', 'test', 1, 1);
+      city.applyLevelUp('A');
+      expect(city.level).toBe(2);
+      expect(city.upgradeChoices[2]).toBe('A');
+      expect(city.hasWorkshop).toBe(true);
+      expect(city.hasExplorer).toBe(false);
+    });
+
+    it('applyLevelUp with B sets the other computed property', () => {
+      const city = new City(coord(0, 0), 'Explorer', 'test', 1, 1);
+      city.applyLevelUp('B');
+      expect(city.level).toBe(2);
+      expect(city.upgradeChoices[2]).toBe('B');
+      expect(city.hasWorkshop).toBe(false);
+      expect(city.hasExplorer).toBe(true);
+    });
+
+    it('applyLevelUp does nothing when canGrow is false', () => {
+      const city = new City(coord(0, 0), 'Stuck', 'test', 3, 2);
+      city.applyLevelUp('A');
+      expect(city.level).toBe(3);
+      expect(city.upgradeChoices).toEqual({});
+    });
+
+    it('applyLevelUp at level 5 does nothing', () => {
+      const city = new City(coord(0, 0), 'Maxed', 'test', 5, 5);
+      city.applyLevelUp('A');
+      expect(city.level).toBe(5);
+    });
+
+    it('L2 choice sets Workshop getter correctly', () => {
+      const city = new City(coord(0, 0), 'W', 'test', 1, 1);
+      city.applyLevelUp('A');
+      expect(city.hasWorkshop).toBe(true);
+      // levelStarsBonus=1 + workshop=1, no biomes or buildings
+      expect(city.getStarsPerTurn([])).toBe(2);
+    });
+
+    it('L3 choice A sets CityWall', () => {
+      const city = new City(coord(0, 0), 'Walled', 'test', 2, 2);
+      city.applyLevelUp('A');
+      expect(city.level).toBe(3);
+      expect(city.hasCityWall).toBe(true);
+      expect(city.hasResources).toBe(false);
+    });
+
+    it('L3 choice B sets Resources', () => {
+      const city = new City(coord(0, 0), 'Rich', 'test', 2, 2);
+      city.applyLevelUp('B');
+      expect(city.hasResources).toBe(true);
+      expect(city.hasCityWall).toBe(false);
+    });
+
+    it('L4 choice A sets PopulationGrowth', () => {
+      const city = new City(coord(0, 0), 'Pop', 'test', 3, 3);
+      city.applyLevelUp('A');
+      expect(city.hasPopulationGrowth).toBe(true);
+      expect(city.hasBorderGrowth).toBe(false);
+    });
+
+    it('L4 choice B sets BorderGrowth', () => {
+      const city = new City(coord(0, 0), 'Border', 'test', 3, 3);
+      city.applyLevelUp('B');
+      expect(city.hasBorderGrowth).toBe(true);
+    });
+
+    it('L5 choice A sets Park', () => {
+      const city = new City(coord(0, 0), 'Park', 'test', 4, 4);
+      city.applyLevelUp('A');
+      expect(city.hasPark).toBe(true);
+      expect(city.giantSpawned).toBe(false);
+    });
+
+    it('L5 choice B does not auto-spawn Giant (flag only)', () => {
+      const city = new City(coord(0, 0), 'Giant', 'test', 4, 4);
+      city.applyLevelUp('B');
+      expect(city.hasPark).toBe(false);
+      expect(city.giantSpawned).toBe(false); // Giant is summoned separately via menu
+    });
+
+    it('getStarsPerTurn includes Workshop bonus', () => {
+      const city = new City(coord(0, 0), 'Workshop', 'test', 1, 1);
+      city.applyLevelUp('A'); // Workshop at L2
+      // levelStarsBonus = 1, workshop = 1, no buildings, no adjacent biomes
+      expect(city.getStarsPerTurn([])).toBe(2);
+    });
+
+    it('getStarsPerTurn without Workshop is level bonus only', () => {
+      const city = new City(coord(0, 0), 'NoWorkshop', 'test', 1, 1);
+      city.applyLevelUp('B'); // Explorer at L2
+      expect(city.getStarsPerTurn([])).toBe(1); // just levelStarsBonus
+    });
+
+    it('grow() picks a random choice and advances', () => {
+      const city = new City(coord(0, 0), 'Random', 'test', 1, 1);
+      city.grow();
+      expect(city.level).toBe(2);
+      expect(city.upgradeChoices[2]).toBeDefined();
+      expect(['A', 'B']).toContain(city.upgradeChoices[2]);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

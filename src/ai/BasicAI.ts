@@ -235,10 +235,12 @@ export class BasicAI {
       const sortedCities = [...this.tribe.cities].sort((a, b) => a.level - b.level);
       for (const city of sortedCities) {
         const cost = city.level * 5;
-        if (this.tribe.stars >= cost) {
+        if (this.tribe.stars >= cost && city.canGrow()) {
+          // Pick a random upgrade choice
+          const choice = Math.random() < 0.5 ? 'A' : 'B';
           actions.push({
             type: 'UPGRADE',
-            params: { cityId: city.id, cost },
+            params: { cityId: city.id, cost, choice },
           });
           break;
         }
