@@ -100,6 +100,12 @@ export class Unit {
    * so disembark can revert it. null for naturally-trained naval units.
    */
   public originalType: UnitType | null;
+  /**
+   * GDD §4.2 — Unit is fortified (skipped its turn), gaining defense bonuses
+   * from terrain and city walls. Set to true at end of turn when unit hasn't acted;
+   * reset to false at the start of its next turn.
+   */
+  public fortified: boolean;
 
   constructor(
     public position: HexCoord,
@@ -113,6 +119,7 @@ export class Unit {
     this.hasActed = false;
     this.hasAttacked = false;
     this.originalType = originalType ?? null;
+    this.fortified = false;
   }
 
   get stats(): UnitStats {
@@ -153,6 +160,11 @@ export class Unit {
     return this.type === UnitType.RIDER;
   }
 
+  /** GDD §4.2 — Whether unit is fortified, gaining defense bonuses from terrain/city walls. */
+  get isFortified(): boolean {
+    return this.fortified;
+  }
+
   /** GDD §3.3 — Persist: if unit kills a target, action refreshes (Knight). */
   get hasPersist(): boolean {
     return this.type === UnitType.KNIGHT;
@@ -170,5 +182,6 @@ export class Unit {
   resetTurn(): void {
     this.hasActed = false;
     this.hasAttacked = false;
+    this.fortified = false;
   }
 }

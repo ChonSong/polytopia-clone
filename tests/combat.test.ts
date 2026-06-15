@@ -141,9 +141,10 @@ describe('CombatSystem', () => {
       expect(dmg).toBe(5);
     });
 
-    it('applies terrain defense bonus on FOREST', () => {
+    it('applies terrain defense bonus on FOREST when fortified', () => {
       const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
       const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = true; // GDD §4.2: bonus requires fortify
       const forestTile: TileData = { biome: Biome.FOREST, elevation: 0 };
       const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
 
@@ -154,9 +155,10 @@ describe('CombatSystem', () => {
       expect(forestDmg).toBeLessThanOrEqual(grassDmg);
     });
 
-    it('applies terrain defense bonus on MOUNTAIN', () => {
+    it('applies terrain defense bonus on MOUNTAIN when fortified', () => {
       const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
       const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = true; // GDD §4.2: bonus requires fortify
       const mountainTile: TileData = { biome: Biome.MOUNTAIN, elevation: 0 };
       const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
 
@@ -166,9 +168,10 @@ describe('CombatSystem', () => {
       expect(mountainDmg).toBeLessThanOrEqual(grassDmg);
     });
 
-    it('applies terrain defense bonus on CITY tiles', () => {
+    it('applies terrain defense bonus on CITY tiles when fortified', () => {
       const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
       const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = true; // GDD §4.2: bonus requires fortify
       const cityTile: TileData = { biome: Biome.GRASS, elevation: 0, city: true };
       const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
 
@@ -176,6 +179,66 @@ describe('CombatSystem', () => {
       const cityDmg = CombatSystem.calculateDamage(attacker, defender, cityTile, 1);
 
       expect(cityDmg).toBeLessThanOrEqual(grassDmg);
+    });
+
+    it('gives NO defense bonus on FOREST when not fortified', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = false;
+      const forestTile: TileData = { biome: Biome.FOREST, elevation: 0 };
+      const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
+
+      const grassDmg = CombatSystem.calculateDamage(attacker, defender, grassTile, 1);
+      const forestDmg = CombatSystem.calculateDamage(attacker, defender, forestTile, 1);
+
+      // Without fortify, forest should NOT reduce damage (same as grass)
+      expect(forestDmg).toBe(grassDmg);
+    });
+
+    it('gives NO defense bonus on CITY when not fortified', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = false;
+      const cityTile: TileData = { biome: Biome.GRASS, elevation: 0, city: true };
+      const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
+
+      const grassDmg = CombatSystem.calculateDamage(attacker, defender, grassTile, 1);
+      const cityDmg = CombatSystem.calculateDamage(attacker, defender, cityTile, 1);
+
+      // Without fortify, city should NOT reduce damage
+      expect(cityDmg).toBe(grassDmg);
+    });
+
+    it('applies ×4.0 defense bonus on city wall when fortified', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = true;
+      const wallTile: TileData = { biome: Biome.GRASS, elevation: 0, city: true, cityWall: true };
+      const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
+
+      const grassDmg = CombatSystem.calculateDamage(attacker, defender, grassTile, 1);
+      const wallDmg = CombatSystem.calculateDamage(attacker, defender, wallTile, 1);
+
+      // City wall (×4.0) should reduce damage much more than plain grass
+      expect(wallDmg).toBeLessThan(grassDmg);
+      // The ×4.0 bonus is significantly stronger than the default ×1.0
+      // Warrior vs warrior on grass: 5 damage (from earlier test)
+      // Warrior vs warrior on city wall fortified: should be much lower
+      expect(wallDmg).toBeLessThanOrEqual(3);
+    });
+
+    it('gives NO city wall bonus when not fortified', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      defender.fortified = false;
+      const wallTile: TileData = { biome: Biome.GRASS, elevation: 0, city: true, cityWall: true };
+      const grassTile: TileData = { biome: Biome.GRASS, elevation: 0 };
+
+      const grassDmg = CombatSystem.calculateDamage(attacker, defender, grassTile, 1);
+      const wallDmg = CombatSystem.calculateDamage(attacker, defender, wallTile, 1);
+
+      // Without fortify, city wall should NOT reduce damage
+      expect(wallDmg).toBe(grassDmg);
     });
 
     it('applies ranged penalty at distance 2', () => {

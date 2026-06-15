@@ -215,7 +215,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 
 **Visual indicator:** Single shield halo = 1.5×, double shield halo = 4.0×.
 
-**Implemented:** ✅ Basic terrain/city bonuses in code. ❌ City Wall ×4.0 not implemented. ❌ Poison status not implemented. ❌ Visual halo not implemented.
+**Implemented:** ✅ Basic terrain/city bonuses in code. ✅ City Wall ×4.0 (requires Fortify). ❌ Poison status not implemented. ✅ Visual halos for fortified units.
 
 ### 4.3 Retaliation
 - Defender counter-attacks IF: defender survives AND (attacker is melee range OR defender is ranged).

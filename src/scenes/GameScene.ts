@@ -413,15 +413,17 @@ export class GameScene extends Phaser.Scene {
     this.advanceTurn();
   }
 
-  /** Heal units that did not act this turn: +4 in friendly territory, +2 otherwise. */
+  /** Heal units that did not act this turn: +4 in friendly territory, +2 otherwise. Also fortifies them. */
   private healInactiveUnits(tribe: Tribe): void {
     for (const unit of tribe.getAliveUnits()) {
-      if (unit.hasActed) continue; // only heal units that skipped their turn
+      if (unit.hasActed) continue; // only heal/fortify units that skipped their turn
       // Friendly territory = on or adjacent to any own city
       const inFriendlyTerritory = tribe.cities.some(city =>
         unit.position.distanceTo(city.position) <= 1,
       );
       unit.heal(inFriendlyTerritory ? 4 : 2);
+      // GDD §4.2 — Units that skip their turn become fortified
+      unit.fortified = true;
     }
   }
 
@@ -1130,6 +1132,22 @@ export class GameScene extends Phaser.Scene {
         this.entityGraphics.fillRect(p.x - bw / 2, p.y - r - 5, bw, bh);
         this.entityGraphics.fillStyle(u.health > 3 ? 0x4c4 : 0xc44, 1);
         this.entityGraphics.fillRect(p.x - bw / 2, p.y - r - 5, bw * (u.health / UNIT_MAX_HEALTH[u.type]), bh);
+        // GDD §4.2 — Shield indicator for fortified units
+        if (u.isFortified) {
+          const tile = this.tiles.get(u.position.toString());
+          const hasCityWall = tile?.cityWall ?? false;
+          const shieldY = p.y + r + 4;
+          if (hasCityWall) {
+            // Double shield (×4.0 defense) — gold
+            this.entityGraphics.lineStyle(2, 0xffd700, 0.9);
+            this.entityGraphics.strokeCircle(p.x - 3, shieldY, 4);
+            this.entityGraphics.strokeCircle(p.x + 3, shieldY, 4);
+          } else {
+            // Single shield (×1.5 defense) — light blue
+            this.entityGraphics.lineStyle(2, 0x87ceeb, 0.9);
+            this.entityGraphics.strokeCircle(p.x, shieldY, 4);
+          }
+        }
       }
     }
   }

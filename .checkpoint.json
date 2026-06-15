@@ -17,7 +17,7 @@
     {"task": "gdd-7-ai-heal", "sha": "6e39de0", "date": "2026-06-16", "summary": "AI heal decision — damaged units (<50% HP) within 2 tiles of friendly city skip turn to heal instead of moving toward enemies", "coach": "approved"},
     {"task": "gdd-7-ai-tech-priority", "sha": "82ed80e", "date": "2026-06-16", "summary": "AI tech priority: research unit-unlocking techs first when stars > 10, sorted by unlocked unit attack power; 4 new tests, all 204 passing", "coach": "approved"},
     {"task": "gdd-9.1-starting-stars", "sha": "b5d683a", "date": "2026-06-16", "summary": "Verify starting stars: human 15⭐, AI 10⭐, base 5⭐/t + city production; 5 new tests, all 209 passing", "coach": "approved"},
-    {"task": "gdd-3.4-unit-skills-escape-persist", "sha": "1074668", "date": "2026-06-16", "summary": "Implement Escape (Rider retreats 1 tile when hit) and Persist (Knight refreshes action on kill) skills; 12 new tests; 221 total passing"}
+    {"task": "gdd-3.4-unit-skills-escape-persist", "sha": "1074668", "date": "2026-06-16", "summary": "Implement Escape (Rider retreats 1 tile when hit) and Persist (Knight refreshes action on kill) skills; 12 new tests; 221 total passing", "coach": "approved"}
   ],
   "health": "221_pass_0_error_0_fail",
   "last_sha": "1074668",

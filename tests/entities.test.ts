@@ -115,6 +115,27 @@ describe('Unit', () => {
     });
   });
 
+  describe('fortify (GDD §4.2)', () => {
+    it('starts not fortified', () => {
+      const unit = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+      expect(unit.isFortified).toBe(false);
+      expect(unit.fortified).toBe(false);
+    });
+
+    it('can be set to true', () => {
+      const unit = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+      unit.fortified = true;
+      expect(unit.isFortified).toBe(true);
+    });
+
+    it('resetTurn resets fortified to false', () => {
+      const unit = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+      unit.fortified = true;
+      unit.resetTurn();
+      expect(unit.isFortified).toBe(false);
+    });
+  });
+
   it('movement range is available via both method and property', () => {
     const rider = new Unit(coord(0, 0), UnitType.RIDER, 'test');
     expect(rider.movementRange).toBe(2);

@@ -146,7 +146,7 @@ Status: **active** — see GDD.md for the full spec.
 - **Success criteria**: Rider hit in melee moves 1 tile away. Knight killing an adjacent unit can attack another enemy in range.
 
 #### Task: gdd-4.2-city-wall-defense
-- **Status**: 🔲 Pending
+- **Status**: ✅ Complete (commit pending)
 - **GDD**: §4.2, §5.3
 - **Description**: When a city has City Wall upgrade, Fortify units inside get ×4 defense bonus. Show double-shield indicator on the unit. Units without Fortify get no bonus.
 - **Success criteria**: Defender in walled city takes significantly less damage. Warrior in walled city takes standard damage (no Fortify). Visual indicator present.
