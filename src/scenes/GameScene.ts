@@ -34,6 +34,8 @@ export class GameScene extends Phaser.Scene {
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
   private skipPhase = false;
+  private cityMenu: Phaser.GameObjects.Group | null = null;
+  private selectedCity: City | null = null;
 
   private tribeText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
@@ -348,14 +350,100 @@ export class GameScene extends Phaser.Scene {
     if (cu && cu.owner === this.humanTribe.id && !cu.hasActed) {
       this.selectedUnit = cu;
       this.selectedHex = coord;
+      this.hideCityMenu();
       this.renderAll(); this.updateUI();
       return;
     }
 
-    // Show info
+    // Click on own city — show build menu
+    if (cc && cc.tribeId === this.humanTribe.id) {
+      this.selectedUnit = null;
+      this.selectedHex = coord;
+      this.showCityMenu(cc, coord);
+      this.renderAll(); this.updateUI();
+      return;
+    }
+
+    // Show info (dismiss city menu)
     this.selectedUnit = null;
     this.selectedHex = coord;
+    this.hideCityMenu();
     this.renderAll(); this.updateUI();
+  }
+
+  private showCityMenu(city: City, coord: HexCoord): void {
+    this.hideCityMenu();
+    this.selectedCity = city;
+    const p = coord.toPixel(HEX_SIZE);
+    const sx = p.x + this.cameras.main.scrollX + 40;
+    const sy = p.y + this.cameras.main.scrollY - 20;
+
+    const style = { fontSize: '14px', color: '#ffd', fontFamily: 'monospace',
+      backgroundColor: '#222', padding: { x: 8, y: 4 } as const };
+    const disabledStyle = { ...style, color: '#555' };
+
+    // Only show menu on human's turn
+    if (this.state.getCurrentTribe() !== this.humanTribe) return;
+
+    const items: string[] = [];
+    const handlers: (() => void)[] = [];
+
+    // Train Warrior
+    if (this.humanTribe.stars >= 5) {
+      items.push('TRAIN WARRIOR (5⭐)');
+      handlers.push(() => {
+        this.humanTribe.addUnit(new Unit(city.position, UnitType.WARRIOR, this.humanTribe.id));
+        this.humanTribe.stars -= 5;
+        this.hideCityMenu();
+        this.renderAll(); this.updateUI();
+      });
+    } else {
+      items.push('TRAIN WARRIOR (5⭐)');
+      handlers.push(() => {}); // no-op
+    }
+
+    // Upgrade city
+    const upgradeCost = city.level * 5;
+    if (city.canGrow() && this.humanTribe.stars >= upgradeCost) {
+      items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐)`);
+      handlers.push(() => {
+        city.grow();
+        this.humanTribe.stars -= upgradeCost;
+        this.hideCityMenu();
+        this.renderAll(); this.updateUI();
+      });
+    } else {
+      items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐)`);
+      handlers.push(() => {}); // no-op
+    }
+
+    this.cityMenu = this.add.group();
+    items.forEach((text, i) => {
+      const canAfford = (i === 0 && this.humanTribe.stars >= 5) ||
+        (i === 1 && city.canGrow() && this.humanTribe.stars >= city.level * 5);
+      const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
+        .setDepth(25).setInteractive({ useHandCursor: canAfford });
+      if (canAfford) {
+        lbl.on('pointerdown', handlers[i]);
+        lbl.on('pointerover', () => lbl.setStyle({ backgroundColor: '#444' }));
+        lbl.on('pointerout', () => lbl.setStyle({ backgroundColor: '#222' }));
+      }
+      this.cityMenu!.add(lbl);
+    });
+
+    // "Close" hint
+    const hint = this.add.text(sx, sy + items.length * 24 + 4, '[click elsewhere to close]', {
+      fontSize: '11px', color: '#888', fontFamily: 'monospace'
+    }).setDepth(25);
+    this.cityMenu.add(hint);
+  }
+
+  private hideCityMenu(): void {
+    if (this.cityMenu) {
+      this.cityMenu.destroy(true);
+      this.cityMenu = null;
+    }
+    this.selectedCity = null;
   }
 
   private findUnit(c: HexCoord): Unit | null {
