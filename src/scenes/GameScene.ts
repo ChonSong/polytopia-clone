@@ -294,12 +294,25 @@ export class GameScene extends Phaser.Scene {
       city.processFood(biomes);
     }
     tribe.stars += stars + tribe.starsPerTurn;
+    this.healInactiveUnits(tribe);
   }
 
   private endTurn(): void {
     if (this.isAiRunning) return;
     this.collectHumanResources();
     this.advanceTurn();
+  }
+
+  /** Heal units that did not act this turn: +4 in friendly territory, +2 otherwise. */
+  private healInactiveUnits(tribe: Tribe): void {
+    for (const unit of tribe.getAliveUnits()) {
+      if (unit.hasActed) continue; // only heal units that skipped their turn
+      // Friendly territory = on or adjacent to any own city
+      const inFriendlyTerritory = tribe.cities.some(city =>
+        unit.position.distanceTo(city.position) <= 1,
+      );
+      unit.heal(inFriendlyTerritory ? 4 : 2);
+    }
   }
 
   private collectHumanResources(): void {
@@ -314,6 +327,7 @@ export class GameScene extends Phaser.Scene {
       city.processFood(biomes);
     }
     this.humanTribe.stars += stars + this.humanTribe.starsPerTurn;
+    this.healInactiveUnits(this.humanTribe);
   }
 
   private advanceTurn(): void {

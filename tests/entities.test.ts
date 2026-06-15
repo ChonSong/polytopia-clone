@@ -124,6 +124,31 @@ describe('Unit', () => {
     unit.takeDamage(100); // should floor at 0
     expect(unit.health).toBe(0);
   });
+
+  it('heal respects GDD §4.5: +4 in friendly territory, +2 in neutral, capped at maxHP', () => {
+    // Heal +4 from near-death (capping test)
+    const unit1 = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    unit1.takeDamage(9); // HP = 1
+    unit1.heal(4);
+    expect(unit1.health).toBe(5);
+
+    // Heal +2 from near-death
+    const unit2 = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    unit2.takeDamage(9); // HP = 1
+    unit2.heal(2);
+    expect(unit2.health).toBe(3);
+
+    // Cannot exceed max HP (10 for WARRIOR)
+    const unit3 = new Unit(coord(0, 0), UnitType.DEFENDER, 'test');
+    unit3.takeDamage(2); // HP = 13
+    unit3.heal(4);
+    expect(unit3.health).toBe(15); // capped
+
+    // Already at max HP — heal has no effect
+    const unit4 = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    unit4.heal(4);
+    expect(unit4.health).toBe(10); // stays at max
+  });
 });
 
 // ---------------------------------------------------------------------------
