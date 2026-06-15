@@ -34,6 +34,11 @@ describe('Unit', () => {
       { type: UnitType.SWORDSMAN,atk: 3, def: 3, mv: 1, ranged: false, canAtkAfterMove: true  },
       { type: UnitType.KNIGHT,   atk: 3.5, def: 1, mv: 3, ranged: false, canAtkAfterMove: true  },
       { type: UnitType.GIANT,    atk: 5, def: 4, mv: 1, ranged: false, canAtkAfterMove: true  },
+      // GDD §3.2 Naval
+      { type: UnitType.RAFT,     atk: 0, def: 1, mv: 2, ranged: false, canAtkAfterMove: false },
+      { type: UnitType.SCOUT,    atk: 2, def: 1, mv: 3, ranged: true,  canAtkAfterMove: true  },
+      { type: UnitType.RAMMER,   atk: 3, def: 3, mv: 3, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.BOMBER,   atk: 3, def: 2, mv: 2, ranged: true,  canAtkAfterMove: false },
     ];
 
     for (const { type, atk, def, mv, ranged, canAtkAfterMove } of cases) {
@@ -59,6 +64,11 @@ describe('Unit', () => {
       { type: UnitType.CATAPULT, cost: 8 },
       { type: UnitType.BOAT,     cost: 5 },
       { type: UnitType.GIANT,    cost: 0 },
+      // GDD §3.2 Naval costs
+      { type: UnitType.RAFT,     cost: 0 },
+      { type: UnitType.SCOUT,    cost: 5 },
+      { type: UnitType.RAMMER,   cost: 5 },
+      { type: UnitType.BOMBER,   cost: 15 },
     ];
     for (const { type, cost } of cases) {
       it(`${type} costs ${cost}⭐`, () => {
@@ -149,6 +159,32 @@ describe('Unit', () => {
     const unit4 = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
     unit4.heal(4);
     expect(unit4.health).toBe(10); // stays at max
+  });
+
+  describe('naval unit properties (GDD §3.2)', () => {
+    it('isNaval is true for RAFT, SCOUT, RAMMER, BOMBER', () => {
+      expect(new Unit(coord(0,0), UnitType.RAFT, 't').isNaval).toBe(true);
+      expect(new Unit(coord(0,0), UnitType.SCOUT, 't').isNaval).toBe(true);
+      expect(new Unit(coord(0,0), UnitType.RAMMER, 't').isNaval).toBe(true);
+      expect(new Unit(coord(0,0), UnitType.BOMBER, 't').isNaval).toBe(true);
+    });
+
+    it('isNaval is false for terrestrial units', () => {
+      expect(new Unit(coord(0,0), UnitType.WARRIOR, 't').isNaval).toBe(false);
+      expect(new Unit(coord(0,0), UnitType.BOAT, 't').isNaval).toBe(false);
+      expect(new Unit(coord(0,0), UnitType.GIANT, 't').isNaval).toBe(false);
+    });
+
+    it('originalType is null for regular units', () => {
+      const unit = new Unit(coord(0,0), UnitType.WARRIOR, 't');
+      expect(unit.originalType).toBeNull();
+    });
+
+    it('originalType can be set for embarked Raft units', () => {
+      const raft = new Unit(coord(0,0), UnitType.RAFT, 't', 7, UnitType.WARRIOR);
+      expect(raft.originalType).toBe(UnitType.WARRIOR);
+      expect(raft.health).toBe(7); // carries over HP
+    });
   });
 });
 
@@ -292,11 +328,12 @@ describe('Tribe', () => {
       expect(ok).toBe(false);
     });
 
-    it('getTrainableUnitTypes includes Warrior and Defender always', () => {
+    it('getTrainableUnitTypes includes Warrior, Defender, and BOAT always', () => {
       const tribe = createTestTribe();
       const types = tribe.getTrainableUnitTypes();
       expect(types).toContain(UnitType.WARRIOR);
       expect(types).toContain(UnitType.DEFENDER);
+      expect(types).toContain(UnitType.BOAT);
     });
 
     it('getTrainableUnitTypes includes Archer only after researching Archery', () => {
@@ -305,6 +342,22 @@ describe('Tribe', () => {
       tribe.researchTech(TechId.HUNTING);
       tribe.researchTech(TechId.ARCHERY);
       expect(tribe.getTrainableUnitTypes()).toContain(UnitType.ARCHER);
+    });
+
+    it('getTrainableUnitTypes includes Scout after researching Sailing', () => {
+      const tribe = createTestTribe();
+      tribe.researchTech(TechId.FISHING);
+      tribe.researchTech(TechId.SAILING);
+      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.SCOUT);
+    });
+
+    it('getTrainableUnitTypes includes Rammer and Bomber after researching Navigation', () => {
+      const tribe = createTestTribe();
+      tribe.researchTech(TechId.FISHING);
+      tribe.researchTech(TechId.SAILING);
+      tribe.researchTech(TechId.NAVIGATION);
+      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.RAMMER);
+      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.BOMBER);
     });
   });
 });

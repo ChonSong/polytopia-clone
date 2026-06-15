@@ -158,6 +158,33 @@ describe('bfsPathStep', () => {
     expect(step!.q).not.toBe(1);
     expect(step!.r).not.toBe(0);
   });
+
+  it('naval pathing traverses water tiles when isNaval=true', () => {
+    // Create an island: block all exits from (0,0) with water except one direction
+    // Place water on all tiles at distance 1 from (0,0)
+    // Diagonals in hex axial: q=1,r=0; q=1,r=-1; q=0,r=-1; q=-1,r=0; q=-1,r=1; q=0,r=1
+    addWater(tileMap, '1,0');
+    addWater(tileMap, '1,-1');
+    addWater(tileMap, '0,-1');
+    addWater(tileMap, '-1,0');
+    addWater(tileMap, '-1,1');
+    addWater(tileMap, '0,1');  // all 6 neighbors are water
+    // And a water corridor to the goal
+    addWater(tileMap, '1,0');  // already set
+    addWater(tileMap, '2,0');
+    addWater(tileMap, '3,0');
+    addWater(tileMap, '4,0');
+    const start = new HexCoord(0, 0);
+    const goal = new HexCoord(5, 0);
+    // Ground unit (isNaval=false) — blocked by water (all neighbors are water)
+    const groundStep = bfsPathStep(start, goal, tileMap, 10, false);
+    expect(groundStep).toBeNull();
+    // Naval unit (isNaval=true) — can traverse water
+    const navalStep = bfsPathStep(start, goal, tileMap, 10, true);
+    expect(navalStep).not.toBeNull();
+    expect(navalStep!.q).toBe(1);
+    expect(navalStep!.r).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

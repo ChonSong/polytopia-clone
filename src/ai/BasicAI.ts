@@ -19,6 +19,15 @@ const WALKABLE_BIOMES: Set<Biome> = new Set([
   Biome.SNOW,
 ]);
 
+/** Biomes that naval units can traverse (water + coastal). */
+const NAVAL_BIOMES: Set<Biome> = new Set([
+  Biome.GRASS,
+  Biome.FOREST,
+  Biome.SAND,
+  Biome.SNOW,
+  Biome.WATER,
+]);
+
 // ---------------------------------------------------------------------------
 // Visibility (fog of war)
 // ---------------------------------------------------------------------------
@@ -73,6 +82,7 @@ export function bfsPathStep(
   goal: HexCoord,
   tileMap: Map<string, TileData>,
   maxDist: number,
+  isNaval = false,
 ): HexCoord | null {
   if (start.equals(goal)) return null;
 
@@ -113,7 +123,9 @@ export function bfsPathStep(
       const key = `${nb.q},${nb.r}`;
       if (visited.has(key)) continue;
       const tile = tileMap.get(key);
-      if (!tile || !WALKABLE_BIOMES.has(tile.biome)) continue;
+      if (!tile) continue;
+      const walkable = isNaval ? NAVAL_BIOMES : WALKABLE_BIOMES;
+      if (!walkable.has(tile.biome)) continue;
 
       visited.add(key);
       cameFrom.set(key, { q: cur.q, r: cur.r });
@@ -352,7 +364,7 @@ export class BasicAI {
 
       if (!target) continue;
 
-      const step = bfsPathStep(unit.position, target, tileMap, unit.movementRange);
+      const step = bfsPathStep(unit.position, target, tileMap, unit.movementRange, unit.isNaval);
       if (step && !step.equals(unit.position)) {
         actions.push({
           type: 'MOVE',
@@ -381,11 +393,12 @@ export class BasicAI {
     tileMap: Map<string, TileData>,
     visible: Set<string>,
   ): HexCoord | null {
+    const walkable = unit.isNaval ? NAVAL_BIOMES : WALKABLE_BIOMES;
     let best: HexCoord | null = null;
     let bestDist = Infinity;
 
     for (const [key, tile] of tileMap) {
-      if (!WALKABLE_BIOMES.has(tile.biome)) continue;
+      if (!walkable.has(tile.biome)) continue;
       if (visible.has(key)) continue;
       const [q, r] = key.split(',').map(Number);
       const coord = new HexCoord(q, r);

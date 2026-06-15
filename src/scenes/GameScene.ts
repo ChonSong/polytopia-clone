@@ -523,8 +523,30 @@ export class GameScene extends Phaser.Scene {
         }
       }
 
-      // Move
+      // Move (GDD §3.2 — water movement + disembark)
       if (this.selectedUnit.position.distanceTo(coord) <= this.selectedUnit.movementRange) {
+        const targetTile = this.tiles.get(coord.toString());
+        const isWater = targetTile?.biome === Biome.WATER;
+
+        // Block ground units from entering water
+        if (isWater && !this.selectedUnit.isNaval) {
+          // Not allowed — ignore click
+          return;
+        }
+
+        // RAFT moving to land → disembark to original unit type
+        if (!isWater && this.selectedUnit.type === UnitType.RAFT && this.selectedUnit.originalType) {
+          const original = this.selectedUnit.originalType;
+          this.humanTribe.removeUnit(this.selectedUnit.id);
+          const newUnit = new Unit(coord, original, this.humanTribe.id, this.selectedUnit.health);
+          newUnit.hasActed = true;
+          this.humanTribe.addUnit(newUnit);
+          this.selectedUnit = null;
+          this.selectedHex = null;
+          this.renderAll(); this.updateUI();
+          return;
+        }
+
         this.selectedUnit.position = coord;
         this.selectedUnit.hasActed = true;
         this.selectedUnit = null;
@@ -779,6 +801,90 @@ export class GameScene extends Phaser.Scene {
           this.hideCityMenu();
           this.renderAll(); this.updateUI();
         });
+      }
+    }
+
+    // --- GDD §3.2 NAVAL: EMBARK (if city has Port) ---
+    const hasPort = city.buildings.includes(BuildingType.PORT);
+    if (hasPort) {
+      const adjacentUnits = this.humanTribe.getAliveUnits().filter(u =>
+        u.position.distanceTo(city.position) <= 1 && !u.hasActed,
+      );
+      const embarkCandidates = adjacentUnits.filter(u => !u.isNaval && u.type !== UnitType.GIANT);
+      if (embarkCandidates.length > 0) {
+        items.push('── EMBARK ──');
+        handlers.push(() => {});
+        for (const eu of embarkCandidates) {
+          items.push(`  EMBARK ${eu.type} → RAFT (free)`);
+          handlers.push(() => {
+            const hp = eu.health;
+            this.humanTribe.removeUnit(eu.id);
+            const raft = new Unit(eu.position, UnitType.RAFT, this.humanTribe.id, hp, eu.type);
+            raft.hasActed = true;
+            this.humanTribe.addUnit(raft);
+            this.hideCityMenu();
+            this.renderAll(); this.updateUI();
+          });
+        }
+      }
+    }
+
+    // --- GDD §3.2 NAVAL: UPGRADE RAFT/RAMMER (if city has Port) ---
+    if (hasPort) {
+      const adjacentNaval = this.humanTribe.getAliveUnits().filter(u =>
+        u.position.distanceTo(city.position) <= 1 && u.isNaval && !u.hasActed,
+      );
+      const raftUpgrade = adjacentNaval.find(u => u.type === UnitType.RAFT);
+      const rammerUpgrade = adjacentNaval.find(u => u.type === UnitType.RAMMER);
+
+      if (raftUpgrade || rammerUpgrade) {
+        items.push('── NAVAL UPGRADE ──');
+        handlers.push(() => {});
+      }
+
+      // RAFT → SCOUT (requires Sailing)
+      if (raftUpgrade && this.humanTribe.hasTech(TechId.SAILING)) {
+        const scoutCost = UNIT_COSTS[UnitType.SCOUT];
+        const canAfford = this.humanTribe.stars >= scoutCost;
+        items.push(`  → SCOUT (${scoutCost}⭐)  2⚔ 1🛡 3🚶 Ranged`);
+        handlers.push(canAfford ? () => {
+          const hp = raftUpgrade.health;
+          this.humanTribe.removeUnit(raftUpgrade.id);
+          this.humanTribe.addUnit(new Unit(raftUpgrade.position, UnitType.SCOUT, this.humanTribe.id, hp));
+          this.humanTribe.stars -= scoutCost;
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        } : () => {});
+      }
+
+      // RAFT → RAMMER (requires Navigation)
+      if (raftUpgrade && this.humanTribe.hasTech(TechId.NAVIGATION)) {
+        const rammerCost = UNIT_COSTS[UnitType.RAMMER];
+        const canAfford = this.humanTribe.stars >= rammerCost;
+        items.push(`  → RAMMER (${rammerCost}⭐)  3⚔ 3🛡 3🚶`);
+        handlers.push(canAfford ? () => {
+          const hp = raftUpgrade.health;
+          this.humanTribe.removeUnit(raftUpgrade.id);
+          this.humanTribe.addUnit(new Unit(raftUpgrade.position, UnitType.RAMMER, this.humanTribe.id, hp));
+          this.humanTribe.stars -= rammerCost;
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        } : () => {});
+      }
+
+      // RAMMER → BOMBER (requires Navigation)
+      if (rammerUpgrade && this.humanTribe.hasTech(TechId.NAVIGATION)) {
+        const bomberCost = UNIT_COSTS[UnitType.BOMBER];
+        const canAfford = this.humanTribe.stars >= bomberCost;
+        items.push(`  → BOMBER (${bomberCost}⭐)  3⚔ 2🛡 2🚶 Splash`);
+        handlers.push(canAfford ? () => {
+          const hp = rammerUpgrade.health;
+          this.humanTribe.removeUnit(rammerUpgrade.id);
+          this.humanTribe.addUnit(new Unit(rammerUpgrade.position, UnitType.BOMBER, this.humanTribe.id, hp));
+          this.humanTribe.stars -= bomberCost;
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        } : () => {});
       }
     }
 

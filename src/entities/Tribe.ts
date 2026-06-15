@@ -83,6 +83,12 @@ export class Tribe {
       const gate = UNIT_TECH_GATES[ut];
       if (!gate || this.techs.has(gate)) all.push(ut);
     }
+    // Scout/Rammer/Bomber are naval upgrades (not direct train), but include
+    // for AI fallback and manual training in port cities
+    for (const ut of [UnitType.SCOUT, UnitType.RAMMER, UnitType.BOMBER]) {
+      const gate = UNIT_TECH_GATES[ut];
+      if (!gate || this.techs.has(gate)) all.push(ut);
+    }
     return all;
   }
 }

@@ -141,5 +141,9 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.RIDER]:     TechId.RIDING,
   [UnitType.SWORDSMAN]: TechId.CHIVALRY,
   [UnitType.KNIGHT]:    TechId.CHIVALRY,
-  // Warrior, Defender, Boat are unlocked by default or via other paths
+  // GDD §3.2 Naval gates
+  [UnitType.SCOUT]:     TechId.SAILING,
+  [UnitType.RAMMER]:    TechId.NAVIGATION,
+  [UnitType.BOMBER]:    TechId.NAVIGATION,
+  // Warrior, Defender, Boat, Raft are unlocked by default or via other paths
 };
