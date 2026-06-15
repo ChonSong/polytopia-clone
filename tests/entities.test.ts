@@ -32,6 +32,7 @@ describe('Unit', () => {
       { type: UnitType.BOAT,     atk: 2, def: 2, mv: 2, ranged: false, canAtkAfterMove: true  },
       { type: UnitType.SWORDSMAN,atk: 3, def: 3, mv: 1, ranged: false, canAtkAfterMove: true  },
       { type: UnitType.KNIGHT,   atk: 3.5, def: 1, mv: 3, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.GIANT,    atk: 5, def: 4, mv: 1, ranged: false, canAtkAfterMove: true  },
     ];
 
     for (const { type, atk, def, mv, ranged, canAtkAfterMove } of cases) {
@@ -56,6 +57,7 @@ describe('Unit', () => {
       { type: UnitType.KNIGHT,   cost: 8 },
       { type: UnitType.CATAPULT, cost: 8 },
       { type: UnitType.BOAT,     cost: 5 },
+      { type: UnitType.GIANT,    cost: 0 },
     ];
     for (const { type, cost } of cases) {
       it(`${type} costs ${cost}⭐`, () => {

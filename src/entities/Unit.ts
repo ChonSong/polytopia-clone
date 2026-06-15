@@ -9,6 +9,7 @@ export enum UnitType {
   KNIGHT   = 'KNIGHT',
   CATAPULT = 'CATAPULT',
   BOAT     = 'BOAT',
+  GIANT    = 'GIANT',
 }
 
 export interface UnitStats {
@@ -29,6 +30,7 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   [UnitType.KNIGHT]:    8,
   [UnitType.CATAPULT]:  8,
   [UnitType.BOAT]:      5,
+  [UnitType.GIANT]:     0, // super unit — not purchasable normally
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -41,6 +43,7 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   [UnitType.KNIGHT]:    10,
   [UnitType.CATAPULT]:  10,
   [UnitType.BOAT]:      10,
+  [UnitType.GIANT]:     40,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -53,6 +56,7 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.KNIGHT]:   { attack: 3.5, defense: 1, movementRange: 3, canAttackAfterMove: true,  ranged: false },
   [UnitType.CATAPULT]: { attack: 4, defense: 0, movementRange: 1, canAttackAfterMove: false, ranged: true  },
   [UnitType.BOAT]:     { attack: 2, defense: 2, movementRange: 2, canAttackAfterMove: true,  ranged: false },
+  [UnitType.GIANT]:    { attack: 5, defense: 4, movementRange: 1, canAttackAfterMove: true,  ranged: false },
 };
 
 export const MAX_HEALTH = 10;

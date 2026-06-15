@@ -34,6 +34,7 @@ export class City {
   public buildings: BuildingType[];
   public food: number;        // accumulated food toward next population growth
   public foodPerTurn: number; // food generated per turn
+  public giantSpawned: boolean; // whether the level-5 super unit has been spawned
 
   constructor(
     public position: HexCoord,
@@ -51,6 +52,7 @@ export class City {
     this.buildings = [];
     this.food = 0;
     this.foodPerTurn = 0;
+    this.giantSpawned = false;
   }
 
   /** A city can grow (level up) when population >= current level and level < 5. */

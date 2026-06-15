@@ -30,6 +30,9 @@ export class GameScene extends Phaser.Scene {
   private state!: GameState;
   private tribes!: Tribe[];
   private humanTribe!: Tribe;
+  private humanTribeIndex = 0;
+  private gameMode = 'DOMINATION';
+  private turnLimit = 99;
   private turnManager!: TurnManager;
   private ais: Map<string, BasicAI> = new Map();
   private selectedUnit: Unit | null = null;
@@ -57,10 +60,16 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
+  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string }): void {
+    this.humanTribeIndex = data.humanTribeIndex ?? 0;
+    this.gameMode = data.gameMode ?? 'DOMINATION';
+    this.turnLimit = this.gameMode === 'PERFECTION' ? 30 : 99;
+  }
+
   create(): void {
     this.tiles = generateMap(GRID_WIDTH, GRID_HEIGHT);
     this.tribes = TRIBE_CONFIGS.map(c => new Tribe(c));
-    this.humanTribe = this.tribes[0];
+    this.humanTribe = this.tribes[this.humanTribeIndex];
     this.humanTribe.stars = 15;
 
     this.placeCities();
@@ -314,8 +323,33 @@ export class GameScene extends Phaser.Scene {
       this.isAiRunning = true;
       return;
     }
+    // Perfection mode turn limit
+    if (this.gameMode === 'PERFECTION' && this.state.turn >= this.turnLimit) {
+      this.showFinalScore();
+      return;
+    }
     this.state.nextTurn();
     this.startTurn();
+  }
+
+  private showFinalScore(): void {
+    this.isAiRunning = true;
+    let msg = '🏁 GAME OVER — SCORES\n\n';
+    const sorted = [...this.tribes].sort((a, b) => this.calcScore(b) - this.calcScore(a));
+    for (const t of sorted) {
+      const s = this.calcScore(t);
+      msg += `${t.name}: ${s} pts${t === this.humanTribe ? ' (YOU)' : ''}\n`;
+    }
+    this.setStatus(msg);
+  }
+
+  private calcScore(tribe: Tribe): number {
+    const cityScore = tribe.cities.filter(c => !c.captured).length * 100;
+    const unitScore = tribe.getAliveUnits().length * 10;
+    const techScore = tribe.techs.size * 50;
+    const levelScore = tribe.cities.reduce((sum, c) => sum + c.level * 20, 0);
+    const buildingScore = tribe.cities.reduce((sum, c) => sum + c.buildings.length * 25, 0);
+    return cityScore + unitScore + techScore + levelScore + buildingScore;
   }
 
   private handleClick(px: number, py: number): void {
@@ -579,13 +613,24 @@ export class GameScene extends Phaser.Scene {
     if (canUpgrade) {
       handlers.push(() => {
         city.grow();
-        city.population++; // each upgrade adds population
+        city.population++;
         this.humanTribe.stars -= upgradeCost;
         this.hideCityMenu();
         this.renderAll(); this.updateUI();
       });
     } else {
       handlers.push(() => {});
+    }
+
+    // --- SUPER UNIT (Giant at level 5) ---
+    if (city.level >= 5 && !city.giantSpawned) {
+      items.push('SUMMON GIANT (0⭐)  40HP 5⚔ 4🛡');
+      handlers.push(() => {
+        city.giantSpawned = true;
+        this.humanTribe.addUnit(new Unit(city.position, UnitType.GIANT, this.humanTribe.id));
+        this.hideCityMenu();
+        this.renderAll(); this.updateUI();
+      });
     }
 
     // --- BUILDINGS ---
@@ -615,18 +660,10 @@ export class GameScene extends Phaser.Scene {
 
     this.cityMenu = this.add.group();
     items.forEach((text, i) => {
-      const isUpgrade = i === trainableUnits.length;
-      const isBuildingsHeader = text === '── BUILDINGS ──';
-      const buildingIdx = buildableTypes.length > 0 ? i - trainableUnits.length - 2 : -1; // -1 for header
-      let canAfford = false;
-      if (isUpgrade) canAfford = canUpgrade;
-      else if (isBuildingsHeader) canAfford = false;
-      else if (buildingIdx >= 0 && buildingIdx < buildableTypes.length) {
-        const bt = buildableTypes[buildingIdx];
-        canAfford = this.humanTribe.stars >= BUILDING_DEFS[bt].cost;
-      } else {
-        canAfford = this.humanTribe.stars >= UNIT_COSTS[trainableUnits[i].type];
-      }
+      // Items are interactive unless they're a separator/header or locked
+      const isSeparator = text.startsWith('──');
+      const isClickable = handlers[i].toString().length > 15; // non-empty handler
+      const canAfford = !isSeparator && isClickable;
       const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
         .setDepth(25).setInteractive({ useHandCursor: canAfford });
       if (canAfford) {
