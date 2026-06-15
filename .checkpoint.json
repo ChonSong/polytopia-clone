@@ -1,0 +1,11 @@
+{
+  "project": "polytopia-clone",
+  "repo": "/home/sc/repos/polytopia-clone",
+  "current_task": "p2-tech-tree-ui",
+  "completed": [
+    {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses"}
+  ],
+  "health": "tests_pass",
+  "last_sha": "feea065",
+  "blocker": null
+}
