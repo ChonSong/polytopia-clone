@@ -66,6 +66,7 @@ export class CombatSystem {
   ): boolean {
     if (!attacker.isAlive || !defender.isAlive) return false;
     if (attacker.hasActed) return false;
+    if (attacker.hasAttacked) return false;
     if (attacker.owner === defender.owner) return false;
 
     const dist = getDistance(attacker, defender);

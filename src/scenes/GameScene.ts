@@ -334,12 +334,26 @@ export class GameScene extends Phaser.Scene {
           const r = CombatSystem.executeAttack(unit, target, this.tiles);
           unit.takeDamage(r.attackerDamage);
           target.takeDamage(r.defenderDamage);
+
+          // GDD §3.3 — Escape: defender (Rider) retreats 1 tile when hit in melee
+          if (target.hasEscape && target.isAlive) {
+            const retreatDir = this.findRetreatDirection(target, unit);
+            if (retreatDir) {
+              target.position = retreatDir;
+            }
+          }
+
           if (r.defenderKilled) {
             const owner = this.findTribeForUnit(target.id);
             if (owner) owner.removeUnit(target.id);
             // Only melee units advance into the defender's tile on kill
             if (!unit.ranged) {
               unit.position = targetPos;
+            }
+            // GDD §3.3 — Persist: Knight refreshes action on kill
+            if (unit.hasPersist) {
+              unit.hasAttacked = false;
+              // hasActed stays false so Knight can act again this turn
             }
           }
           if (r.attackerKilled) tribe.removeUnit(unit.id);
@@ -554,6 +568,15 @@ export class GameScene extends Phaser.Scene {
           const r = CombatSystem.executeAttack(this.selectedUnit, cu, this.tiles);
           this.selectedUnit.takeDamage(r.attackerDamage);
           cu.takeDamage(r.defenderDamage);
+
+          // GDD §3.3 — Escape: defender (Rider) retreats 1 tile when hit in melee
+          if (cu.hasEscape && cu.isAlive) {
+            const retreatDir = this.findRetreatDirection(cu, this.selectedUnit);
+            if (retreatDir) {
+              cu.position = retreatDir;
+            }
+          }
+
           if (r.defenderKilled) {
             const owner = this.findTribeForUnit(cu.id);
             if (owner) owner.removeUnit(cu.id);
@@ -562,9 +585,26 @@ export class GameScene extends Phaser.Scene {
               this.selectedUnit.position = coord;
             }
           }
-          if (r.attackerKilled) this.humanTribe.removeUnit(this.selectedUnit.id);
-          this.selectedUnit = null;
-          this.selectedHex = null;
+
+          if (r.attackerKilled) {
+            this.humanTribe.removeUnit(this.selectedUnit.id);
+            this.selectedUnit = null;
+          } else if (r.defenderKilled && this.selectedUnit.hasPersist) {
+            // GDD §3.3 — Persist: Knight refreshes action on kill
+            this.selectedUnit.hasAttacked = false;
+            // Keep selected so player can attack another enemy
+            this.selectedHex = coord;
+          } else if (this.selectedUnit.hasEscape && this.selectedUnit.isAlive) {
+            // GDD §3.3 — Escape: Rider can move after attacking
+            this.selectedUnit.hasAttacked = true;
+            // Keep selected so player can move remaining distance
+            this.selectedHex = coord;
+          } else {
+            // Normal unit — done for the turn
+            this.selectedUnit.hasActed = true;
+            this.selectedUnit = null;
+            this.selectedHex = null;
+          }
           this.renderAll(); this.updateUI();
           return;
         }
@@ -1127,6 +1167,40 @@ export class GameScene extends Phaser.Scene {
       income += city.getStarsPerTurn(biomes);
     }
     return income;
+  }
+
+  /**
+   * GDD §3.3 — Escape: find a tile for `defender` to retreat to, away from `attacker`.
+   * Tries to move 1 tile in the direction opposite the attacker.
+   * Falls back to any walkable unoccupied adjacent tile, then null.
+   */
+  private findRetreatDirection(defender: Unit, attacker: Unit): HexCoord | null {
+    const defPos = defender.position;
+    const atkPos = attacker.position;
+
+    // Direction vector from attacker to defender (axial)
+    const dq = Math.sign(defPos.q - atkPos.q);
+    const dr = Math.sign(defPos.r - atkPos.r);
+
+    // Try opposite direction first
+    const opposite = new HexCoord(defPos.q + dq, defPos.r + dr);
+    const oppKey = opposite.toString();
+    const oppTile = this.tiles.get(oppKey);
+    if (oppTile && oppTile.biome !== Biome.WATER && !this.findUnit(opposite) && !this.findCity(opposite)) {
+      return opposite;
+    }
+
+    // Fall back to any walkable unoccupied adjacent tile
+    for (const dir of HexCoord.DIRECTIONS) {
+      const nb = new HexCoord(defPos.q + dir.q, defPos.r + dir.r);
+      const nbKey = nb.toString();
+      const nbTile = this.tiles.get(nbKey);
+      if (nbTile && nbTile.biome !== Biome.WATER && !this.findUnit(nb) && !this.findCity(nb)) {
+        return nb;
+      }
+    }
+
+    return null; // nowhere to retreat
   }
 
   private delay(ms: number): Promise<void> {

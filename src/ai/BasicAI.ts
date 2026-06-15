@@ -510,7 +510,9 @@ export class BasicAI {
               targetR: neighbor.r,
             },
           });
-          break; // one attack per unit per turn
+          // GDD §3.3 — Persist (Knight) can attack all adjacent enemies; others get one attack
+          if (!unit.hasPersist) break;
+          continue;
         }
 
         // Check enemy cities
@@ -528,7 +530,8 @@ export class BasicAI {
               targetR: neighbor.r,
             },
           });
-          break;
+          if (!unit.hasPersist) break;
+          continue;
         }
       }
     }

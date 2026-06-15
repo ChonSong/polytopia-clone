@@ -91,6 +91,11 @@ export class Unit {
   /** Whether this unit has already acted (moved/attacked) this turn. */
   public hasActed: boolean;
   /**
+   * GDD §3.3 — Whether this unit has already attacked this turn.
+   * Used by Escape (Rider) to prevent double-attack while allowing post-attack movement.
+   */
+  public hasAttacked: boolean;
+  /**
    * GDD §3.2 — When a terrestrial unit embarks as Raft, store its original type
    * so disembark can revert it. null for naturally-trained naval units.
    */
@@ -106,6 +111,7 @@ export class Unit {
     this.id = `${owner}-${type}-${position.toString()}-${Date.now()}`;
     this.health = health ?? UNIT_MAX_HEALTH[type];
     this.hasActed = false;
+    this.hasAttacked = false;
     this.originalType = originalType ?? null;
   }
 
@@ -142,6 +148,16 @@ export class Unit {
     return NAVAL_UNIT_TYPES.has(this.type);
   }
 
+  /** GDD §3.3 — Escape: can move after attacking (Rider). */
+  get hasEscape(): boolean {
+    return this.type === UnitType.RIDER;
+  }
+
+  /** GDD §3.3 — Persist: if unit kills a target, action refreshes (Knight). */
+  get hasPersist(): boolean {
+    return this.type === UnitType.KNIGHT;
+  }
+
   takeDamage(amount: number): void {
     this.health = Math.max(0, this.health - amount);
   }
@@ -153,5 +169,6 @@ export class Unit {
   /** Call at the start of the tribe's turn to reset action state. */
   resetTurn(): void {
     this.hasActed = false;
+    this.hasAttacked = false;
   }
 }
