@@ -244,7 +244,10 @@ export class GameScene extends Phaser.Scene {
           if (r.defenderKilled) {
             const owner = this.findTribeForUnit(target.id);
             if (owner) owner.removeUnit(target.id);
-            unit.position = targetPos;
+            // Only melee units advance into the defender's tile on kill
+            if (!unit.ranged) {
+              unit.position = targetPos;
+            }
           }
           if (r.attackerKilled) tribe.removeUnit(unit.id);
         } else if (unit && p.targetType === 'city') {
@@ -388,7 +391,10 @@ export class GameScene extends Phaser.Scene {
           if (r.defenderKilled) {
             const owner = this.findTribeForUnit(cu.id);
             if (owner) owner.removeUnit(cu.id);
-            this.selectedUnit.position = coord;
+            // Only melee units advance into the defender's tile on kill
+            if (!this.selectedUnit.ranged) {
+              this.selectedUnit.position = coord;
+            }
           }
           if (r.attackerKilled) this.humanTribe.removeUnit(this.selectedUnit.id);
           this.selectedUnit = null;
