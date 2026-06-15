@@ -1,6 +1,6 @@
 import { HexCoord } from '../hex/HexCoord';
 import { TileData, Biome } from '../hex/Tile';
-import { Unit, MAX_HEALTH, UnitType } from './Unit';
+import { Unit, UNIT_MAX_HEALTH, MAX_HEALTH, UnitType } from './Unit';
 import { CityData } from './CityData';
 
 export interface CombatResult {
@@ -124,10 +124,10 @@ export class CombatSystem {
     defenderTile: TileData,
     distance: number = 1,
   ): number {
-    const attFactor = 0.5 + 0.5 * (attacker.health / MAX_HEALTH);
+    const attFactor = 0.5 + 0.5 * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
     const baseDamage = attacker.attack * attFactor;
 
-    const defFactor = 0.5 + 0.5 * (defender.health / MAX_HEALTH);
+    const defFactor = 0.5 + 0.5 * (defender.health / UNIT_MAX_HEALTH[defender.type]);
     let totalDefense = defender.defense * defFactor;
 
     // Terrain bonus
@@ -155,7 +155,7 @@ export class CombatSystem {
     city: CityData,
     distance: number = 1,
   ): number {
-    const attFactor = 0.5 + 0.5 * (attacker.health / MAX_HEALTH);
+    const attFactor = 0.5 + 0.5 * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
     const baseDamage = attacker.attack * attFactor;
 
     const cityFactor = 0.5 + 0.5 * (city.health / city.maxHealth);

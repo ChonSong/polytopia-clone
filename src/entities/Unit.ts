@@ -5,6 +5,8 @@ export enum UnitType {
   RIDER    = 'RIDER',
   DEFENDER = 'DEFENDER',
   ARCHER   = 'ARCHER',
+  SWORDSMAN = 'SWORDSMAN',
+  KNIGHT   = 'KNIGHT',
   CATAPULT = 'CATAPULT',
   BOAT     = 'BOAT',
 }
@@ -17,13 +19,39 @@ export interface UnitStats {
   ranged: boolean;
 }
 
-/** Base statistics for every unit type. */
+/** Star cost to train each unit type. */
+export const UNIT_COSTS: Record<UnitType, number> = {
+  [UnitType.WARRIOR]:   2,
+  [UnitType.RIDER]:     3,
+  [UnitType.DEFENDER]:  3,
+  [UnitType.ARCHER]:    3,
+  [UnitType.SWORDSMAN]: 5,
+  [UnitType.KNIGHT]:    8,
+  [UnitType.CATAPULT]:  8,
+  [UnitType.BOAT]:      5,
+};
+
+/** Max health per unit type (most are 10, Defender and Swordsman are 15). */
+export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
+  [UnitType.WARRIOR]:   10,
+  [UnitType.RIDER]:     10,
+  [UnitType.DEFENDER]:  15,
+  [UnitType.ARCHER]:    10,
+  [UnitType.SWORDSMAN]: 15,
+  [UnitType.KNIGHT]:    10,
+  [UnitType.CATAPULT]:  10,
+  [UnitType.BOAT]:      10,
+};
+
+/** Base statistics for every unit type (matching real Polytopia). */
 export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.WARRIOR]:  { attack: 2, defense: 2, movementRange: 1, canAttackAfterMove: true,  ranged: false },
-  [UnitType.RIDER]:    { attack: 1, defense: 1, movementRange: 2, canAttackAfterMove: true,  ranged: false },
-  [UnitType.DEFENDER]: { attack: 1, defense: 4, movementRange: 1, canAttackAfterMove: true,  ranged: false },
-  [UnitType.ARCHER]:   { attack: 3, defense: 1, movementRange: 1, canAttackAfterMove: false, ranged: true  },
-  [UnitType.CATAPULT]: { attack: 4, defense: 1, movementRange: 1, canAttackAfterMove: false, ranged: true  },
+  [UnitType.RIDER]:    { attack: 2, defense: 1, movementRange: 2, canAttackAfterMove: true,  ranged: false },
+  [UnitType.DEFENDER]: { attack: 1, defense: 3, movementRange: 1, canAttackAfterMove: true,  ranged: false },
+  [UnitType.ARCHER]:   { attack: 2, defense: 1, movementRange: 1, canAttackAfterMove: false, ranged: true  },
+  [UnitType.SWORDSMAN]:{ attack: 3, defense: 3, movementRange: 1, canAttackAfterMove: true,  ranged: false },
+  [UnitType.KNIGHT]:   { attack: 3.5, defense: 1, movementRange: 3, canAttackAfterMove: true,  ranged: false },
+  [UnitType.CATAPULT]: { attack: 4, defense: 0, movementRange: 1, canAttackAfterMove: false, ranged: true  },
   [UnitType.BOAT]:     { attack: 2, defense: 2, movementRange: 2, canAttackAfterMove: true,  ranged: false },
 };
 
@@ -39,10 +67,10 @@ export class Unit {
     public position: HexCoord,
     public type: UnitType,
     public owner: string,       // tribeId
-    health: number = MAX_HEALTH,
+    health?: number,
   ) {
     this.id = `${owner}-${type}-${position.toString()}-${Date.now()}`;
-    this.health = health;
+    this.health = health ?? UNIT_MAX_HEALTH[type];
     this.hasActed = false;
   }
 
@@ -79,7 +107,7 @@ export class Unit {
   }
 
   heal(amount: number): void {
-    this.health = Math.min(MAX_HEALTH, this.health + amount);
+    this.health = Math.min(UNIT_MAX_HEALTH[this.type], this.health + amount);
   }
 
   /** Call at the start of the tribe's turn to reset action state. */

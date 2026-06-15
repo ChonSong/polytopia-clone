@@ -5,7 +5,7 @@ import { TileData, Biome, BiomeColors } from '../hex/Tile';
 import { generateMap } from '../hex/MapGenerator';
 import { GameState } from '../entities/GameState';
 import { Tribe, TRIBE_CONFIGS } from '../entities/Tribe';
-import { Unit, UnitType } from '../entities/Unit';
+import { Unit, UnitType, UNIT_COSTS, UNIT_MAX_HEALTH } from '../entities/Unit';
 import { City } from '../entities/City';
 import { TurnManager, TurnPhase } from '../entities/TurnManager';
 import { BasicAI } from '../ai/BasicAI';
@@ -179,18 +179,23 @@ export class GameScene extends Phaser.Scene {
     const p = action.params;
     switch (action.type) {
       case 'TRAIN': {
+        const unitType = (p.unitType as UnitType) || UnitType.WARRIOR;
+        const cost = UNIT_COSTS[unitType];
         const city = tribe.cities.find(c => c.id === p.cityId);
-        if (city && tribe.stars >= 5) {
-          tribe.addUnit(new Unit(city.position, (p.unitType as UnitType) || UnitType.WARRIOR, tribe.id));
-          tribe.stars -= 5;
+        if (city && tribe.stars >= cost) {
+          tribe.addUnit(new Unit(city.position, unitType, tribe.id));
+          tribe.stars -= cost;
         }
         break;
       }
       case 'UPGRADE': {
         const city = tribe.cities.find(c => c.id === p.cityId);
-        if (city && city.canGrow() && tribe.stars >= 3) {
+        if (!city) break;
+        const upgradeCost = (p.cost as number) || city.level * 5;
+        if (city.canGrow() && tribe.stars >= upgradeCost) {
           city.grow();
-          tribe.stars -= 3;
+          city.population++;
+          tribe.stars -= upgradeCost;
         }
         break;
       }
@@ -250,7 +255,7 @@ export class GameScene extends Phaser.Scene {
         const t = this.tiles.get(n.toString());
         if (t) biomes.push(t.biome);
       }
-      stars += city.produceResources(biomes).stars;
+      stars += city.getStarsPerTurn(biomes);
     }
     tribe.stars += stars + tribe.starsPerTurn;
   }
@@ -269,7 +274,7 @@ export class GameScene extends Phaser.Scene {
         const t = this.tiles.get(n.toString());
         if (t) biomes.push(t.biome);
       }
-      stars += city.produceResources(biomes).stars;
+      stars += city.getStarsPerTurn(biomes);
     }
     this.humanTribe.stars += stars + this.humanTribe.starsPerTurn;
   }
@@ -395,39 +400,54 @@ export class GameScene extends Phaser.Scene {
     const items: string[] = [];
     const handlers: (() => void)[] = [];
 
-    // Train Warrior
-    if (this.humanTribe.stars >= 5) {
-      items.push('TRAIN WARRIOR (5⭐)');
-      handlers.push(() => {
-        this.humanTribe.addUnit(new Unit(city.position, UnitType.WARRIOR, this.humanTribe.id));
-        this.humanTribe.stars -= 5;
-        this.hideCityMenu();
-        this.renderAll(); this.updateUI();
-      });
-    } else {
-      items.push('TRAIN WARRIOR (5⭐)');
-      handlers.push(() => {}); // no-op
+    // --- TRAINABLE UNITS ---
+    const trainableUnits: { type: UnitType; label: string }[] = [
+      { type: UnitType.WARRIOR,  label: 'WARRIOR' },
+      { type: UnitType.RIDER,    label: 'RIDER' },
+      { type: UnitType.DEFENDER, label: 'DEFENDER' },
+      { type: UnitType.ARCHER,   label: 'ARCHER' },
+      { type: UnitType.SWORDSMAN,label: 'SWORDSMAN' },
+      { type: UnitType.KNIGHT,   label: 'KNIGHT' },
+      { type: UnitType.CATAPULT, label: 'CATAPULT' },
+    ];
+
+    for (const ut of trainableUnits) {
+      const cost = UNIT_COSTS[ut.type];
+      const affordable = this.humanTribe.stars >= cost;
+      const label = `TRAIN ${ut.label} (${cost}⭐)`;
+      items.push(label);
+      if (affordable) {
+        handlers.push(() => {
+          this.humanTribe.addUnit(new Unit(city.position, ut.type, this.humanTribe.id));
+          this.humanTribe.stars -= cost;
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        });
+      } else {
+        handlers.push(() => {});
+      }
     }
 
-    // Upgrade city
+    // --- UPGRADE CITY ---
     const upgradeCost = city.level * 5;
-    if (city.canGrow() && this.humanTribe.stars >= upgradeCost) {
-      items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐)`);
+    const canUpgrade = city.canGrow() && this.humanTribe.stars >= upgradeCost;
+    items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐) → +1⭐/turn`);
+    if (canUpgrade) {
       handlers.push(() => {
         city.grow();
+        city.population++; // each upgrade adds population
         this.humanTribe.stars -= upgradeCost;
         this.hideCityMenu();
         this.renderAll(); this.updateUI();
       });
     } else {
-      items.push(`UPGRADE Lv${city.level}→${city.level + 1} (${upgradeCost}⭐)`);
-      handlers.push(() => {}); // no-op
+      handlers.push(() => {});
     }
 
     this.cityMenu = this.add.group();
     items.forEach((text, i) => {
-      const canAfford = (i === 0 && this.humanTribe.stars >= 5) ||
-        (i === 1 && city.canGrow() && this.humanTribe.stars >= city.level * 5);
+      const isUpgrade = i === trainableUnits.length;
+      const canAfford = isUpgrade ? canUpgrade : this.humanTribe.stars >= UNIT_COSTS[trainableUnits[i].type];
       const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
         .setDepth(25).setInteractive({ useHandCursor: canAfford });
       if (canAfford) {
@@ -533,7 +553,7 @@ export class GameScene extends Phaser.Scene {
         this.entityGraphics.fillStyle(0x000, 0.7);
         this.entityGraphics.fillRect(p.x - bw / 2, p.y - r - 5, bw, bh);
         this.entityGraphics.fillStyle(u.health > 3 ? 0x4c4 : 0xc44, 1);
-        this.entityGraphics.fillRect(p.x - bw / 2, p.y - r - 5, bw * (u.health / 10), bh);
+        this.entityGraphics.fillRect(p.x - bw / 2, p.y - r - 5, bw * (u.health / UNIT_MAX_HEALTH[u.type]), bh);
       }
     }
   }
@@ -541,7 +561,7 @@ export class GameScene extends Phaser.Scene {
   private updateUI(): void {
     const cur = this.state.getCurrentTribe();
     this.tribeText.setText(`${cur?.name ?? '?'}  Turn ${this.state.turn}`);
-    this.phaseText.setText(`Stars: ${cur?.stars ?? 0}  Cities: ${this.humanTribe.cities.filter(c => !c.captured).length}`);
+    this.phaseText.setText(`Stars: ${cur?.stars ?? 0}  ⭐+${this.getHumanStarIncome()}/turn  Cities: ${this.humanTribe.cities.filter(c => !c.captured).length}`);
     let info = '';
     if (this.selectedHex) {
       const tile = this.tiles.get(this.selectedHex.toString());
@@ -555,6 +575,19 @@ export class GameScene extends Phaser.Scene {
   }
 
   private setStatus(m: string): void { this.phaseText.setText(m); }
+
+  private getHumanStarIncome(): number {
+    let income = this.humanTribe.starsPerTurn;
+    for (const city of this.humanTribe.cities) {
+      const biomes: Biome[] = [];
+      for (const n of city.position.neighbors()) {
+        const t = this.tiles.get(n.toString());
+        if (t) biomes.push(t.biome);
+      }
+      income += city.getStarsPerTurn(biomes);
+    }
+    return income;
+  }
 
   private delay(ms: number): Promise<void> {
     return new Promise(r => this.time.delayedCall(ms, r));

@@ -29,6 +29,7 @@ export class City {
   public population: number;
   public canBuildUnits: boolean;
   public captured: boolean;
+  public levelStarsBonus: number; // bonus ⭐/turn from level upgrades
 
   constructor(
     public position: HexCoord,
@@ -42,6 +43,7 @@ export class City {
     this.population = population;
     this.canBuildUnits = level >= 2;
     this.captured = false;
+    this.levelStarsBonus = 0;
   }
 
   /** A city can grow (level up) when population >= current level and level < 5. */
@@ -54,6 +56,13 @@ export class City {
     if (!this.canGrow()) return;
     this.level++;
     this.canBuildUnits = this.level >= 2;
+    // Each level adds +1⭐/turn production bonus
+    this.levelStarsBonus = this.level - 1;
+  }
+
+  /** Total stars produced per turn (base yields + level bonus). */
+  getStarsPerTurn(adjacentBiomes: Biome[]): number {
+    return this.produceResources(adjacentBiomes).stars + this.levelStarsBonus;
   }
 
   /**

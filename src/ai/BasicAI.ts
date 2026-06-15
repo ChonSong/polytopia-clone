@@ -2,7 +2,7 @@ import { HexCoord } from '../hex/HexCoord';
 import { TileData, Biome } from '../hex/Tile';
 import { Tribe } from '../entities/Tribe';
 import { City } from '../entities/City';
-import { Unit, UnitType } from '../entities/Unit';
+import { Unit, UnitType, UNIT_COSTS } from '../entities/Unit';
 import { GameState } from '../entities/GameState';
 import { Action, TurnPhase } from '../entities/TurnManager';
 
@@ -214,13 +214,12 @@ export class BasicAI {
     // Priority 1: Train units if we have fewer than minUnitsForUpgrade
     if (this.tribe.units.length < this.options.minUnitsForUpgrade) {
       for (const city of this.tribe.cities) {
-        const cost = 5; // base warrior cost
+        const cost = UNIT_COSTS[this.options.preferredUnit];
         if (this.tribe.stars >= cost) {
           actions.push({
             type: 'TRAIN',
             params: { cityId: city.id, unitType: this.options.preferredUnit, cost },
           });
-          this.tribe.stars -= cost;
           break; // train one unit per turn
         }
       }
@@ -236,7 +235,6 @@ export class BasicAI {
           type: 'UPGRADE',
           params: { cityId: city.id, cost },
         });
-        this.tribe.stars -= cost;
         break;
       }
     }

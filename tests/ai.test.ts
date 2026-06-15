@@ -206,8 +206,9 @@ describe('BasicAI', () => {
     const trainAction = actions.find(a => a.type === 'TRAIN');
     expect(trainAction).toBeDefined();
     expect(trainAction!.params.unitType).toBe(UnitType.WARRIOR);
-    // Stars should be deducted
-    expect(tribe.stars).toBeLessThan(20);
+    expect(trainAction!.params.cost).toBe(2); // Warrior cost
+    // Stars NOT deducted in decision phase (done in executeAiAction)
+    expect(tribe.stars).toBe(20);
   });
 
   it('upgrades a city when tribe has enough units (BUILD phase)', () => {
@@ -226,7 +227,8 @@ describe('BasicAI', () => {
       `player-Capital-3,3`,
     );
     expect(upgradeAction!.params.cost).toBe(5); // level 1 cost
-    expect(tribe.stars).toBeLessThan(20);
+    // Stars NOT deducted in decision phase (done in executeAiAction)
+    expect(tribe.stars).toBe(20);
   });
 
   it('does nothing in BUILD phase when stars are insufficient', () => {

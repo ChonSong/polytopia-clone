@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { HexCoord } from '../src/hex/HexCoord';
 import { Biome } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
-import { Unit, UnitType, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
+import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
 
@@ -24,11 +24,13 @@ describe('Unit', () => {
   describe('base stat values for each type', () => {
     const cases: Array<{ type: UnitType; atk: number; def: number; mv: number; ranged: boolean; canAtkAfterMove: boolean }> = [
       { type: UnitType.WARRIOR,  atk: 2, def: 2, mv: 1, ranged: false, canAtkAfterMove: true  },
-      { type: UnitType.RIDER,    atk: 1, def: 1, mv: 2, ranged: false, canAtkAfterMove: true  },
-      { type: UnitType.DEFENDER, atk: 1, def: 4, mv: 1, ranged: false, canAtkAfterMove: true  },
-      { type: UnitType.ARCHER,   atk: 3, def: 1, mv: 1, ranged: true,  canAtkAfterMove: false },
-      { type: UnitType.CATAPULT, atk: 4, def: 1, mv: 1, ranged: true,  canAtkAfterMove: false },
+      { type: UnitType.RIDER,    atk: 2, def: 1, mv: 2, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.DEFENDER, atk: 1, def: 3, mv: 1, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.ARCHER,   atk: 2, def: 1, mv: 1, ranged: true,  canAtkAfterMove: false },
+      { type: UnitType.CATAPULT, atk: 4, def: 0, mv: 1, ranged: true,  canAtkAfterMove: false },
       { type: UnitType.BOAT,     atk: 2, def: 2, mv: 2, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.SWORDSMAN,atk: 3, def: 3, mv: 1, ranged: false, canAtkAfterMove: true  },
+      { type: UnitType.KNIGHT,   atk: 3.5, def: 1, mv: 3, ranged: false, canAtkAfterMove: true  },
     ];
 
     for (const { type, atk, def, mv, ranged, canAtkAfterMove } of cases) {
@@ -43,10 +45,31 @@ describe('Unit', () => {
     }
   });
 
-  it('starts with max health (10)', () => {
-    const unit = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
-    expect(unit.health).toBe(MAX_HEALTH);
-    expect(unit.health).toBe(10);
+  describe('UNIT_COSTS', () => {
+    const cases: Array<{ type: UnitType; cost: number }> = [
+      { type: UnitType.WARRIOR,  cost: 2 },
+      { type: UnitType.RIDER,    cost: 3 },
+      { type: UnitType.DEFENDER, cost: 3 },
+      { type: UnitType.ARCHER,   cost: 3 },
+      { type: UnitType.SWORDSMAN,cost: 5 },
+      { type: UnitType.KNIGHT,   cost: 8 },
+      { type: UnitType.CATAPULT, cost: 8 },
+      { type: UnitType.BOAT,     cost: 5 },
+    ];
+    for (const { type, cost } of cases) {
+      it(`${type} costs ${cost}⭐`, () => {
+        expect(UNIT_COSTS[type]).toBe(cost);
+      });
+    }
+  });
+
+  it('starts with type-specific max health', () => {
+    const warrior = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    expect(warrior.health).toBe(10);
+    const defender = new Unit(coord(0, 0), UnitType.DEFENDER, 'test');
+    expect(defender.health).toBe(15);
+    const swordsman = new Unit(coord(0, 0), UnitType.SWORDSMAN, 'test');
+    expect(swordsman.health).toBe(15);
   });
 
   it('is alive when health > 0', () => {
@@ -88,12 +111,13 @@ describe('Unit', () => {
 
   it('takeDamage and heal work correctly', () => {
     const unit = new Unit(coord(0, 0), UnitType.DEFENDER, 'test');
+    expect(unit.health).toBe(15);
     unit.takeDamage(4);
-    expect(unit.health).toBe(6);
+    expect(unit.health).toBe(11);
     unit.heal(2);
-    expect(unit.health).toBe(8);
-    unit.heal(10); // should cap at MAX_HEALTH
-    expect(unit.health).toBe(10);
+    expect(unit.health).toBe(13);
+    unit.heal(10); // should cap at max health (15 for DEFENDER)
+    expect(unit.health).toBe(15);
     unit.takeDamage(100); // should floor at 0
     expect(unit.health).toBe(0);
   });
