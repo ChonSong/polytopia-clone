@@ -1,5 +1,6 @@
 import { HexCoord } from '../hex/HexCoord';
-import { Biome } from '../hex/Tile';
+import { Biome, Resource } from '../hex/Tile';
+import { BuildingDef, BuildingType, BUILDING_DEFS } from './Building';
 
 export interface CityResource {
   food: number;
@@ -30,6 +31,9 @@ export class City {
   public canBuildUnits: boolean;
   public captured: boolean;
   public levelStarsBonus: number; // bonus ⭐/turn from level upgrades
+  public buildings: BuildingType[];
+  public food: number;        // accumulated food toward next population growth
+  public foodPerTurn: number; // food generated per turn
 
   constructor(
     public position: HexCoord,
@@ -44,6 +48,9 @@ export class City {
     this.canBuildUnits = level >= 2;
     this.captured = false;
     this.levelStarsBonus = 0;
+    this.buildings = [];
+    this.food = 0;
+    this.foodPerTurn = 0;
   }
 
   /** A city can grow (level up) when population >= current level and level < 5. */
@@ -60,9 +67,44 @@ export class City {
     this.levelStarsBonus = this.level - 1;
   }
 
-  /** Total stars produced per turn (base yields + level bonus). */
+  /** Total stars produced per turn (base yields + level bonus + buildings). */
   getStarsPerTurn(adjacentBiomes: Biome[]): number {
-    return this.produceResources(adjacentBiomes).stars + this.levelStarsBonus;
+    let bonus = 0;
+    for (const b of this.buildings) {
+      bonus += BUILDING_DEFS[b].starsBonus;
+    }
+    return this.produceResources(adjacentBiomes).stars + this.levelStarsBonus + bonus;
+  }
+
+  /** Calculate food per turn from adjacent biomes. */
+  calcFoodPerTurn(adjacentBiomes: Biome[]): number {
+    let food = 0;
+    for (const biome of adjacentBiomes) {
+      const yieldVal = BIOME_YIELDS[biome];
+      if (yieldVal) food += yieldVal.food;
+    }
+    this.foodPerTurn = food;
+    return food;
+  }
+
+  /** Process food accumulation for one turn. Returns true if population grew. */
+  processFood(adjacentBiomes: Biome[]): boolean {
+    this.calcFoodPerTurn(adjacentBiomes);
+    this.food += this.foodPerTurn;
+    const threshold = this.population * 10;
+    if (this.food >= threshold && this.population < 10) {
+      this.food -= threshold;
+      this.population++;
+      return true;
+    }
+    return false;
+  }
+
+  /** Check if a building can be built on an adjacent tile with the given resource. */
+  canBuild(building: BuildingType, adjacentResources: Resource[]): boolean {
+    const def = BUILDING_DEFS[building];
+    if (this.buildings.includes(building)) return false;
+    return adjacentResources.includes(def.requiresResource);
   }
 
   /**

@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { HexCoord } from '../hex/HexCoord';
 import { HEX_SIZE, GRID_WIDTH, GRID_HEIGHT } from '../hex/constants';
-import { TileData, Biome, BiomeColors } from '../hex/Tile';
+import { TileData, Biome, BiomeColors, ResourceColors } from '../hex/Tile';
 import { generateMap } from '../hex/MapGenerator';
 import { GameState } from '../entities/GameState';
 import { Tribe, TRIBE_CONFIGS } from '../entities/Tribe';
@@ -12,6 +12,8 @@ import { BasicAI } from '../ai/BasicAI';
 import { CombatSystem } from '../entities/CombatSystem';
 import { createCity } from '../entities/CityData';
 import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost, UNIT_TECH_GATES } from '../entities/TechTree';
+import { BUILDING_DEFS, BuildingType } from '../entities/Building';
+import { Resource } from '../hex/Tile';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -280,6 +282,7 @@ export class GameScene extends Phaser.Scene {
         if (t) biomes.push(t.biome);
       }
       stars += city.getStarsPerTurn(biomes);
+      city.processFood(biomes);
     }
     tribe.stars += stars + tribe.starsPerTurn;
   }
@@ -299,6 +302,7 @@ export class GameScene extends Phaser.Scene {
         if (t) biomes.push(t.biome);
       }
       stars += city.getStarsPerTurn(biomes);
+      city.processFood(biomes);
     }
     this.humanTribe.stars += stars + this.humanTribe.starsPerTurn;
   }
@@ -584,10 +588,45 @@ export class GameScene extends Phaser.Scene {
       handlers.push(() => {});
     }
 
+    // --- BUILDINGS ---
+    const adjacentResources: Resource[] = [];
+    for (const n of city.position.neighbors()) {
+      const t = this.tiles.get(n.toString());
+      if (t?.resource) adjacentResources.push(t.resource);
+    }
+    const buildableTypes = Object.values(BuildingType).filter(bt =>
+      city.canBuild(bt, adjacentResources) && this.humanTribe.stars >= BUILDING_DEFS[bt].cost
+    );
+    if (buildableTypes.length > 0) {
+      items.push('── BUILDINGS ──');
+      handlers.push(() => {}); // separator — no-op
+      for (const bt of buildableTypes) {
+        const def = BUILDING_DEFS[bt];
+        items.push(`${def.name} (${def.cost}⭐) +${def.popBonus}pop` + (def.starsBonus > 0 ? ` +${def.starsBonus}⭐/t` : ''));
+        handlers.push(() => {
+          city.buildings.push(bt);
+          city.population += def.popBonus;
+          this.humanTribe.stars -= def.cost;
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        });
+      }
+    }
+
     this.cityMenu = this.add.group();
     items.forEach((text, i) => {
       const isUpgrade = i === trainableUnits.length;
-      const canAfford = isUpgrade ? canUpgrade : this.humanTribe.stars >= UNIT_COSTS[trainableUnits[i].type];
+      const isBuildingsHeader = text === '── BUILDINGS ──';
+      const buildingIdx = buildableTypes.length > 0 ? i - trainableUnits.length - 2 : -1; // -1 for header
+      let canAfford = false;
+      if (isUpgrade) canAfford = canUpgrade;
+      else if (isBuildingsHeader) canAfford = false;
+      else if (buildingIdx >= 0 && buildingIdx < buildableTypes.length) {
+        const bt = buildableTypes[buildingIdx];
+        canAfford = this.humanTribe.stars >= BUILDING_DEFS[bt].cost;
+      } else {
+        canAfford = this.humanTribe.stars >= UNIT_COSTS[trainableUnits[i].type];
+      }
       const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
         .setDepth(25).setInteractive({ useHandCursor: canAfford });
       if (canAfford) {
@@ -646,6 +685,11 @@ export class GameScene extends Phaser.Scene {
       const pos = c.toPixel(HEX_SIZE);
       const sel = this.selectedHex && this.selectedHex.equals(c);
       this.drawHex(this.hexGraphics, pos.x, pos.y, HEX_SIZE, BiomeColors[tile.biome], sel ? 0xffff00 : undefined);
+      // Resource dot
+      if (tile.resource) {
+        this.entityGraphics.fillStyle(ResourceColors[tile.resource], 0.9);
+        this.entityGraphics.fillCircle(pos.x, pos.y - 2, 4);
+      }
     }
 
     // Range indicator
@@ -701,7 +745,10 @@ export class GameScene extends Phaser.Scene {
   private updateUI(): void {
     const cur = this.state.getCurrentTribe();
     this.tribeText.setText(`${cur?.name ?? '?'}  Turn ${this.state.turn}`);
-    this.phaseText.setText(`Stars: ${cur?.stars ?? 0}  ⭐+${this.getHumanStarIncome()}/turn  Cities: ${this.humanTribe.cities.filter(c => !c.captured).length}`);
+    const foodInfo = this.humanTribe.cities.length > 0
+      ? ` 🍖${this.humanTribe.cities[0].food}/${this.humanTribe.cities[0].population * 10}`
+      : '';
+    this.phaseText.setText(`Stars: ${cur?.stars ?? 0}  ⭐+${this.getHumanStarIncome()}/turn${foodInfo}  Cities: ${this.humanTribe.cities.filter(c => !c.captured).length}`);
     let info = '';
     if (this.selectedHex) {
       const tile = this.tiles.get(this.selectedHex.toString());
