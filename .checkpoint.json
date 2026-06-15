@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-5.3-city-upgrade-choices",
+  "current_task": "gdd-5.4-buildings-real-costs",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests"},
@@ -9,9 +9,10 @@
     {"task": "p4-giants", "sha": "ae56724", "date": "2026-06-15", "summary": "Giant super unit at city level 5, 40HP/5atk/4def"},
     {"task": "p5-full-game", "sha": "ae56724", "date": "2026-06-15", "summary": "Tribe selection, map types, perfection mode, 152 tests"},
     {"task": "gdd-4.6-healing", "sha": "bd2a8d1", "date": "2026-06-15", "summary": "Healing system: units that skip their turn heal +4 HP in friendly territory, +2 in neutral/enemy", "coach": "approved"},
-    {"task": "gdd-4.5-melee-advance", "sha": "5bc4462", "date": "2026-06-15", "summary": "Melee advance: only melee units advance into defender's tile on kill", "coach": "approved"}
+    {"task": "gdd-4.5-melee-advance", "sha": "5bc4462", "date": "2026-06-15", "summary": "Melee advance: only melee units advance into defender's tile on kill", "coach": "approved"},
+    {"task": "gdd-5.3-city-upgrade-choices", "sha": "7bd97fe", "date": "2026-06-15", "summary": "Binary upgrade choice system: Workshop/Explorer, City Wall/Resources, Population Growth/Border Growth, Park/Super Unit"}
   ],
-  "health": "153_pass_0_error_0_fail",
-  "last_sha": "5bc4462",
+  "health": "168_pass_0_error_0_fail",
+  "last_sha": "7bd97fe",
   "blocker": null
 }

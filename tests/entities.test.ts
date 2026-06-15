@@ -3,6 +3,7 @@ import { HexCoord } from '../src/hex/HexCoord';
 import { Biome } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
 import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
+import { BUILDING_DEFS, BuildingType } from '../src/entities/Building';
 import { TechId } from '../src/entities/TechTree';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
@@ -148,6 +149,32 @@ describe('Unit', () => {
     const unit4 = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
     unit4.heal(4);
     expect(unit4.health).toBe(10); // stays at max
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Buildings (GDD §5.5)
+// ---------------------------------------------------------------------------
+describe('BUILDING_DEFS (GDD §5.5)', () => {
+  const cases: Array<{ type: BuildingType; cost: number; popBonus: number; starsBonus: number }> = [
+    { type: BuildingType.LUMBER_HUT, cost: 3,  popBonus: 1, starsBonus: 0 },
+    { type: BuildingType.MINE,       cost: 5,  popBonus: 2, starsBonus: 1 },
+    { type: BuildingType.FARM,       cost: 5,  popBonus: 2, starsBonus: 0 },
+    { type: BuildingType.PORT,       cost: 7,  popBonus: 1, starsBonus: 2 },
+  ];
+  for (const { type, cost, popBonus, starsBonus } of cases) {
+    it(`${type} costs ${cost}⭐, +${popBonus}pop, +${starsBonus}⭐/t`, () => {
+      const def = BUILDING_DEFS[type];
+      expect(def.cost).toBe(cost);
+      expect(def.popBonus).toBe(popBonus);
+      expect(def.starsBonus).toBe(starsBonus);
+    });
+  }
+
+  it('all building names are non-empty', () => {
+    for (const def of Object.values(BUILDING_DEFS)) {
+      expect(def.name.length).toBeGreaterThan(0);
+    }
   });
 });
 
