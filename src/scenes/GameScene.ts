@@ -6,7 +6,7 @@ import { generateMap } from '../hex/MapGenerator';
 import { GameState } from '../entities/GameState';
 import { Tribe, TRIBE_CONFIGS } from '../entities/Tribe';
 import { Unit, UnitType, UNIT_COSTS, UNIT_MAX_HEALTH } from '../entities/Unit';
-import { City } from '../entities/City';
+import { City, CITY_NAMES } from '../entities/City';
 import { TurnManager, TurnPhase } from '../entities/TurnManager';
 import { BasicAI } from '../ai/BasicAI';
 import { CombatSystem } from '../entities/CombatSystem';
@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
     this.humanTribe.stars = 15;
 
     this.placeCities();
+    this.placeVillages();
     this.state = new GameState(this.tribes);
     // Share tile map with AI via GameState (BasicAI accesses it via cast)
     (this.state as any).tileMap = this.tiles;
@@ -160,9 +161,80 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** GDD §2.5 — Spawn neutral villages on the map. */
+  private placeVillages(): void {
+    const desiredCount = 6;
+    const candidates: HexCoord[] = [];
+
+    // Collect eligible tiles: land, not edge (≥2 from edge), ≥2 from capitals
+    for (let q = 2; q <= GRID_WIDTH - 3; q++) {
+      for (let r = 2; r <= GRID_HEIGHT - 3; r++) {
+        const coord = new HexCoord(q, r);
+        const tile = this.tiles.get(coord.toString());
+        if (!tile || tile.biome === Biome.WATER || tile.city) continue;
+
+        // ≥2 tiles from any capital
+        let tooClose = false;
+        for (const tribe of this.tribes) {
+          for (const city of tribe.cities) {
+            if (coord.distanceTo(city.position) < 2) {
+              tooClose = true;
+              break;
+            }
+          }
+          if (tooClose) break;
+        }
+        if (tooClose) continue;
+
+        candidates.push(coord);
+      }
+    }
+
+    // Shuffle and place with mutual ≥2 spacing
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+    const placed: HexCoord[] = [];
+
+    for (const coord of shuffled) {
+      if (placed.length >= desiredCount) break;
+
+      let tooClose = false;
+      for (const p of placed) {
+        if (coord.distanceTo(p) < 2) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (tooClose) continue;
+
+      placed.push(coord);
+      const tile = this.tiles.get(coord.toString())!;
+      tile.village = true;
+    }
+  }
+
+  /** GDD §2.5 — Capture villages where the tribe has a unit standing. */
+  private captureVillages(tribe: Tribe): void {
+    for (const unit of tribe.getAliveUnits()) {
+      const tile = this.tiles.get(unit.position.toString());
+      if (!tile?.village) continue;
+
+      // Pick the next unused city name for this tribe
+      const namePool = CITY_NAMES[tribe.name] || ['Outpost'];
+      const name = namePool[tribe.cities.length] || `Outpost-${tribe.cities.length}`;
+
+      const newCity = new City(unit.position, name, tribe.id);
+      tribe.addCity(newCity);
+      tile.village = false;
+      tile.city = true;
+    }
+  }
+
   private startTurn(): void {
     const cur = this.state.getCurrentTribe();
     for (const u of cur.getAliveUnits()) u.resetTurn();
+
+    // GDD §2.5 — Capture villages: units that START their turn on a village tile capture it
+    this.captureVillages(cur);
 
     if (cur.isDefeated()) { this.advanceTurn(); return; }
 
@@ -957,6 +1029,13 @@ export class GameScene extends Phaser.Scene {
         this.entityGraphics.fillStyle(ResourceColors[tile.resource], 0.9);
         this.entityGraphics.fillCircle(pos.x, pos.y - 2, 4);
       }
+      // GDD §2.5 — Village marker
+      if (tile.village) {
+        this.entityGraphics.fillStyle(0xffffff, 0.85);
+        this.entityGraphics.fillCircle(pos.x, pos.y - 2, 3);
+        this.entityGraphics.lineStyle(1, 0x666, 0.5);
+        this.entityGraphics.strokeCircle(pos.x, pos.y - 2, 3);
+      }
     }
 
     // Range indicator
@@ -1029,6 +1108,7 @@ export class GameScene extends Phaser.Scene {
       const c = this.findCity(this.selectedHex);
       if (tile) info += `[${this.selectedHex.q},${this.selectedHex.r}] ${tile.biome}`;
       if (c) info += ` 🏘 ${c.name} Lv${c.level}`;
+      if (!c && tile?.village) info += ` 🏕 Village`;
       if (u) info += ` ⚔ ${u.type} HP:${u.health}/10`;
     }
     this.infoText.setText(info);

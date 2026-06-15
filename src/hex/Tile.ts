@@ -23,6 +23,8 @@ export interface TileData {
   /** GDD §5.3 — City Wall upgrade gives ×4 defense on this tile. */
   cityWall?: boolean;
   unit?: boolean;
+  /** GDD §2.5 — Neutral village that can be captured to become a city. */
+  village?: boolean;
 }
 
 export const BiomeColors: Record<Biome, number> = {

@@ -353,6 +353,14 @@ export class BasicAI {
         target = nearest.position;
       }
 
+      // Priority 2.5: Move toward nearest visible village (GDD §2.5)
+      if (!target) {
+        const villageTarget = this.findNearestVillage(unit, tileMap);
+        if (villageTarget) {
+          target = villageTarget;
+        }
+      }
+
       // Priority 3: Explore — move toward nearest unseen walkable tile
       if (!target) {
         const visible = getVisibleTiles(this.tribe, tileMap);
@@ -400,6 +408,27 @@ export class BasicAI {
     for (const [key, tile] of tileMap) {
       if (!walkable.has(tile.biome)) continue;
       if (visible.has(key)) continue;
+      const [q, r] = key.split(',').map(Number);
+      const coord = new HexCoord(q, r);
+      const dist = unit.position.distanceTo(coord);
+      if (dist < bestDist && dist > 0) {
+        bestDist = dist;
+        best = coord;
+      }
+    }
+
+    return best;
+  }
+
+  /** GDD §2.5 — Find the nearest village for a unit to capture. */
+  private findNearestVillage(unit: Unit, tileMap: Map<string, TileData>): HexCoord | null {
+    const walkable = unit.isNaval ? NAVAL_BIOMES : WALKABLE_BIOMES;
+    let best: HexCoord | null = null;
+    let bestDist = Infinity;
+
+    for (const [key, tile] of tileMap) {
+      if (!tile.village) continue;
+      if (!walkable.has(tile.biome)) continue;
       const [q, r] = key.split(',').map(Number);
       const coord = new HexCoord(q, r);
       const dist = unit.position.distanceTo(coord);
