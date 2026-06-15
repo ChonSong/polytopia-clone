@@ -91,17 +91,24 @@ export class GameScene extends Phaser.Scene {
       if (!this.isAiRunning) this.handleClick(p.x, p.y);
     });
 
-    // HUD
-    const s = { fontSize: '16px', color: '#fff', fontFamily: 'monospace' };
-    this.tribeText = this.add.text(10, 10, '', { ...s, fontSize: '20px', color: '#ffd' }).setDepth(20);
-    this.phaseText = this.add.text(10, 36, '', s).setDepth(20);
-    this.infoText = this.add.text(10, 62, '', { ...s, fontSize: '14px' }).setDepth(20);
+    // HUD — fixed to camera, high-contrast
+    const s = { fontSize: '16px', color: '#eee', fontFamily: 'monospace' };
+    const bg = this.add.graphics().setScrollFactor(0).setDepth(19);
+    bg.fillStyle(0x000, 0.65);
+    bg.fillRoundedRect(4, 4, 320, 72, 6);
 
-    // End Turn
-    const btn = this.add.text(690, 10, '[ END TURN ]', {
+    this.tribeText = this.add.text(12, 10, '', { ...s, fontSize: '20px', color: '#ffd' })
+      .setScrollFactor(0).setDepth(20);
+    this.phaseText = this.add.text(12, 36, '', s)
+      .setScrollFactor(0).setDepth(20);
+    this.infoText = this.add.text(12, 58, '', { ...s, fontSize: '13px', color: '#ccc' })
+      .setScrollFactor(0).setDepth(20);
+
+    // End Turn (camera-fixed)
+    const btn = this.add.text(660, 10, '[ END TURN ]', {
       fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
       backgroundColor: '#333', padding: { x: 10, y: 6 }
-    }).setDepth(20).setInteractive({ useHandCursor: true });
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     btn.on('pointerdown', () => { if (!this.isAiRunning) this.endTurn(); });
     btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#555' }));
     btn.on('pointerout', () => btn.setStyle({ backgroundColor: '#333' }));
