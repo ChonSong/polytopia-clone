@@ -92,7 +92,7 @@ Placed on ~35% of eligible tiles:
 - Captured by moving a unit onto them — unit must **start its next turn** on the village tile.
 - Becomes a level-1 city for the capturing tribe.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Village spawning with proximity rules, capture by ending turn on tile, becomes level-1 city, AI village targeting. 8 tests.
 
 ### 2.6 Ancient Ruins
 - Scattered across the map (4 on Tiny to 23 on Massive grids).
@@ -139,7 +139,7 @@ Placed on ~35% of eligible tiles:
 - Disembarking reverts to base terrestrial form (loses naval upgrade permanently).
 - Scout gets a final 5×5 vision reveal on disembark.
 
-**Implemented:** ❌ Naval system not in code. BOAT unit type exists but is a generic ground unit, not a naval transport.
+**Implemented:** ✅ Raft, Scout, Rammer, Bomber unit types in Unit.ts. ✅ Embarkation at Port (free Raft conversion). ✅ Water movement. ✅ Upgrade path: Raft→Scout/Rammer→Bomber. ✅ Naval unit HP inheritance. ✅ 188 tests.
 
 ### 3.3 Unit Skills
 
@@ -159,7 +159,7 @@ Placed on ~35% of eligible tiles:
 | **Convert** | Changes faction alignment of adjacent enemy unit. |
 | **Static** | Cannot move at all (Giant). |
 
-**Implemented:** Dash (as `canAttackAfterMove`), Fortify (as defense bonus gating). ❌ Escape, Persist, Stiff, Splash, Hide, Creep, Infiltrate, Convert not implemented.
+**Implemented:** Dash (as `canAttackAfterMove`), Fortify (as defense bonus gating). ✅ Escape (Rider retreat 1 tile when hit) and Persist (Knight refreshes action on kill) — 12 tests. ❌ Stiff, Splash, Hide, Creep, Infiltrate, Convert not implemented.
 
 ### 3.4 Mind Benders
 - Non-lethal paradigm: 0 attack stat.
@@ -228,7 +228,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - If melee attacker kills defender, attacker moves into defender's tile.
 - Blocked by terrain restrictions.
 
-**Implemented:** ✅ In `GameScene.handleClick()` line 377.
+**Implemented:** ✅ In `GameScene.handleClick()` — melee units advance into defender's tile on kill.
 
 ### 4.5 Healing
 - Friendly territory: +4 HP/turn (unit does nothing).
@@ -236,7 +236,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Cannot exceed max HP.
 - Consumes entire action phase.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Units that skip their turn heal +4 HP in friendly territory, +2 in neutral/enemy. Cannot exceed max HP. Consumes entire action phase.
 
 ### 4.6 Veteran System
 - Unit promoted after 3 confirmed kills (direct attacks or retaliations).
@@ -284,7 +284,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 | 4 | **Population Growth** (+3 pop) | **Border Growth** (5×5 grid) | Super unit rush vs. resource control |
 | 5+ | **Park** (+250 score) | **Super Unit** (Giant) | Score vs. military |
 
-**Implemented:** ❌ Linear upgrade only — no binary choice system.
+**Implemented:** ✅ Binary upgrade choice system in `City.applyLevelUp(choice)`. Workshop(+1⭐/t), Explorer(2 scouts), City Wall(×4 def), Resources(+5⭐), Population Growth(+3 pop), Border Growth(5×5 grid), Park(+250 score), Super Unit(Giant).
 
 ### 5.4 Border Expansion
 - Default city territory: 3×3 grid (8 tiles).
@@ -306,7 +306,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 | City Wall | Free | L3 upgrade choice | ×4 defense for Fortify units |
 | Park | Free | L5 upgrade choice | +250 Perfection score |
 
-**Implemented:** ✅ Lumber Hut, Mine, Farm, Port in `BUILDING_DEFS`. ❌ Workshop, City Wall, Park are upgrade choices, not buildable buildings.
+**Implemented:** ✅ Lumber Hut, Mine, Farm, Port in `BUILDING_DEFS`. ✅ Workshop, City Wall, Park are upgrade choices via `City.applyLevelUp()`.
 
 ### 5.6 Explorer Pathfinding Algorithm
 - Selecting Explorer at L2 grants 15 autonomous movement steps.
@@ -450,38 +450,39 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 ## 9. Gaps vs Real Polytopia (Summary)
 
 ### Combat & Units
-- [ ] Fortify skill not implemented (terrain bonuses apply unconditionally)
-- [ ] City Wall ×4 defense bonus not implemented
-- [ ] Escape skill (Rider retreat) not implemented
-- [ ] Persist skill (Knight chain kills) not implemented
+- [x] Fortify skill implemented (terrain bonuses require Fortify)
+- [x] City Wall ×4 defense bonus implemented
+- [x] Escape skill (Rider retreat) implemented
+- [x] Persist skill (Knight chain kills) implemented
 - [ ] Stiff skill (no retaliation) not implemented
 - [ ] Splash damage (Bomber AoE) not implemented
 - [ ] Cloak / stealth / Infiltration / Dagger spawning not implemented
 - [ ] Mind Bender (Convert, Heal Others) not implemented
-- [ ] Healing system (skip turn to heal +4/+2 HP) not implemented
+- [x] Healing system (skip turn to heal +4/+2 HP) implemented
 - [ ] Veteran system (+5 max HP after 3 kills) not implemented
 - [ ] Battle preview UI not implemented
 - [ ] Fog-of-war retaliation suppression not implemented
 
 ### Naval
-- [ ] Full naval system (Raft → Scout → Rammer → Bomber) not implemented
-- [ ] Embarkation/disembarkation not implemented
-- [ ] Naval unit HP inheritance not implemented
+- [x] Full naval system (Raft → Scout → Rammer → Bomber) implemented
+- [x] Embarkation/disembarkation implemented
+- [x] Naval unit HP inheritance implemented
 - [ ] Scout 5×5 vision on disembark not implemented
+- [ ] Aquaculture tech (Rammer gate) not yet added to tech tree
 
 ### Cities & Economy
-- [ ] Binary city upgrade choices not implemented (linear only)
+- [x] Binary city upgrade choices implemented
 - [ ] Border expansion (3×3 → 5×5) not implemented
 - [ ] Siege mechanic (economic blockade) not implemented
 - [ ] Explorer autonomous pathfinding not implemented
 - [ ] Trade routes / Roads / City Connections not implemented
 - [ ] Grand Bazaar (+400 score) not implemented
-- [ ] Park building (L5 upgrade choice) not implemented
+- [x] Park building (L5 upgrade choice) implemented
 
 ### Map & World
 - [ ] Per-type map generation algorithms not implemented (only one algorithm)
 - [ ] Waterworld / Pangea map types missing from enum
-- [ ] Neutral villages not implemented
+- [x] Neutral villages implemented
 - [ ] Ancient ruins not implemented
 - [ ] Resource proximity constraint (2-tile radius from city/village) not implemented
 
@@ -490,7 +491,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - [ ] Organization / Strategy / Diplomacy tech series not implemented
 - [ ] Farming / Construction tech series not implemented
 - [ ] Smithery tech (Swordsman gate) not implemented — currently gated by Chivalry
-- [ ] Aquaculture tech (Rammer gate) not implemented
+- [ ] Aquaculture tech (Rammer gate) not added
 - [ ] Free Spirit → Temple connection not implemented
 
 ### Special Tribes
