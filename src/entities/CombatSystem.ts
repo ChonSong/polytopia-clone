@@ -36,22 +36,17 @@ function getDistance(attacker: Unit, defender: Unit): number {
   return attacker.position.distanceTo(defender.position);
 }
 
-function getTileDefenseBonus(tile: TileData): number {
-  if (tile.city) return 1;
-  if (tile.biome === Biome.FOREST || tile.biome === Biome.MOUNTAIN) return 1;
-  return 0;
-}
-
 /**
  * CombatSystem — pure functions for combat logic in a Polytopia-like game.
  *
- * Damage formula:
- *   healthFactor(unit) = 0.5 + 0.5 * (unit.health / MAX_HEALTH)
- *   baseDamage = attacker.attack × healthFactor(attacker)
- *   totalDefense = defender.defense × healthFactor(defender) + terrainBonus
- *   damage = round(baseDamage × 10 / (10 + totalDefense))
+ * Damage formula (real Polytopia):
+ *   healthFactor(unit) = unit.health / unit.maxHP
+ *   attackForce = attacker.attack × healthFactor(attacker)
+ *   defenseForce = defender.defense × healthFactor(defender) × defBonus
+ *   totalForce = attackForce + defenseForce
+ *   damage = round((attackForce / totalForce) × attacker.attack × 4.5)
  *   Ranged distance ≥ 2: ×0.75
- *   Clamped: [1, attacker.attack + 2]
+ *   Minimum 1 damage
  */
 export class CombatSystem {
   /**
@@ -117,6 +112,10 @@ export class CombatSystem {
 
   /**
    * Calculate damage dealt by `attacker` to `defender` on `defenderTile`.
+   * Uses the real Polytopia formula:
+   *   attackForce = atk × (hp / maxHP)
+   *   defenseForce = def × (hp / maxHP) × defBonus
+   *   result = round((attackForce / (attackForce + defenseForce)) × atk × 4.5)
    */
   static calculateDamage(
     attacker: Unit,
@@ -124,27 +123,19 @@ export class CombatSystem {
     defenderTile: TileData,
     distance: number = 1,
   ): number {
-    const attFactor = 0.5 + 0.5 * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
-    const baseDamage = attacker.attack * attFactor;
-
-    const defFactor = 0.5 + 0.5 * (defender.health / UNIT_MAX_HEALTH[defender.type]);
-    let totalDefense = defender.defense * defFactor;
-
-    // Terrain bonus
-    totalDefense += getTileDefenseBonus(defenderTile);
-
-    // Ratio-based damage
-    let damage = (baseDamage * 10) / (10 + totalDefense);
-
-    // Ranged penalty
-    if (distance >= 2) {
-      damage *= 0.75;
+    const attackForce = attacker.attack * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
+    let defBonus = 1.0;
+    // Terrain defense bonus
+    if (defenderTile.biome === Biome.FOREST || defenderTile.biome === Biome.MOUNTAIN) {
+      defBonus = 1.5; // assumes relevant tech is owned — simplified
     }
-
-    damage = Math.round(damage);
-    damage = Math.max(1, Math.min(attacker.attack + 2, damage));
-
-    return damage;
+    if (defenderTile.city) defBonus = 1.5;
+    const defenseForce = defender.defense * (defender.health / UNIT_MAX_HEALTH[defender.type]) * defBonus;
+    const totalForce = attackForce + defenseForce;
+    let damage = (attackForce / totalForce) * attacker.attack * 4.5;
+    // Ranged penalty
+    if (distance >= 2) damage *= 0.75;
+    return Math.max(1, Math.round(damage));
   }
 
   /**
@@ -155,22 +146,13 @@ export class CombatSystem {
     city: CityData,
     distance: number = 1,
   ): number {
-    const attFactor = 0.5 + 0.5 * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
-    const baseDamage = attacker.attack * attFactor;
-
-    const cityFactor = 0.5 + 0.5 * (city.health / city.maxHealth);
-    let totalDefense = city.defenseBonus * cityFactor;
-
-    let damage = (baseDamage * 10) / (10 + totalDefense);
-
-    if (distance >= 2) {
-      damage *= 0.75;
-    }
-
-    damage = Math.round(damage);
-    damage = Math.max(1, Math.min(attacker.attack + 2, damage));
-
-    return damage;
+    const attackForce = attacker.attack * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
+    const cityFactor = city.health / city.maxHealth;
+    const defenseForce = city.defenseBonus * cityFactor;
+    const totalForce = attackForce + defenseForce;
+    let damage = (attackForce / totalForce) * attacker.attack * 4.5;
+    if (distance >= 2) damage *= 0.75;
+    return Math.max(1, Math.round(damage));
   }
 
   /**

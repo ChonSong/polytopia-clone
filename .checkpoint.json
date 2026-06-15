@@ -1,12 +1,15 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "p3-resource-tiles",
+  "current_task": "done",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses"},
-    {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests"}
+    {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests"},
+    {"task": "p3-map-economy", "sha": "15e5c26", "date": "2026-06-15", "summary": "Resource tiles, buildings (Lumber Hut/Mine/Farm/Port), food/population growth"},
+    {"task": "p4-giants", "sha": "ae56724", "date": "2026-06-15", "summary": "Giant super unit at city level 5, 40HP/5atk/4def"},
+    {"task": "p5-full-game", "sha": "ae56724", "date": "2026-06-15", "summary": "Tribe selection, map types, perfection mode, 152 tests"}
   ],
   "health": "tests_pass",
-  "last_sha": "feea065",
+  "last_sha": "ae56724",
   "blocker": null
 }
