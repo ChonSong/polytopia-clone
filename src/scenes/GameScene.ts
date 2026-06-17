@@ -37,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private ais: Map<string, BasicAI> = new Map();
   private selectedUnit: Unit | null = null;
   private selectedHex: HexCoord | null = null;
+  private waitBtn: Phaser.GameObjects.Text | null = null;
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
   private skipPhase = false;
@@ -118,6 +119,25 @@ export class GameScene extends Phaser.Scene {
     this.infoText = this.add.text(12, 58, '', { ...s, fontSize: '13px', color: '#ccc' })
       .setScrollFactor(0).setDepth(20);
 
+    // Wait button (camera-fixed) — appears when a unit is selected
+    this.waitBtn = this.add.text(440, 10, '[ WAIT ]', {
+      fontSize: '16px', color: '#8f8', fontFamily: 'monospace',
+      backgroundColor: '#232', padding: { x: 8, y: 6 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.waitBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
+        // Deselect the unit without marking hasActed = true
+        // Unit stays inactive → eligible for end-of-turn healing (+4 friendly, +2 other)
+        this.selectedUnit = null;
+        this.selectedHex = null;
+        this.renderAll();
+        this.updateUI();
+      }
+    });
+    this.waitBtn.on('pointerover', () => this.waitBtn!.setStyle({ backgroundColor: '#353' }));
+    this.waitBtn.on('pointerout', () => this.waitBtn!.setStyle({ backgroundColor: '#232' }));
+    this.waitBtn.setVisible(false); // hidden until a unit is selected
+
     // End Turn (camera-fixed)
     const btn = this.add.text(660, 10, '[ END TURN ]', {
       fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
@@ -143,6 +163,19 @@ export class GameScene extends Phaser.Scene {
     this.renderAll();
     this.updateUI();
     this.startTurn();
+
+    // Keyboard: W = Wait (skip selected unit's turn)
+    if (this.input.keyboard) {
+      this.input.keyboard.on('keydown-W', () => {
+        if (!this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
+          // Deselect without marking hasActed → eligible for end-of-turn heal
+          this.selectedUnit = null;
+          this.selectedHex = null;
+          this.renderAll();
+          this.updateUI();
+        }
+      });
+    }
   }
 
   private placeCities(): void {
@@ -1170,6 +1203,10 @@ export class GameScene extends Phaser.Scene {
       if (u) info += ` ⚔ ${u.type} HP:${u.health}/10`;
     }
     this.infoText.setText(info);
+    // Wait button visibility: show when a unit is selected and hasn't acted
+    if (this.waitBtn) {
+      this.waitBtn.setVisible(!!this.selectedUnit && !this.selectedUnit.hasActed);
+    }
   }
 
   private setStatus(m: string): void { this.phaseText.setText(m); }
