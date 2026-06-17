@@ -47,6 +47,7 @@ Status: **active** — see GDD.md for the full spec.
 ## Skills
 | Skill | When | Why |
 |-------|------|-----|
+| `spec-driven-project-audit` | Project status reports, verifying claims | Runtime-first Playwright protocol — only what the browser shows counts |
 | `subagent-driven-development` | Complex multi-file changes | Parallel implementation with isolation |
 
 ---
@@ -152,6 +153,70 @@ Status: **active** — see GDD.md for the full spec.
 - **Success criteria**: Defender in walled city takes significantly less damage. Warrior in walled city takes standard damage (no Fortify). Visual indicator present.
 
 ---
+
+---
+
+## Active Tasks (Tracked via Checkpoint)
+
+Ordered by priority. Each task is one unit of work for one player tick.
+
+### Task: gdd-4.6-healing
+- **Description**: Units that skip their turn heal +4 HP in friendly territory, +2 in neutral/enemy. Cannot exceed max HP. Add a "skip turn" action button and heal logic.
+- **Success criteria**:
+  - Unit in friendly territory that skips turn heals +4 HP
+  - Unit in neutral/enemy territory that skips turn heals +2 HP
+  - Unit at max HP cannot exceed max HP
+  - Health bar visually updates after heal
+- **Coach checks**:
+  - Check combat after healing: a wounded unit should have more HP after skipping a turn
+  - Verify the skip-turn action is available from the unit action menu
+  - Check edge case: unit at 1 HP skips turn in friendly territory → 5 HP (not 0 or over max)
+
+### Task: gdd-4.5-melee-advance
+- **Description**: When a melee unit kills an enemy, it advances into the defender's tile. Currently Warriors don't move after killing. Ranged units (Archers) should NOT advance.
+- **Success criteria**:
+  - Melee unit (Warrior, Swordsman, Knight, Rider, Defender) moves into defender's tile on kill
+  - Ranged unit (Archer) does NOT advance on kill
+  - Advance happens immediately after the kill animation/resolution
+- **Coach checks**:
+  - Verify warrior advances into city tile after killing defender inside city
+  - Verify archer stays in place after killing enemy
+  - Check multi-attack case: Knight with Persist skill kills first enemy, advances, then second attack should be from new position
+
+### Task: gdd-5.4-buildings-real-costs
+- **Description**: Adjust building costs/effects to match GDD §5.5. Lumber Hut costs 3⭐ (currently hardcoded). Port costs 7⭐. Verify all building effects match spec.
+- **Success criteria**:
+  - Lumber Hut cost is 3⭐
+  - Port cost is 7⭐
+  - Mine cost is 5⭐
+  - Farm cost is 5⭐
+  - All building bonuses match GDD §5.5
+- **Coach checks**:
+  - Load game, found city, verify costs in city building menu
+  - Run unit tests — all 228+ tests still pass
+  - Check edge case: city with 0 stars shows buildings greyed out
+
+### Task: gdd-9.1-starting-stars
+- **Description**: Set correct starting stars per GDD: human player starts with 15⭐, AI players with 10⭐. AI gets 5⭐/turn base + city production. Verify through gameplay and tests.
+- **Success criteria**:
+  - New game: human player has 15⭐ on turn 1
+  - New game: AI players have 10⭐ on turn 1
+  - AI income per turn: 5⭐ base + city production
+- **Coach checks**:
+  - Start a new game and verify the star count in the HUD
+  - Check AI star count by inspecting AI state
+  - Star income should increase after capturing a city
+
+### Task: gdd-3.4-unit-skills-escape-persist
+- **Description**: Implement Escape (Rider retreats 1 tile when attacked) and Persist (Knight attacks again after kill) skills per GDD §3.3.
+- **Success criteria**:
+  - Rider hit in melee moves 1 tile away from attacker (Escape)
+  - Knight killing an adjacent unit can attack another enemy in range (Persist)
+  - Escape only triggers on successful hit (not on miss)
+- **Coach checks**:
+  - Move Rider next to enemy Warrior, attack Rider, verify it retreats 1 tile
+  - Move Knight next to two adjacent enemies, attack and kill first, verify second attack is possible
+  - Check edge case: Rider cannot retreat (obstacle/edge) — unit takes normal damage instead
 
 ## Task Key
 - ✅ Complete
