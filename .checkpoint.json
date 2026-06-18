@@ -31,9 +31,10 @@
     {"task": "gdd-2.4-ancient-ruins", "sha": "5c8426d", "date": "2026-06-19", "summary": "Ancient ruins: size-scaled placement (4-23), ≥2 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing", "coach": "approved"},
     {"task": "gdd-5.8-siege-mechanics", "sha": "b354898", "date": "2026-06-19", "summary": "Siege mechanics: City.isBesieged, 0 stars when besieged, UI lock, red border indicator, 7 new tests, 269 total passing", "coach": "approved"},
     {"task": "gdd-4.2-poison-status", "sha": "871d030", "date": "2026-06-19", "summary": "Poison status: poisonTurns field on Unit, applyPoison() resets to 3, processPoison() 1dmg/turn, Archer attacks apply poison, GameScene.startTurn processes poison, 9 new tests, 278 total passing", "coach": "approved"},
-    {"task": "gdd-8-fog-of-war", "sha": "43560e4", "date": "2026-06-19", "summary": "Fog-of-war: per-tribe visibility via tribeVisibility Map, vision reveal from units (2 tiles, 3 for Scout/Giant) + cities, black fog on unrevealed, dimmed on explored, enemy unit culling, 10 new tests, 288 total passing", "coach": "approved"}
+    {"task": "gdd-8-fog-of-war", "sha": "43560e4", "date": "2026-06-19", "summary": "Fog-of-war: per-tribe visibility via tribeVisibility Map, vision reveal from units (2 tiles, 3 for Scout/Giant) + cities, black fog on unrevealed, dimmed on explored, enemy unit culling, 10 new tests, 288 total passing", "coach": "approved"},
+    {"task": "gdd-6.3-mind-bender-unit", "sha": "f9b0e92", "date": "2026-06-19", "summary": "Mind Bender unit: MIND_BENDER type (0atk/1def/10HP/1mov/5⭐), PHILOSOPHY tech, Convert adjacent enemy to your tribe, Heal 4HP to adjacent friendlies, cannot convert naval/Giant, 15 new tests, 310 total passing", "coach": "approved"}
   ],
-  "health": "288_pass_0_error_0_fail",
-  "last_sha": "43560e4",
+  "health": "310_pass_0_error_0_fail",
+  "last_sha": "f9b0e92",
   "blocker": null
 }
