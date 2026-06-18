@@ -1,5 +1,6 @@
 import { HexCoord } from '../hex/HexCoord';
 import { Tribe } from './Tribe';
+import { Unit } from './Unit';
 
 export type TileOwnership = Map<string, string>; // "q,r" -> tribeId
 
@@ -78,7 +79,20 @@ export class GameState {
     this.visibility.set(coord.toString(), visible);
   }
 
-  /** GDD §8 — Reveal tiles within vision range of a center point for a given tribe. */
+  /** GDD §3.4 — Convert an enemy unit to a new tribe. */
+  convertUnit(unit: Unit, newTribeId: string): void {
+    const oldTribe = this.tribes.find(t => t.id === unit.owner);
+    const newTribe = this.tribes.find(t => t.id === newTribeId);
+    if (!oldTribe || !newTribe) return;
+    // Remove from old tribe
+    oldTribe.units = oldTribe.units.filter(u => u.id !== unit.id);
+    // Add to new tribe
+    unit.owner = newTribeId;
+    newTribe.units.push(unit);
+    // Reset action state
+    unit.hasActed = true;
+    unit.hasAttacked = true;
+  }
   revealVision(tribeId: string, center: HexCoord, range: number, allCoords: HexCoord[]): void {
     const visible = this.tribeVisibility.get(tribeId);
     if (!visible) return;

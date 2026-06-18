@@ -15,6 +15,7 @@ export enum TechId {
   SAILING     = 'SAILING',
   NAVIGATION  = 'NAVIGATION',
   DIPLOMACY   = 'DIPLOMACY',
+  PHILOSOPHY  = 'PHILOSOPHY',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
@@ -134,6 +135,15 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [UnitType.CLOAK],
     prerequisites: [TechId.SAILING],
   },
+  [TechId.PHILOSOPHY]: {
+    id: TechId.PHILOSOPHY,
+    name: 'Philosophy',
+    description: 'Mind Bender unit • Convert & Heal',
+    tier: 3,
+    series: 'riding',
+    unlocksUnits: [UnitType.MIND_BENDER],
+    prerequisites: [TechId.FREE_SPIRIT],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -157,5 +167,6 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.BOMBER]:    TechId.NAVIGATION,
   // GDD §3.1 Special unit gates
   [UnitType.CLOAK]:     TechId.DIPLOMACY,
+  [UnitType.MIND_BENDER]: TechId.PHILOSOPHY,
   // Warrior, Defender, Boat, Raft are unlocked by default or via other paths
 };

@@ -1032,3 +1032,111 @@ describe('Cloak unit', () => {
     expect(cloak.isSubmerged).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §3.4 — Mind Bender unit
+// ---------------------------------------------------------------------------
+describe('Mind Bender unit', () => {
+  it('exists with correct stats', () => {
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'test');
+    expect(mb.type).toBe(UnitType.MIND_BENDER);
+    expect(mb.attack).toBe(0);
+    expect(mb.defense).toBe(1);
+    expect(mb.movementRange).toBe(1);
+    expect(mb.ranged).toBe(false);
+    expect(mb.canAttackAfterMove).toBe(true);
+  });
+
+  it('has 10 HP', () => {
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'test');
+    expect(mb.health).toBe(10);
+    expect(mb.maxHealth).toBe(10);
+  });
+
+  it('costs 5 stars', () => {
+    expect(UNIT_COSTS[UnitType.MIND_BENDER]).toBe(5);
+  });
+
+  it('is not a naval unit', () => {
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'test');
+    expect(mb.isNaval).toBe(false);
+  });
+
+  it('has Convert skill', () => {
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'test');
+    expect(mb.hasConvert).toBe(true);
+  });
+
+  it('has Heal skill', () => {
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'test');
+    expect(mb.hasHeal).toBe(true);
+  });
+
+  it('other units do not have Convert or Heal', () => {
+    const warrior = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    expect(warrior.hasConvert).toBe(false);
+    expect(warrior.hasHeal).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §3.4 — Convert mechanic via GameState
+// ---------------------------------------------------------------------------
+describe('Convert mechanic', () => {
+  it('transfers unit from one tribe to another', () => {
+    const tribeA = new Tribe({ ...TRIBE_CONFIGS[0], id: 'tribeA', name: 'TribeA' });
+    const tribeB = new Tribe({ ...TRIBE_CONFIGS[1], id: 'tribeB', name: 'TribeB' });
+    const state = new GameState([tribeA, tribeB]);
+
+    const mb = new Unit(coord(0, 0), UnitType.MIND_BENDER, 'tribeA');
+    const enemy = new Unit(coord(1, 0), UnitType.WARRIOR, 'tribeB');
+    tribeA.units.push(mb);
+    tribeB.units.push(enemy);
+
+    state.convertUnit(enemy, 'tribeA');
+
+    expect(enemy.owner).toBe('tribeA');
+    expect(tribeA.units.some(u => u.id === enemy.id)).toBe(true);
+    expect(tribeB.units.some(u => u.id === enemy.id)).toBe(false);
+    expect(enemy.hasActed).toBe(true);
+  });
+
+  it('does nothing when converting to same tribe', () => {
+    const tribeA = new Tribe({ ...TRIBE_CONFIGS[0], id: 'tribeA', name: 'TribeA' });
+    const state = new GameState([tribeA]);
+
+    const unit = new Unit(coord(0, 0), UnitType.WARRIOR, 'tribeA');
+    tribeA.units.push(unit);
+
+    state.convertUnit(unit, 'tribeA');
+    expect(unit.owner).toBe('tribeA');
+    expect(tribeA.units.some(u => u.id === unit.id)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §6.3 — Philosophy tech gates Mind Bender
+// ---------------------------------------------------------------------------
+describe('Philosophy tech', () => {
+  it('exists in tech tree', () => {
+    expect(TechId.PHILOSOPHY).toBe('PHILOSOPHY');
+  });
+
+  it('unlocks Mind Bender', () => {
+    const tribe = createTestTribe();
+    expect(tribe.getTrainableUnitTypes()).not.toContain(UnitType.MIND_BENDER);
+    tribe.researchTech(TechId.PHILOSOPHY);
+    expect(tribe.getTrainableUnitTypes()).toContain(UnitType.MIND_BENDER);
+  });
+
+  it('requires Free Spirit as prerequisite', () => {
+    const tribe = createTestTribe();
+    // Free Spirit requires Riding
+    tribe.researchTech(TechId.RIDING);
+    tribe.researchTech(TechId.FREE_SPIRIT);
+    expect(tribe.hasTech(TechId.FREE_SPIRIT)).toBe(true);
+    // Now Philosophy should be researchable
+    tribe.researchTech(TechId.PHILOSOPHY);
+    expect(tribe.hasTech(TechId.PHILOSOPHY)).toBe(true);
+  });
+});

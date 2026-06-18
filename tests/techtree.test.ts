@@ -3,8 +3,8 @@ import { TechId, TECH_DEFS, techCost, TRIBE_STARTING_TECHS, UNIT_TECH_GATES } fr
 import { UnitType } from '../src/entities/Unit';
 
 describe('TechTree', () => {
-  it('has 10 techs defined across 3 series', () => {
-    expect(Object.keys(TECH_DEFS).length).toBe(10);
+  it('has 11 techs defined across 3 series', () => {
+    expect(Object.keys(TECH_DEFS).length).toBe(11);
   });
 
   describe('techCost formula', () => {

@@ -17,6 +17,7 @@ export enum UnitType {
   BOMBER   = 'BOMBER',
   // GDD §3.1 — Special units
   CLOAK    = 'CLOAK',
+  MIND_BENDER = 'MIND_BENDER',
 }
 
 export interface UnitStats {
@@ -45,6 +46,7 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   [UnitType.BOMBER]:    15,
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     8,
+  [UnitType.MIND_BENDER]: 5,
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -65,6 +67,7 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   [UnitType.BOMBER]:    10,
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     5,
+  [UnitType.MIND_BENDER]: 10,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -85,6 +88,7 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.BOMBER]:   { attack: 3, defense: 2, movementRange: 2, canAttackAfterMove: false, ranged: true  },
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:    { attack: 0, defense: 0.5, movementRange: 2, canAttackAfterMove: true, ranged: false },
+  [UnitType.MIND_BENDER]: { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
 };
 
 export const MAX_HEALTH = 10;
@@ -209,6 +213,16 @@ export class Unit {
   /** GDD §3.1 — Hide: Cloak can submerge to become invisible to non-adjacent enemies. */
   get hasHide(): boolean {
     return this.type === UnitType.CLOAK;
+  }
+
+  /** GDD §3.4 — Convert: Mind Bender can convert adjacent enemy units to your tribe. */
+  get hasConvert(): boolean {
+    return this.type === UnitType.MIND_BENDER;
+  }
+
+  /** GDD §3.4 — Heal: Mind Bender restores 4 HP to all adjacent friendly units. */
+  get hasHeal(): boolean {
+    return this.type === UnitType.MIND_BENDER;
   }
 
   /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */

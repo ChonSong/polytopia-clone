@@ -40,6 +40,8 @@ export class GameScene extends Phaser.Scene {
   private selectedUnit: Unit | null = null;
   private selectedHex: HexCoord | null = null;
   private waitBtn: Phaser.GameObjects.Text | null = null;
+  private convertBtn: Phaser.GameObjects.Text | null = null;
+  private healBtn: Phaser.GameObjects.Text | null = null;
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
   private skipPhase = false;
@@ -142,6 +144,34 @@ export class GameScene extends Phaser.Scene {
     this.waitBtn.on('pointerover', () => this.waitBtn!.setStyle({ backgroundColor: '#353' }));
     this.waitBtn.on('pointerout', () => this.waitBtn!.setStyle({ backgroundColor: '#232' }));
     this.waitBtn.setVisible(false); // hidden until a unit is selected
+
+    // Convert button (Mind Bender) — camera-fixed
+    this.convertBtn = this.add.text(440, 40, '[ CONVERT ]', {
+      fontSize: '14px', color: '#f8f', fontFamily: 'monospace',
+      backgroundColor: '#323', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.convertBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.hasConvert && !this.selectedUnit.hasActed) {
+        this.performConvert(this.selectedUnit);
+      }
+    });
+    this.convertBtn.on('pointerover', () => this.convertBtn!.setStyle({ backgroundColor: '#535' }));
+    this.convertBtn.on('pointerout', () => this.convertBtn!.setStyle({ backgroundColor: '#323' }));
+    this.convertBtn.setVisible(false);
+
+    // Heal button (Mind Bender) — camera-fixed
+    this.healBtn = this.add.text(560, 40, '[ HEAL ]', {
+      fontSize: '14px', color: '#8f8', fontFamily: 'monospace',
+      backgroundColor: '#232', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.healBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed) {
+        this.performHeal(this.selectedUnit);
+      }
+    });
+    this.healBtn.on('pointerover', () => this.healBtn!.setStyle({ backgroundColor: '#353' }));
+    this.healBtn.on('pointerout', () => this.healBtn!.setStyle({ backgroundColor: '#232' }));
+    this.healBtn.setVisible(false);
 
     // End Turn (camera-fixed)
     const btn = this.add.text(660, 10, '[ END TURN ]', {
@@ -1423,6 +1453,14 @@ export class GameScene extends Phaser.Scene {
     if (this.waitBtn) {
       this.waitBtn.setVisible(!!this.selectedUnit && !this.selectedUnit.hasActed);
     }
+    // Convert button: show when a Mind Bender is selected and hasn't acted
+    if (this.convertBtn) {
+      this.convertBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasConvert && !this.selectedUnit.hasActed);
+    }
+    // Heal button: show when a Mind Bender is selected and hasn't acted
+    if (this.healBtn) {
+      this.healBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed);
+    }
   }
 
   private setStatus(m: string): void { this.phaseText.setText(m); }
@@ -1434,6 +1472,66 @@ export class GameScene extends Phaser.Scene {
       income += city.getStarsPerTurn(biomes);
     }
     return income;
+  }
+
+  /**
+   * GDD §3.4 — Convert: Mind Bender converts an adjacent enemy unit to your tribe.
+   * Cannot convert naval units or Giants.
+   */
+  private performConvert(mindBender: Unit): void {
+    const cur = this.state.getCurrentTribe();
+    if (cur.id !== mindBender.owner) return;
+
+    // Find adjacent enemy unit
+    let target: Unit | null = null;
+    for (const dir of HexCoord.DIRECTIONS) {
+      const adj = new HexCoord(mindBender.position.q + dir.q, mindBender.position.r + dir.r);
+      const unit = this.findUnit(adj);
+      if (unit && unit.owner !== mindBender.owner) {
+        // GDD §3.4 — Cannot convert naval units or Giants
+        if (unit.isNaval || unit.type === UnitType.GIANT) {
+          this.setStatus('Cannot convert naval units or Giants.');
+          return;
+        }
+        target = unit;
+        break;
+      }
+    }
+
+    if (!target) {
+      this.setStatus('No adjacent enemy unit to convert.');
+      return;
+    }
+
+    this.state.convertUnit(target, mindBender.owner);
+    this.setStatus(`Converted ${target.type} to ${cur.name}!`);
+    this.renderAll();
+    this.updateUI();
+  }
+
+  /**
+   * GDD §3.4 — Heal: Mind Bender restores 4 HP to all adjacent friendly units.
+   */
+  private performHeal(mindBender: Unit): void {
+    const cur = this.state.getCurrentTribe();
+    if (cur.id !== mindBender.owner) return;
+
+    let healed = 0;
+    for (const dir of HexCoord.DIRECTIONS) {
+      const adj = new HexCoord(mindBender.position.q + dir.q, mindBender.position.r + dir.r);
+      const unit = this.findUnit(adj);
+      if (unit && unit.owner === mindBender.owner && unit.health < unit.maxHealth) {
+        unit.heal(4);
+        healed++;
+      }
+    }
+
+    mindBender.hasActed = true;
+    this.setStatus(`Healed ${healed} adjacent friendly unit(s) for +4 HP.`);
+    this.selectedUnit = null;
+    this.selectedHex = null;
+    this.renderAll();
+    this.updateUI();
   }
 
   /**
