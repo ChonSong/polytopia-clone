@@ -244,7 +244,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Promotion can be deferred — "banked" for tactical timing.
 - Naval units, super units, summoned entities (Daggers/Pirates), and enchanted fauna are excluded.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Kill tracking on combat, +5 max HP, full heal, naval/Giant exclusion. 10 tests.
 
 ### 4.7 Battle Preview
 - Hovering over valid target runs combat formula predictively.
@@ -459,7 +459,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - [ ] Cloak / stealth / Infiltration / Dagger spawning not implemented
 - [ ] Mind Bender (Convert, Heal Others) not implemented
 - [x] Healing system (skip turn to heal +4/+2 HP) implemented
-- [ ] Veteran system (+5 max HP after 3 kills) not implemented
+- [x] Veteran system (+5 max HP after 3 kills) implemented
 - [ ] Battle preview UI not implemented
 - [ ] Fog-of-war retaliation suppression not implemented
 

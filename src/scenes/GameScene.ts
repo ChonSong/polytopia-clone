@@ -390,6 +390,10 @@ export class GameScene extends Phaser.Scene {
               unit.hasAttacked = false;
               // hasActed stays false so Knight can act again this turn
             }
+            // GDD §4.4 — Track kills for veteran system
+            if (!unit.isNaval && unit.type !== UnitType.GIANT) {
+              unit.killCount++;
+            }
           }
           if (r.attackerKilled) tribe.removeUnit(unit.id);
         } else if (unit && p.targetType === 'city') {
@@ -628,6 +632,10 @@ export class GameScene extends Phaser.Scene {
             // Only melee units advance into the defender's tile on kill
             if (!this.selectedUnit.ranged) {
               this.selectedUnit.position = coord;
+            }
+            // GDD §4.4 — Track kills for veteran system
+            if (!this.selectedUnit.isNaval && this.selectedUnit.type !== UnitType.GIANT) {
+              this.selectedUnit.killCount++;
             }
           }
 

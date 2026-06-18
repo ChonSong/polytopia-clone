@@ -810,3 +810,88 @@ describe('GameState', () => {
     expect(gs.tileOwnership.get('0,0')).toBe('bardur');
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §4.4 — Veteran System
+// ---------------------------------------------------------------------------
+describe('Veteran System (GDD §4.4)', () => {
+  it('new units have zero kills and are not veterans', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    expect(u.killCount).toBe(0);
+    expect(u.isVeteran).toBe(false);
+    expect(u.isEligibleForVeteran).toBe(false);
+  });
+
+  it('killCount increments on kill', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.killCount++;
+    expect(u.killCount).toBe(1);
+    u.killCount++;
+    expect(u.killCount).toBe(2);
+  });
+
+  it('isEligibleForVeteran returns true at 3 kills', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.killCount = 3;
+    expect(u.isEligibleForVeteran).toBe(true);
+  });
+
+  it('isEligibleForVeteran returns false below 3 kills', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.killCount = 2;
+    expect(u.isEligibleForVeteran).toBe(false);
+  });
+
+  it('promoteVeteran grants +5 max HP and full heal', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.takeDamage(5); // 5 HP remaining
+    u.killCount = 3;
+    u.promoteVeteran();
+    expect(u.isVeteran).toBe(true);
+    expect(u.maxHPBonus).toBe(5);
+    expect(u.maxHealth).toBe(15); // base 10 + 5
+    expect(u.health).toBe(15); // full heal to new max
+    expect(u.killCount).toBe(0); // reset
+  });
+
+  it('promoteVeteran does nothing if not eligible', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.killCount = 2;
+    u.promoteVeteran();
+    expect(u.isVeteran).toBe(false);
+    expect(u.maxHPBonus).toBe(0);
+  });
+
+  it('naval units are not eligible for veteran', () => {
+    const raft = new Unit(coord(0, 0), UnitType.RAFT, 'test');
+    raft.killCount = 5;
+    expect(raft.isEligibleForVeteran).toBe(false);
+    expect(raft.isNaval).toBe(true);
+  });
+
+  it('Giant is not eligible for veteran', () => {
+    const giant = new Unit(coord(0, 0), UnitType.GIANT, 'test');
+    giant.killCount = 5;
+    expect(giant.isEligibleForVeteran).toBe(false);
+  });
+
+  it('already-veteran units are not eligible again', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.killCount = 3;
+    u.promoteVeteran();
+    expect(u.isEligibleForVeteran).toBe(false);
+  });
+
+  it('heal respects veteran max HP', () => {
+    const u = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    u.takeDamage(8); // 2 HP
+    u.killCount = 3;
+    u.promoteVeteran();
+    expect(u.health).toBe(15);
+    u.takeDamage(10); // 5 HP
+    u.heal(3);
+    expect(u.health).toBe(8);
+    u.heal(100);
+    expect(u.health).toBe(15); // capped at maxHealth
+  });
+});

@@ -106,6 +106,20 @@ export class Unit {
    * reset to false at the start of its next turn.
    */
   public fortified: boolean;
+  /**
+   * GDD §4.4 — Kill counter for veteran system. Incremented each time this unit
+   * kills an enemy. Reset on veteran promotion.
+   */
+  public killCount: number;
+  /**
+   * GDD §4.4 — Whether this unit has been promoted to veteran.
+   * Veterans have +5 max HP and a visual badge.
+   */
+  public isVeteran: boolean;
+  /**
+   * GDD §4.4 — Bonus max HP from veteran promotion. Added on top of base UNIT_MAX_HEALTH.
+   */
+  public maxHPBonus: number;
 
   constructor(
     public position: HexCoord,
@@ -120,6 +134,9 @@ export class Unit {
     this.hasAttacked = false;
     this.originalType = originalType ?? null;
     this.fortified = false;
+    this.killCount = 0;
+    this.isVeteran = false;
+    this.maxHPBonus = 0;
   }
 
   get stats(): UnitStats {
@@ -174,8 +191,30 @@ export class Unit {
     this.health = Math.max(0, this.health - amount);
   }
 
+  /** Effective max HP including veteran bonus. */
+  get maxHealth(): number {
+    return UNIT_MAX_HEALTH[this.type] + this.maxHPBonus;
+  }
+
   heal(amount: number): void {
-    this.health = Math.min(UNIT_MAX_HEALTH[this.type], this.health + amount);
+    this.health = Math.min(this.maxHealth, this.health + amount);
+  }
+
+  /** GDD §4.4 — Whether this unit is eligible for veteran promotion. */
+  get isEligibleForVeteran(): boolean {
+    if (this.isVeteran) return false;
+    if (this.isNaval) return false;
+    if (this.type === UnitType.GIANT) return false;
+    return this.killCount >= 3;
+  }
+
+  /** GDD §4.4 — Promote to veteran: +5 max HP, full heal, reset kill counter. */
+  promoteVeteran(): void {
+    if (!this.isEligibleForVeteran) return;
+    this.isVeteran = true;
+    this.maxHPBonus = 5;
+    this.health = this.maxHealth; // full heal to new max
+    this.killCount = 0;
   }
 
   /** Call at the start of the tribe's turn to reset action state. */
