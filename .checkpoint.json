@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-2.2-per-type-map-gen",
+  "current_task": "gdd-4.4-veteran-system",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -21,12 +21,14 @@
     {"task": "gdd-4.2-city-wall-defense", "sha": "e13518e", "date": "2026-06-16", "summary": "Fortify gating for terrain/city defense bonuses, ×4.0 city wall bonus for fortified units, visual shield indicators, 228 tests passing", "coach": "approved"},
     {"task": "sync-gdd-implementation-status", "sha": "d08c23c", "date": "2026-06-16", "summary": "Update GDD.md implementation status markers: 10 features corrected from ❌ to ✅ including naval, healing, upgrades, villages, skills, fortify, gaps summary", "coach": "approved"},
     {"task": "gdd-4.6-healing-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Refine healing: add Wait button and keyboard shortcut for unit skip-turn healing — +4 friendly, +2 other, capped at maxHP, fortify per GDD §4.2", "coach": "approved"},
-    {"task": "gdd-4.5-melee-advance-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Melee advance already implemented at GameScene.ts lines 384-385 and 620-621 — verified in code review", "coach": "approved"},
-    {"task": "gdd-5.4-buildings-real-costs-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Building costs already correct in BUILDING_DEFS — Lumber Hut 3⭐, Port 7⭐, Mine 5⭐, Farm 5⭐", "coach": "approved"},
-    {"task": "gdd-9.1-starting-stars-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Starting stars already set: humanTribe.stars = 15 at GameScene.ts line 76, AI gets 10⭐ base", "coach": "approved"},
-    {"task": "gdd-3.4-unit-skills-escape-persist-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Escape (Unit.ts lines 158-159) and Persist (Unit.ts lines 168-169) already implemented", "coach": "approved"}
+    {"task": "gdd-4.5-melee-advance-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Melee advance already implemented at lines 382-385 and 618-621 — verified in code review", "coach": "human"},
+    {"task": "gdd-5.4-buildings-real-costs-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Building costs already correct in BUILDING_DEFS — Lumber Hut 3⭐, Port 7⭐, Mine 5⭐, Farm 5⭐", "coach": "human"},
+    {"task": "gdd-9.1-starting-stars-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Starting stars already set: humanTribe.stars = 15 at line 74, AI gets 10⭐ base", "coach": "human"},
+    {"task": "gdd-3.4-unit-skills-escape-persist-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Escape (lines 371-376, 607-612) and Persist (lines 386-390, 627-630) already implemented", "coach": "human"},
+    {"task": "gdd-2.2-per-type-map-gen", "sha": "7c58083", "date": "2026-06-19", "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing", "coach": "approved"},
+    {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "pending"}
   ],
-  "health": "228_pass_0_error_0_fail",
-  "last_sha": "0a0d673",
+  "health": "241_pass_0_error_0_fail",
+  "last_sha": "cf5a0bc",
   "blocker": null
 }
