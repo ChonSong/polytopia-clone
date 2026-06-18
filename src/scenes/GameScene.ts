@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
   private hexGraphics!: Phaser.GameObjects.Graphics;
   private entityGraphics!: Phaser.GameObjects.Graphics;
   private rangeGraphics!: Phaser.GameObjects.Graphics;
+  private fogGraphics!: Phaser.GameObjects.Graphics;
   private tiles!: Map<string, TileData>;
   private state!: GameState;
   private tribes!: Tribe[];
@@ -91,6 +92,7 @@ export class GameScene extends Phaser.Scene {
     this.hexGraphics = this.add.graphics();
     this.entityGraphics = this.add.graphics();
     this.rangeGraphics = this.add.graphics().setDepth(5);
+    this.fogGraphics = this.add.graphics().setDepth(10);
 
     this.cameras.main.setBounds(-300, -300, 2000, 1600);
 
@@ -374,6 +376,9 @@ export class GameScene extends Phaser.Scene {
 
     if (cur.isDefeated()) { this.advanceTurn(); return; }
 
+    // GDD §8 — Reveal tiles visible to this tribe's units and cities
+    this.revealTribeVision(cur);
+
     if (cur !== this.humanTribe) {
       this.isAiRunning = true;
       this.currentPhase = 0;
@@ -650,6 +655,24 @@ export class GameScene extends Phaser.Scene {
     const buildingScore = tribe.cities.reduce((sum, c) => sum + c.buildings.length * 25, 0);
     const parkScore = tribe.cities.reduce((sum, c) => sum + (c.hasPark ? 250 : 0), 0);
     return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore;
+  }
+
+  /** GDD §8 — Reveal tiles within vision range of all units and cities of a tribe. */
+  private revealTribeVision(tribe: Tribe): void {
+    const allCoords = Array.from(this.tiles.keys()).map(k => {
+      const [q, r] = k.split(',').map(Number);
+      return new HexCoord(q, r);
+    });
+    // Units reveal tiles
+    for (const unit of tribe.getAliveUnits()) {
+      this.state.revealVision(tribe.id, unit.position, unit.visionRange, allCoords);
+    }
+    // Cities reveal tiles within 2-tile radius
+    for (const city of tribe.cities) {
+      if (!city.captured) {
+        this.state.revealVision(tribe.id, city.position, 2, allCoords);
+      }
+    }
   }
 
   /** GDD §5.3 — Returns the two binary upgrade choices for a given level. */
@@ -1243,6 +1266,9 @@ export class GameScene extends Phaser.Scene {
     this.hexGraphics.clear();
     this.entityGraphics.clear();
     this.rangeGraphics.clear();
+    this.fogGraphics.clear();
+
+    const humanTribeId = this.humanTribe.id;
 
     for (const [key, tile] of this.tiles) {
       const [q, r] = key.split(',').map(Number);
@@ -1275,6 +1301,22 @@ export class GameScene extends Phaser.Scene {
         this.entityGraphics.fillCircle(pos.x, pos.y - 2, 3);
         this.entityGraphics.lineStyle(1, 0x666, 0.5);
         this.entityGraphics.strokeCircle(pos.x, pos.y - 2, 3);
+      }
+    }
+
+    // GDD §8 — Fog of war overlay
+    for (const [key, tile] of this.tiles) {
+      const [q, r] = key.split(',').map(Number);
+      const c = new HexCoord(q, r);
+      const pos = c.toPixel(HEX_SIZE);
+      const isVisible = this.state.isTileVisibleToTribe(c, humanTribeId);
+      const isExplored = this.state.isTileExploredByTribe(c, humanTribeId);
+      if (!isVisible && !isExplored) {
+        // Black fog — unrevealed
+        this.drawHex(this.fogGraphics, pos.x, pos.y, HEX_SIZE, 0x000000, undefined, 0.92);
+      } else if (!isVisible && isExplored) {
+        // Dimmed — explored but out of vision range
+        this.drawHex(this.fogGraphics, pos.x, pos.y, HEX_SIZE, 0x000000, undefined, 0.55);
       }
     }
 
@@ -1317,6 +1359,10 @@ export class GameScene extends Phaser.Scene {
     // Units
     for (const t of this.tribes) {
       for (const u of t.getAliveUnits()) {
+        // GDD §8 — Enemy units in fog are not visible to the human player
+        if (t.id !== humanTribeId && !this.state.isTileVisibleToTribe(u.position, humanTribeId)) {
+          continue;
+        }
         const p = u.position.toPixel(HEX_SIZE);
         const sel = this.selectedUnit === u;
         const cl = COLORS[u.owner] || 0x888;
@@ -1428,14 +1474,14 @@ export class GameScene extends Phaser.Scene {
     return new Promise(r => this.time.delayedCall(ms, r));
   }
 
-  private drawHex(g: Phaser.GameObjects.Graphics, cx: number, cy: number, size: number, color: number, highlight?: number): void {
+  private drawHex(g: Phaser.GameObjects.Graphics, cx: number, cy: number, size: number, color: number, highlight?: number, alpha?: number): void {
     const pts: { x: number; y: number }[] = [];
     for (let i = 0; i < 6; i++) {
       const a = Math.PI / 6 + (Math.PI / 3) * i;
       pts.push({ x: cx + size * Math.cos(a), y: cy + size * Math.sin(a) });
     }
     g.lineStyle(1, 0x000, 0.15);
-    g.fillStyle(color, 1);
+    g.fillStyle(color, alpha ?? 1);
     g.beginPath();
     g.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < 6; i++) g.lineTo(pts[i].x, pts[i].y);

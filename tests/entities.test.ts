@@ -895,3 +895,92 @@ describe('Veteran System (GDD §4.4)', () => {
     expect(u.health).toBe(15); // capped at maxHealth
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §8 — Fog of War
+// ---------------------------------------------------------------------------
+describe('Fog of War', () => {
+  it('new GameState has empty visibility for all tribes', () => {
+    const tribes = [createTestTribe(), createTestTribe({ id: 't2', name: 'T2' })];
+    const gs = new GameState(tribes);
+    expect(gs.tribeVisibility.get(tribes[0].id)!.size).toBe(0);
+    expect(gs.tribeVisibility.get(tribes[1].id)!.size).toBe(0);
+  });
+
+  it('revealVision adds tiles within range', () => {
+    const tribes = [createTestTribe()];
+    const gs = new GameState(tribes);
+    const center = new HexCoord(5, 5);
+    const allCoords: HexCoord[] = [];
+    for (let q = 0; q < 10; q++) {
+      for (let r = 0; r < 10; r++) {
+        allCoords.push(new HexCoord(q, r));
+      }
+    }
+    gs.revealVision(tribes[0].id, center, 2, allCoords);
+    const visible = gs.tribeVisibility.get(tribes[0].id)!;
+    // Tiles within 2 of (5,5) should be revealed
+    expect(visible.has('5,5')).toBe(true);
+    expect(visible.has('5,7')).toBe(true); // distance 2
+    expect(visible.has('7,5')).toBe(true); // distance 2
+    // Tiles outside range should not be revealed
+    expect(visible.has('5,8')).toBe(false); // distance 3
+    expect(visible.has('8,5')).toBe(false); // distance 3
+  });
+
+  it('isTileVisibleToTribe returns false for unrevealed tiles', () => {
+    const tribes = [createTestTribe()];
+    const gs = new GameState(tribes);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), tribes[0].id)).toBe(false);
+  });
+
+  it('isTileVisibleToTribe returns true after reveal', () => {
+    const tribes = [createTestTribe()];
+    const gs = new GameState(tribes);
+    const allCoords = [new HexCoord(0, 0), new HexCoord(1, 0), new HexCoord(2, 0)];
+    gs.revealVision(tribes[0].id, new HexCoord(0, 0), 1, allCoords);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), tribes[0].id)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(1, 0), tribes[0].id)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(2, 0), tribes[0].id)).toBe(false);
+  });
+
+  it('vision is per-tribe (each tribe has independent fog)', () => {
+    const tribes = [createTestTribe(), createTestTribe({ id: 't2', name: 'T2' })];
+    const gs = new GameState(tribes);
+    const allCoords = [new HexCoord(0, 0), new HexCoord(1, 0)];
+    gs.revealVision(tribes[0].id, new HexCoord(0, 0), 1, allCoords);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), tribes[0].id)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), tribes[1].id)).toBe(false);
+  });
+
+  it('Scout has vision range 3', () => {
+    const scout = new Unit(coord(0, 0), UnitType.SCOUT, 'test');
+    expect(scout.visionRange).toBe(3);
+  });
+
+  it('Giant has vision range 3', () => {
+    const giant = new Unit(coord(0, 0), UnitType.GIANT, 'test');
+    expect(giant.visionRange).toBe(3);
+  });
+
+  it('Warrior has vision range 2', () => {
+    const warrior = new Unit(coord(0, 0), UnitType.WARRIOR, 'test');
+    expect(warrior.visionRange).toBe(2);
+  });
+
+  it('Rider has vision range 2', () => {
+    const rider = new Unit(coord(0, 0), UnitType.RIDER, 'test');
+    expect(rider.visionRange).toBe(2);
+  });
+
+  it('revealed tiles persist (explored but not currently visible)', () => {
+    const tribes = [createTestTribe()];
+    const gs = new GameState(tribes);
+    const allCoords = [new HexCoord(0, 0), new HexCoord(3, 0)];
+    // Reveal tile 0,0 from position (0,0) with range 1
+    gs.revealVision(tribes[0].id, new HexCoord(0, 0), 1, allCoords);
+    expect(gs.isTileExploredByTribe(new HexCoord(0, 0), tribes[0].id)).toBe(true);
+    // Tile 3,0 was never revealed
+    expect(gs.isTileExploredByTribe(new HexCoord(3, 0), tribes[0].id)).toBe(false);
+  });
+});

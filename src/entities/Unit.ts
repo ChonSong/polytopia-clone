@@ -193,6 +193,12 @@ export class Unit {
     return this.type === UnitType.KNIGHT;
   }
 
+  /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */
+  get visionRange(): number {
+    if (this.type === UnitType.SCOUT || this.type === UnitType.GIANT) return 3;
+    return 2;
+  }
+
   takeDamage(amount: number): void {
     this.health = Math.max(0, this.health - amount);
   }

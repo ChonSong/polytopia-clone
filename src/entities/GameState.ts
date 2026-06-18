@@ -9,6 +9,8 @@ export class GameState {
   public tribes: Tribe[];
   public tileOwnership: TileOwnership;
   public visibility: Map<string, boolean>; // "q,r" -> visible to the owning tribe
+  /** GDD §8 — Per-tribe fog-of-war: tribeId -> set of revealed tile keys. */
+  public tribeVisibility: Map<string, Set<string>>;
 
   constructor(tribes: Tribe[]) {
     this.turn = 1;
@@ -16,6 +18,10 @@ export class GameState {
     this.tribes = tribes;
     this.tileOwnership = new Map();
     this.visibility = new Map();
+    this.tribeVisibility = new Map();
+    for (const tribe of tribes) {
+      this.tribeVisibility.set(tribe.id, new Set());
+    }
   }
 
   /** Returns the tribe whose turn it currently is. */
@@ -70,5 +76,26 @@ export class GameState {
 
   setTileVisibility(coord: HexCoord, visible: boolean): void {
     this.visibility.set(coord.toString(), visible);
+  }
+
+  /** GDD §8 — Reveal tiles within vision range of a center point for a given tribe. */
+  revealVision(tribeId: string, center: HexCoord, range: number, allCoords: HexCoord[]): void {
+    const visible = this.tribeVisibility.get(tribeId);
+    if (!visible) return;
+    for (const coord of allCoords) {
+      if (coord.distanceTo(center) <= range) {
+        visible.add(coord.toString());
+      }
+    }
+  }
+
+  /** GDD §8 — Check if a tile is currently visible (in vision range) to the given tribe. */
+  isTileVisibleToTribe(coord: HexCoord, tribeId: string): boolean {
+    return this.tribeVisibility.get(tribeId)?.has(coord.toString()) === true;
+  }
+
+  /** GDD §8 — Check if a tile has been previously revealed (explored) by the given tribe. */
+  isTileExploredByTribe(coord: HexCoord, tribeId: string): boolean {
+    return this.tribeVisibility.get(tribeId)?.has(coord.toString()) === true;
   }
 }
