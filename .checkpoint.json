@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-5.8-siege-mechanics",
+  "current_task": "gdd-4.2-poison-status",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -28,9 +28,10 @@
     {"task": "gdd-2.2-per-type-map-gen", "sha": "7c58083", "date": "2026-06-19", "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing", "coach": "approved"},
     {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "approved"},
     {"task": "gdd-4.4-veteran-system", "sha": "3622fb8", "date": "2026-06-19", "summary": "Veteran system: kill tracking, +5 max HP, full heal, naval/Giant exclusion, 10 new tests, 251 total passing", "coach": "approved"},
-    {"task": "gdd-2.4-ancient-ruins", "sha": "5c8426d", "date": "2026-06-19", "summary": "Ancient ruins: size-scaled placement (4-23), ≥2 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing", "coach": "approved"}
+    {"task": "gdd-2.4-ancient-ruins", "sha": "5c8426d", "date": "2026-06-19", "summary": "Ancient ruins: size-scaled placement (4-23), ≥2 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing", "coach": "approved"},
+    {"task": "gdd-5.8-siege-mechanics", "sha": "b354898", "date": "2026-06-19", "summary": "Siege mechanics: City.isBesieged, 0 stars when besieged, UI lock, red border indicator, 7 new tests, 269 total passing", "coach": "approved"}
   ],
-  "health": "262_pass_0_error_0_fail",
-  "last_sha": "5c8426d",
+  "health": "269_pass_0_error_0_fail",
+  "last_sha": "b354898",
   "blocker": null
 }
