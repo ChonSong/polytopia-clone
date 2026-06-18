@@ -984,3 +984,51 @@ describe('Fog of War', () => {
     expect(gs.isTileExploredByTribe(new HexCoord(3, 0), tribes[0].id)).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §3.1 — Cloak unit
+// ---------------------------------------------------------------------------
+describe('Cloak unit', () => {
+  it('exists with correct stats', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.type).toBe(UnitType.CLOAK);
+    expect(cloak.attack).toBe(0);
+    expect(cloak.defense).toBe(0.5);
+    expect(cloak.movementRange).toBe(2);
+    expect(cloak.ranged).toBe(false);
+    expect(cloak.canAttackAfterMove).toBe(true);
+  });
+
+  it('has 5 HP', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.health).toBe(5);
+    expect(cloak.maxHealth).toBe(5);
+  });
+
+  it('costs 8 stars', () => {
+    expect(UNIT_COSTS[UnitType.CLOAK]).toBe(8);
+  });
+
+  it('is a naval unit', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.isNaval).toBe(true);
+  });
+
+  it('has Hide skill', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.hasHide).toBe(true);
+  });
+
+  it('starts not submerged', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.isSubmerged).toBe(false);
+  });
+
+  it('can submerge and emerge', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    cloak.isSubmerged = true;
+    expect(cloak.isSubmerged).toBe(true);
+    cloak.isSubmerged = false;
+    expect(cloak.isSubmerged).toBe(false);
+  });
+});

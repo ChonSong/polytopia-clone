@@ -527,4 +527,45 @@ describe('CombatSystem', () => {
       expect(defender.isPoisoned).toBe(false);
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // GDD §3.1 — Cloak submerge targeting
+  // ---------------------------------------------------------------------------
+  describe('Cloak submerge', () => {
+    it('submerged Cloak cannot be attacked by non-adjacent enemy', () => {
+      const cloak = makeUnit(UnitType.CLOAK, 'TribeA', 0, 0);
+      cloak.isSubmerged = true;
+      const archer = makeUnit(UnitType.ARCHER, 'TribeB', 3, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['3,0', {}],
+      ]);
+
+      expect(CombatSystem.canAttack(archer, cloak, tiles)).toBe(false);
+    });
+
+    it('submerged Cloak can be attacked by adjacent enemy', () => {
+      const cloak = makeUnit(UnitType.CLOAK, 'TribeA', 0, 0);
+      cloak.isSubmerged = true;
+      const warrior = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      expect(CombatSystem.canAttack(warrior, cloak, tiles)).toBe(true);
+    });
+
+    it('emerged Cloak can be attacked normally', () => {
+      const cloak = makeUnit(UnitType.CLOAK, 'TribeA', 0, 0);
+      cloak.isSubmerged = false;
+      const warrior = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      expect(CombatSystem.canAttack(warrior, cloak, tiles)).toBe(true);
+    });
+  });
 });

@@ -89,6 +89,11 @@ export class Tribe {
       const gate = UNIT_TECH_GATES[ut];
       if (!gate || this.techs.has(gate)) all.push(ut);
     }
+    // GDD §3.1 — Special units
+    for (const ut of [UnitType.CLOAK]) {
+      const gate = UNIT_TECH_GATES[ut];
+      if (!gate || this.techs.has(gate)) all.push(ut);
+    }
     return all;
   }
 }

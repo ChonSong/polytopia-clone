@@ -14,6 +14,7 @@ export enum TechId {
   FISHING     = 'FISHING',
   SAILING     = 'SAILING',
   NAVIGATION  = 'NAVIGATION',
+  DIPLOMACY   = 'DIPLOMACY',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
@@ -124,6 +125,15 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [],
     prerequisites: [TechId.SAILING],
   },
+  [TechId.DIPLOMACY]: {
+    id: TechId.DIPLOMACY,
+    name: 'Diplomacy',
+    description: 'Cloak unit • Infiltration',
+    tier: 3,
+    series: 'fishing',
+    unlocksUnits: [UnitType.CLOAK],
+    prerequisites: [TechId.SAILING],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -145,5 +155,7 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.SCOUT]:     TechId.SAILING,
   [UnitType.RAMMER]:    TechId.NAVIGATION,
   [UnitType.BOMBER]:    TechId.NAVIGATION,
+  // GDD §3.1 Special unit gates
+  [UnitType.CLOAK]:     TechId.DIPLOMACY,
   // Warrior, Defender, Boat, Raft are unlocked by default or via other paths
 };

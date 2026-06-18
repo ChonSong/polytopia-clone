@@ -77,6 +77,9 @@ export class CombatSystem {
       if (dist !== 1) return false;
     }
 
+    // GDD §3.1 — Submerged Cloak is invisible to non-adjacent enemies
+    if (defender.isSubmerged && dist > 1) return false;
+
     // Boat restriction: both must be on WATER tiles
     if (attacker.type === UnitType.BOAT) {
       const aTile = tiles.get(attacker.position.toString());

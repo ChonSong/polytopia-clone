@@ -15,6 +15,8 @@ export enum UnitType {
   SCOUT    = 'SCOUT',
   RAMMER   = 'RAMMER',
   BOMBER   = 'BOMBER',
+  // GDD §3.1 — Special units
+  CLOAK    = 'CLOAK',
 }
 
 export interface UnitStats {
@@ -41,6 +43,8 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   [UnitType.SCOUT]:     5,
   [UnitType.RAMMER]:    5,
   [UnitType.BOMBER]:    15,
+  // GDD §3.1 — Special units
+  [UnitType.CLOAK]:     8,
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -59,6 +63,8 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   [UnitType.SCOUT]:     10,
   [UnitType.RAMMER]:    10,
   [UnitType.BOMBER]:    10,
+  // GDD §3.1 — Special units
+  [UnitType.CLOAK]:     5,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -77,12 +83,14 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.SCOUT]:    { attack: 2, defense: 1, movementRange: 3, canAttackAfterMove: true,  ranged: true  },
   [UnitType.RAMMER]:   { attack: 3, defense: 3, movementRange: 3, canAttackAfterMove: true,  ranged: false },
   [UnitType.BOMBER]:   { attack: 3, defense: 2, movementRange: 2, canAttackAfterMove: false, ranged: true  },
+  // GDD §3.1 — Special units
+  [UnitType.CLOAK]:    { attack: 0, defense: 0.5, movementRange: 2, canAttackAfterMove: true, ranged: false },
 };
 
 export const MAX_HEALTH = 10;
 
 export const NAVAL_UNIT_TYPES: Set<UnitType> = new Set([
-  UnitType.RAFT, UnitType.SCOUT, UnitType.RAMMER, UnitType.BOMBER,
+  UnitType.RAFT, UnitType.SCOUT, UnitType.RAMMER, UnitType.BOMBER, UnitType.CLOAK,
 ]);
 
 export class Unit {
@@ -121,10 +129,14 @@ export class Unit {
    */
   public maxHPBonus: number;
   /**
-   * GDD §4.2 — Poison status. Number of remaining turns the unit will take 1 poison damage
+   * GDD §3.1 — Poison status. Number of remaining turns the unit will take 1 poison damage
    * at the start of its turn. 0 = not poisoned.
    */
   public poisonTurns: number;
+  /**
+   * GDD §3.1 — Cloak submerge state. When true, unit is hidden from non-adjacent enemies.
+   */
+  public isSubmerged: boolean;
 
   constructor(
     public position: HexCoord,
@@ -143,6 +155,7 @@ export class Unit {
     this.isVeteran = false;
     this.maxHPBonus = 0;
     this.poisonTurns = 0;
+    this.isSubmerged = false;
   }
 
   get stats(): UnitStats {
@@ -191,6 +204,11 @@ export class Unit {
   /** GDD §3.3 — Persist: if unit kills a target, action refreshes (Knight). */
   get hasPersist(): boolean {
     return this.type === UnitType.KNIGHT;
+  }
+
+  /** GDD §3.1 — Hide: Cloak can submerge to become invisible to non-adjacent enemies. */
+  get hasHide(): boolean {
+    return this.type === UnitType.CLOAK;
   }
 
   /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */
