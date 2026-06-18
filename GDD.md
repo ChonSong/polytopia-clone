@@ -266,7 +266,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 
 **Note (real Polytopia):** Human capital starts at 2⭐/turn base, AI capitals at 1⭐. Not replicated in clone — all tribes use +5⭐/turn base `starsPerTurn`.
 
-**Implemented:** ✅ Biome yields + level bonus + building bonuses in `City.getStarsPerTurn()`. ❌ Siege income blockade not implemented.
+**Implemented:** ✅ Biome yields + level bonus + building bonuses in `City.getStarsPerTurn()`. ✅ Siege income blockade — `City.isBesieged` flag, `getStarsPerTurn()` returns 0 when besieged.
 
 ### 5.2 Population & Leveling
 - Unit capacity = level + 1.
@@ -332,7 +332,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Siege effects: star generation → 0, city interface locked (no unit queue/building).
 - Siege persists until: defender destroys occupying unit, or attacker initiates capture.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Siege trigger on enemy unit on tile, income → 0, UI locked, red border indicator.
 
 ---
 
@@ -473,7 +473,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 ### Cities & Economy
 - [x] Binary city upgrade choices implemented
 - [ ] Border expansion (3×3 → 5×5) not implemented
-- [ ] Siege mechanic (economic blockade) not implemented
+- [x] Siege mechanic (economic blockade) implemented — City.isBesieged, 0 stars, UI locked, red border
 - [ ] Explorer autonomous pathfinding not implemented
 - [ ] Trade routes / Roads / City Connections not implemented
 - [ ] Grand Bazaar (+400 score) not implemented

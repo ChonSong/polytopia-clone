@@ -539,7 +539,30 @@ export class GameScene extends Phaser.Scene {
     return biomes;
   }
 
+  /** GDD §5.8 — Check all cities for siege state based on unit positions. */
+  private updateSiegeState(): void {
+    for (const tribe of this.tribes) {
+      for (const city of tribe.cities) {
+        if (city.captured) continue;
+        // Check if any enemy unit is on this city's tile
+        let enemyOnTile = false;
+        for (const otherTribe of this.tribes) {
+          if (otherTribe.id === tribe.id) continue;
+          for (const unit of otherTribe.getAliveUnits()) {
+            if (unit.position.equals(city.position)) {
+              enemyOnTile = true;
+              break;
+            }
+          }
+          if (enemyOnTile) break;
+        }
+        city.isBesieged = enemyOnTile;
+      }
+    }
+  }
+
   private collectAiResources(tribe: Tribe): void {
+    this.updateSiegeState();
     let stars = 0;
     for (const city of tribe.cities) {
       const biomes = this.getTerritoryBiomes(city);
@@ -571,6 +594,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private collectHumanResources(): void {
+    this.updateSiegeState();
     let stars = 0;
     for (const city of this.humanTribe.cities) {
       const biomes = this.getTerritoryBiomes(city);
@@ -977,6 +1001,12 @@ export class GameScene extends Phaser.Scene {
     const items: string[] = [];
     const handlers: (() => void)[] = [];
 
+    // GDD §5.8 — Siege lock: besieged cities cannot build or train
+    if (city.isBesieged) {
+      items.push('⚔️ UNDER SIEGE — City locked!');
+      handlers.push(() => {});
+    }
+
     // --- TRAINABLE UNITS (filtered by tech) ---
     const trainableTypes = this.humanTribe.getTrainableUnitTypes();
     const trainableUnits: { type: UnitType; label: string }[] = trainableTypes.map(t => ({
@@ -1260,7 +1290,12 @@ export class GameScene extends Phaser.Scene {
         const cl = COLORS[city.tribeId] || 0x888;
         this.entityGraphics.fillStyle(cl, 1);
         this.entityGraphics.fillCircle(p.x, p.y, HEX_SIZE * 0.38);
-        this.entityGraphics.lineStyle(2, 0x000, 0.4);
+        // GDD §5.8 — Siege indicator: red border on besieged cities
+        if (city.isBesieged) {
+          this.entityGraphics.lineStyle(3, 0xe53935, 0.9);
+        } else {
+          this.entityGraphics.lineStyle(2, 0x000, 0.4);
+        }
         this.entityGraphics.strokeCircle(p.x, p.y, HEX_SIZE * 0.38);
         for (let i = 0; i < city.level; i++) {
           this.entityGraphics.fillStyle(0x000, 0.5);

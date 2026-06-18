@@ -35,6 +35,8 @@ export class City {
   public food: number;        // accumulated food toward next population growth
   public foodPerTurn: number; // food generated per turn
   public giantSpawned: boolean; // whether the level-5 super unit has been spawned
+  /** GDD §5.8 — Whether this city is under siege (enemy unit on central tile). */
+  public isBesieged: boolean;
 
   /** GDD §5.3 — tracks binary upgrade choices per level (2=A, 3=B, etc.) */
   public upgradeChoices: Record<number, 'A' | 'B'> = {};
@@ -56,6 +58,7 @@ export class City {
     this.food = 0;
     this.foodPerTurn = 0;
     this.giantSpawned = false;
+    this.isBesieged = false;
   }
 
   // ── GDD §5.3 Computed Properties ─────────────────────────────────────
@@ -106,6 +109,7 @@ export class City {
 
   /** Total stars produced per turn (base yields + level bonus + buildings + workshop). */
   getStarsPerTurn(adjacentBiomes: Biome[]): number {
+    if (this.isBesieged) return 0;
     let bonus = 0;
     for (const b of this.buildings) {
       bonus += BUILDING_DEFS[b].starsBonus;
