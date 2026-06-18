@@ -26,7 +26,7 @@
     {"task": "gdd-9.1-starting-stars-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Starting stars already set: humanTribe.stars = 15 at line 74, AI gets 10⭐ base", "coach": "human"},
     {"task": "gdd-3.4-unit-skills-escape-persist-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Escape (lines 371-376, 607-612) and Persist (lines 386-390, 627-630) already implemented", "coach": "human"},
     {"task": "gdd-2.2-per-type-map-gen", "sha": "7c58083", "date": "2026-06-19", "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing", "coach": "approved"},
-    {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "pending"}
+    {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "approved"}
   ],
   "health": "241_pass_0_error_0_fail",
   "last_sha": "cf5a0bc",
