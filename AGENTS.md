@@ -223,3 +223,75 @@ Ordered by priority. Each task is one unit of work for one player tick.
 - 🔲 Pending
 - ⚠️ Blocked (reason in task)
 - 🔄 In progress
+
+---
+
+### Task: gdd-2.2-per-type-map-gen
+- **Description**: Implement per-type map generation algorithms. Currently `MapGenerator` uses a single radial gradient for all 4 map types (Continents, Waterworld, Pangea, Islands). Each type should produce distinctly different terrain layouts: Continents = large landmasses with oceans, Waterworld = mostly water with small islands, Pangea = one huge continent, Islands = many small scattered islands. Also add Waterworld and Pangea to the `MapType` enum if missing.
+- **Success criteria**:
+  - `MapGenerator.generate(mapType)` produces visually distinct terrain for each of the 4 map types
+  - Waterworld and Pangea exist in the `MapType` enum and are selectable in `SelectScene`
+  - Each map type has its own generation algorithm (not just parameter tweaks of the same algorithm)
+  - All 228+ existing tests still pass
+- **Coach checks**:
+  - Start 4 new games with each map type, verify terrain layout is visually distinct
+  - Check that Waterworld has mostly water tiles, Pangea has one dominant landmass
+  - Verify tribe starting positions are on land for all map types
+  - Run `npx vitest run` — no regressions
+
+### Task: gdd-5.2-border-expansion
+- **Description**: Implement city border expansion. Currently cities have a fixed 3×3 territory. Per GDD §5.2, cities should expand their territory as they grow: L1=3×3, L2=5×5, L3=7×7, L4=9×9, L5=11×11. Territory determines which tiles generate stars for the city. Show territory boundary visually on the map (subtle colored border tiles).
+- **Success criteria**:
+  - City territory radius increases with city level (L1=1 tile radius, L2=2, L3=3, L4=4, L5=5)
+  - Territory boundary is visually indicated on the map (colored tiles or subtle grid)
+  - Star income calculation uses expanded territory tiles
+  - All 228+ existing tests still pass
+- **Coach checks**:
+  - Found a city, upgrade it through levels, verify territory grows visually
+  - Check that star income increases as territory expands
+  - Verify two cities' territories can overlap (no crash)
+  - Run `npx vitest run` — no regressions
+
+### Task: gdd-4.4-veteran-system
+- **Description**: Implement the veteran system per GDD §4.4. When a unit accumulates 3 kills, it gains +5 max HP and full heal. Promotion can be deferred ("banked") for tactical timing. Naval units, super units, and summoned entities are excluded. Show a veteran badge (star icon) on veteran units.
+- **Success criteria**:
+  - Unit kill count tracked per unit (separate from unit type)
+  - After 3 kills, unit gains +5 max HP and current HP set to new max
+  - Veteran status is "banked" — player can trigger promotion from unit action menu
+  - Veteran units show a visual badge (star icon or border glow)
+  - Naval units, Giants, and summoned units are excluded from veteran system
+  - 3+ new tests for veteran mechanics
+- **Coach checks**:
+  - Kill 3 enemies with a Warrior, verify veteran promotion option appears
+  - Promote veteran, verify HP increased by 5 and unit is fully healed
+  - Check that naval units and Giants don't get veteran after 3 kills
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-2.4-ancient-ruins
+- **Description**: Implement ancient ruins on the map per GDD §2.4. Ruins spawn at game start (4 on Tiny to 23 on Massive), scattered across the map, not adjacent to villages. When a unit ends turn on a ruin, it reveals a randomized reward: veteran unit, free tech, or star injection. Ruins are visible on the map as distinct tiles (e.g., stone icon) through fog-of-war.
+- **Success criteria**:
+  - Ancient ruins spawn at game start with count based on map size
+  - Ruins are visible on map (distinct tile appearance) and persist until discovered
+  - Unit ending turn on a ruin triggers a reward popup (random: veteran unit, free tech, or star bonus)
+  - Ruins cannot spawn adjacent to villages (min 2-tile distance)
+  - 3+ new tests for ruin spawning and reward mechanics
+- **Coach checks**:
+  - Start a new game, verify ruins are visible on the map before discovery
+  - Move a unit onto a ruin, verify reward popup appears
+  - Check that ruins don't spawn next to villages
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-5.8-siege-mechanics
+- **Description**: Implement siege mechanics per GDD §5.8. When an enemy unit ends turn on a city's central tile, the city enters Siege state: star income drops to 0, city interface is locked (no unit queue or building). Siege persists until the defender destroys the occupying unit or the attacker initiates capture. Show siege visual indicator (red border/flashing) on besieged cities.
+- **Success criteria**:
+  - Enemy unit ending turn on city central tile triggers siege
+  - Besieged city produces 0 stars/turn
+  - Besieged city cannot build units or buildings (UI locked)
+  - Siege ends when occupying unit is killed or city is captured
+  - Visual siege indicator on the city tile (red border or similar)
+  - 3+ new tests for siege trigger, income lock, and siege break
+- **Coach checks**:
+  - Move enemy unit onto city tile, end turn, verify siege activates
+  - Verify city produces 0 income while besieged
+  - Kill the besieging unit, verify siege lifts and city functions normally
+  - Run `npx vitest run` — all tests pass

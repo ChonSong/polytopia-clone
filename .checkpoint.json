@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "gdd-2.2-per-type-map-gen",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
