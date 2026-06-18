@@ -77,6 +77,7 @@ export class GameScene extends Phaser.Scene {
 
     this.placeCities();
     this.placeVillages();
+    this.placeRuins();
     this.state = new GameState(this.tribes);
     // Share tile map with AI via GameState (BasicAI accesses it via cast)
     (this.state as any).tileMap = this.tiles;
@@ -247,7 +248,95 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** GDD §2.5 — Capture villages where the tribe has a unit standing. */
+  /** GDD §2.6 — Spawn ancient ruins on the map at game start. */
+  private placeRuins(): void {
+    const gridSize = GRID_WIDTH * GRID_HEIGHT;
+    // Scale ruin count by map size: ~1 per 28 tiles, min 4, max 23
+    const desiredCount = Math.max(4, Math.min(23, Math.round(gridSize / 28)));
+    const candidates: HexCoord[] = [];
+
+    // Collect eligible tiles: land, not edge (≥2 from edge), not city/village/water
+    for (let q = 2; q <= GRID_WIDTH - 3; q++) {
+      for (let r = 2; r <= GRID_HEIGHT - 3; r++) {
+        const coord = new HexCoord(q, r);
+        const tile = this.tiles.get(coord.toString());
+        if (!tile || tile.biome === Biome.WATER || tile.city || tile.village) continue;
+        candidates.push(coord);
+      }
+    }
+
+    // Shuffle and place with mutual ≥2 spacing and ≥2 from villages
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+    const placed: HexCoord[] = [];
+    const villageCoords: HexCoord[] = [];
+    for (const t of this.tiles) {
+      if (t[1].village) villageCoords.push(new HexCoord(...t[0].split(',').map(Number) as [number, number]));
+    }
+
+    for (const coord of shuffled) {
+      if (placed.length >= desiredCount) break;
+
+      // ≥2 from other ruins
+      let tooClose = false;
+      for (const p of placed) {
+        if (coord.distanceTo(p) < 2) { tooClose = true; break; }
+      }
+      if (tooClose) continue;
+
+      // ≥2 from villages
+      for (const v of villageCoords) {
+        if (coord.distanceTo(v) < 2) { tooClose = true; break; }
+      }
+      if (tooClose) continue;
+
+      placed.push(coord);
+      const tile = this.tiles.get(coord.toString())!;
+      tile.ruin = true;
+    }
+  }
+
+  /** GDD §2.6 — Discover ancient ruins where the tribe has a unit standing. */
+  private discoverRuins(tribe: Tribe): void {
+    for (const unit of tribe.getAliveUnits()) {
+      const tile = this.tiles.get(unit.position.toString());
+      if (!tile?.ruin || tile.ruinDiscovered) continue;
+
+      tile.ruinDiscovered = true;
+      // Random reward: 0 = veteran unit, 1 = free tech, 2 = star bonus
+      const reward = Math.floor(Math.random() * 3);
+      switch (reward) {
+        case 0: {
+          // Veteran unit: promote the unit if eligible, or give +5 max HP
+          if (!unit.isVeteran && !unit.isNaval && unit.type !== UnitType.GIANT) {
+            unit.isVeteran = true;
+            unit.maxHPBonus = 5;
+            unit.health = unit.maxHealth; // full heal to new max
+            unit.killCount = 0;
+          }
+          this.setStatus(`${tribe.name} discovered ancient ruins! ${unit.type} gained veteran status (+5 HP, full heal).`);
+          break;
+        }
+        case 1: {
+          // Free tech: research the first unresearched tech in any series
+          const allTechs = Object.values(TechId);
+          for (const tech of allTechs) {
+            if (!tribe.hasTech(tech)) {
+              tribe.researchTech(tech);
+              this.setStatus(`${tribe.name} discovered ancient ruins! Free tech: ${tech}.`);
+              break;
+            }
+          }
+          break;
+        }
+        case 2: {
+          // Star bonus: +10 stars
+          tribe.stars += 10;
+          this.setStatus(`${tribe.name} discovered ancient ruins! +10⭐ bonus.`);
+          break;
+        }
+      }
+    }
+  }
   private captureVillages(tribe: Tribe): void {
     for (const unit of tribe.getAliveUnits()) {
       const tile = this.tiles.get(unit.position.toString());
@@ -270,6 +359,8 @@ export class GameScene extends Phaser.Scene {
 
     // GDD §2.5 — Capture villages: units that START their turn on a village tile capture it
     this.captureVillages(cur);
+    // GDD §2.6 — Discover ancient ruins: unit starting turn on a ruin triggers reward
+    this.discoverRuins(cur);
 
     if (cur.isDefeated()) { this.advanceTurn(); return; }
 

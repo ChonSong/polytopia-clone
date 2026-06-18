@@ -25,6 +25,10 @@ export interface TileData {
   unit?: boolean;
   /** GDD §2.5 — Neutral village that can be captured to become a city. */
   village?: boolean;
+  /** GDD §2.6 — Ancient ruin that reveals a reward when discovered. */
+  ruin?: boolean;
+  /** GDD §2.6 — Whether this ruin has been discovered already. */
+  ruinDiscovered?: boolean;
 }
 
 export const BiomeColors: Record<Biome, number> = {

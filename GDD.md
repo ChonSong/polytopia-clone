@@ -99,7 +99,7 @@ Placed on ~35% of eligible tiles:
 - Provide randomized immediate benefits: veteran units, free techs, star injections.
 - Cannot spawn adjacent to villages.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Ruin placement with size-scaled count, village/city/water exclusion, ≥2 spacing. Discovery on unit contact with 3 reward types (veteran, free tech, stars). 11 tests.
 
 ---
 
