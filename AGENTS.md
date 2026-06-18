@@ -354,3 +354,58 @@ Ordered by priority. Each task is one unit of work for one player tick.
   - Convert enemy unit, verify it changes tribe
   - Try to convert naval unit, verify blocked
   - Run `npx vitest run` — all tests pass
+
+### Task: gdd-3.3-stiff-splash-skills
+- **Description**: Implement Stiff and Splash unit skills per GDD §3.3. Stiff: unit cannot move after attacking AND attacker takes no retaliation damage (applied to Catapult, Giant, Bomber, Raft). Splash: Bomber deals half damage (rounded down) to all adjacent enemies after the primary attack.
+- **Success criteria**:
+  - Catapult, Giant, Bomber, Raft have Stiff skill flag
+  - Units with Stiff cannot move after attacking
+  - Attacks against Stiff units deal no retaliation damage
+  - Bomber's Splash deals floor(damage/2) to all enemies adjacent to the primary target
+  - 3+ new tests for Stiff and Splash mechanics
+- **Coach checks**:
+  - Attack with Catapult, verify it cannot move afterward
+  - Attack a Catapult, verify no retaliation damage is dealt
+  - Use Bomber to attack a unit adjacent to 2 enemies, verify splash damage
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-4.7-battle-preview
+- **Description**: Implement battle preview UI per GDD §4.7. When hovering over a valid attack target, show predicted damage for both attacker and defender. Show sweating animation on target if predicted damage ≥ target's current HP (guaranteed kill). Show black/red ring on attacker if predicted counter-attack would be lethal.
+- **Success criteria**:
+  - Hovering over an enemy unit shows predicted attack damage and counter-attack damage
+  - Guaranteed kill shows sweating animation on the target
+  - Lethal counter-attack shows warning ring on the attacker
+  - Preview updates dynamically based on attacker's current health
+  - 3+ new tests for preview calculation accuracy
+- **Coach checks**:
+  - Hover over weak enemy, verify sweating animation appears
+  - Hover over strong enemy that would kill attacker, verify warning ring
+  - Verify preview numbers match actual combat results
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-8.4-ai-low-hp-targeting
+- **Description**: Improve AI attack priority per GDD §8.4. Currently the AI attacks the first adjacent enemy found. It should prioritize low-HP targets to secure guaranteed kills, build veteran progress, and eliminate retaliation threats. Sort attack targets by ascending current HP, then by descending attack value for ties.
+- **Success criteria**:
+  - AI evaluates all adjacent enemies before choosing attack target
+  - AI attacks the lowest-HP adjacent enemy first
+  - For equal HP, AI attacks the unit with highest attack value (biggest threat)
+  - 2+ new tests verifying target selection order
+- **Coach checks**:
+  - Place AI unit adjacent to two enemies (one low HP, one high HP), verify AI targets low HP
+  - Place AI unit adjacent to two equal-HP enemies, verify AI targets higher-attack one
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-5.6-explorer-pathfinding
+- **Description**: Implement autonomous Explorer pathfinding per GDD §5.6. When a city chooses Explorer at L2, the explorer unit gets 15 autonomous movement steps using BFS. Scoring: clearing 4-5 fog tiles = 110 (optimal), 1 tile = 173 (suboptimal). Distance penalty: +100 per BFS step. Anti-backtracking: heavily penalize recently traversed tiles.
+- **Success criteria**:
+  - Selecting Explorer at L2 spawns an explorer unit that moves autonomously
+  - Explorer uses BFS capped at 3 iterations per step
+  - Explorer prioritizes tiles that reveal the most fog (4-5 new tiles optimal)
+  - Explorer avoids recently traversed tiles
+  - Explorer stops after 15 steps or when no beneficial moves remain
+  - 3+ new tests for pathfinding scoring and movement
+- **Coach checks**:
+  - Upgrade city to L2, choose Explorer, verify explorer spawns and moves
+  - Verify explorer moves toward unexplored areas
+  - Verify explorer doesn't revisit recent tiles
+  - Run `npx vitest run` — all tests pass
