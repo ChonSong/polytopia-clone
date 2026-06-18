@@ -393,6 +393,7 @@ export class GameScene extends Phaser.Scene {
             // GDD §4.4 — Track kills for veteran system
             if (!unit.isNaval && unit.type !== UnitType.GIANT) {
               unit.killCount++;
+              if (unit.isEligibleForVeteran) unit.promoteVeteran();
             }
           }
           if (r.attackerKilled) tribe.removeUnit(unit.id);
@@ -636,6 +637,7 @@ export class GameScene extends Phaser.Scene {
             // GDD §4.4 — Track kills for veteran system
             if (!this.selectedUnit.isNaval && this.selectedUnit.type !== UnitType.GIANT) {
               this.selectedUnit.killCount++;
+              if (this.selectedUnit.isEligibleForVeteran) this.selectedUnit.promoteVeteran();
             }
           }
 
