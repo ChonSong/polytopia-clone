@@ -295,3 +295,62 @@ Ordered by priority. Each task is one unit of work for one player tick.
   - Verify city produces 0 income while besieged
   - Kill the besieging unit, verify siege lifts and city functions normally
   - Run `npx vitest run` — all tests pass
+
+### Task: gdd-4.2-poison-status
+- **Description**: Implement poison status effect per GDD §4.2. When a unit is attacked by a unit with poison (e.g., Archer with poison skill), the poisoned unit takes 1 damage at the start of each turn for 3 turns. Show poison indicator (green skull icon) on affected units. Poison does not stack — re-applying resets the duration.
+- **Success criteria**:
+  - Unit hit by poison takes 1 damage at start of next 3 turns
+  - Poison indicator visible on affected unit
+  - Poison does not stack (re-apply resets duration)
+  - 3+ new tests for poison damage, duration, and indicator
+- **Coach checks**:
+  - Attack unit with poison-enabled attacker, verify poison indicator appears
+  - End turn 3 times, verify 1 damage per turn
+  - Re-apply poison, verify duration resets (not stacks)
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-8-fog-of-war
+- **Description**: Implement fog-of-war per GDD §8. Units reveal tiles within their vision range (2 tiles for most, 3 for Scout/Giant). Unrevealed tiles show as black fog. Enemy units in fog are not visible. Revealed but out-of-range tiles show as dimmed/explored. Each tribe only sees their own fog state.
+- **Success criteria**:
+  - Unrendered tiles show as black fog at game start
+  - Units reveal tiles within 2-tile radius
+  - Enemy units not in vision range are hidden
+  - Previously revealed but out-of-range tiles show as dimmed
+  - Fog state is per-tribe (each player sees their own fog)
+  - 3+ new tests for vision range, fog reveal, and unit visibility
+- **Coach checks**:
+  - Start game, verify fog covers unexplored areas
+  - Move a unit, verify tiles around it are revealed
+  - Move Scout (3-tile vision), verify greater range
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-3.1-cloak-unit
+- **Description**: Implement Cloak unit per GDD §3.1. Cloak is a naval unit that can submerge (hide from all enemy units except adjacent ones). While submerged, Cloak cannot be targeted by attacks but also cannot attack. Cloak can emerge to attack. Costs 8⭐ at Port. Requires Sailing tech.
+- **Success criteria**:
+  - Cloak unit type exists with submerge/emerge action
+  - Submerged Cloak is invisible to non-adjacent enemies
+  - Submerged Cloak cannot attack or be attacked
+  - Cloak can emerge and attack on same turn (if has action remaining)
+  - Cloak costs 8⭐ and requires Sailing + Port
+  - 3+ new tests for submerge, emerge, and targeting rules
+- **Coach checks**:
+  - Build Cloak at Port (8⭐), verify it exists
+  - Submerge Cloak, verify enemy can't see/target it
+  - Emerge and attack, verify attack works
+  - Run `npx vitest run` — all tests pass
+
+### Task: gdd-6.3-mind-bender-unit
+- **Description**: Implement Mind Bender unit per GDD §3.4. Mind Bender is a special unit with Convert skill: can convert an adjacent enemy unit to your tribe. Costs 12⭐. Requires Philosophy tech. Has low combat stats (2 atk, 2 def, 3 hp). One conversion per turn.
+- **Success criteria**:
+  - Mind Bender unit type exists (2 atk, 2 def, 3 hp)
+  - Convert action available when adjacent to enemy unit
+  - Converted unit changes tribe ownership
+  - Cannot convert naval units or Giants
+  - Costs 12⭐ and requires Philosophy
+  - 3+ new tests for convert, exclusion rules, and tribe transfer
+- **Coach checks**:
+  - Build Mind Bender (12⭐), verify stats
+  - Move adjacent to enemy unit, verify Convert action appears
+  - Convert enemy unit, verify it changes tribe
+  - Try to convert naval unit, verify blocked
+  - Run `npx vitest run` — all tests pass
