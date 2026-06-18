@@ -68,6 +68,11 @@ export class City {
   get hasBorderGrowth(): boolean { return this.upgradeChoices[4] === 'B'; }
   get hasPark(): boolean { return this.upgradeChoices[5] === 'A'; }
 
+  /** GDD §5.2 — Territory radius equals city level (L1=1, L2=2, … L5=5). */
+  get territoryRadius(): number {
+    return this.level;
+  }
+
   // ─────────────────────────────────────────────────────────────────────
 
   /** A city can grow (level up) when population >= current level and level < 5. */

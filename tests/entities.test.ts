@@ -516,11 +516,51 @@ describe('City', () => {
       expect(res.stars).toBe(0);
     });
 
-    it('calculates resource from GRASS tiles correctly', () => {
+    it('calculates resources from GRASS tiles correctly', () => {
       const city = new City(coord(0, 0), 'Field', 'test');
       const res = city.produceResources([Biome.GRASS, Biome.GRASS, Biome.GRASS]);
       expect(res.food).toBe(3);
       expect(res.stars).toBe(3);
+    });
+  });
+
+  // ── GDD §5.2 Border Expansion ──────────────────────────────────────
+
+  describe('territoryRadius (GDD §5.2)', () => {
+    it('level 1 city has territory radius 1', () => {
+      const city = new City(coord(0, 0), 'L1', 'test', 1, 1);
+      expect(city.territoryRadius).toBe(1);
+    });
+
+    it('level 3 city has territory radius 3', () => {
+      const city = new City(coord(0, 0), 'L3', 'test', 3, 3);
+      expect(city.territoryRadius).toBe(3);
+    });
+
+    it('level 5 city has territory radius 5', () => {
+      const city = new City(coord(0, 0), 'L5', 'test', 5, 5);
+      expect(city.territoryRadius).toBe(5);
+    });
+
+    it('radius grows with level-up', () => {
+      const city = new City(coord(0, 0), 'Grow', 'test', 1, 3);
+      expect(city.territoryRadius).toBe(1);
+      city.applyLevelUp('A');
+      expect(city.territoryRadius).toBe(2);
+      city.applyLevelUp('B');
+      expect(city.territoryRadius).toBe(3);
+    });
+
+    it('bigger territory collects more stars from extended tiles', () => {
+      // Simulate: L1 city gets 6 adjacent grass tiles, L3 gets 12 (extended)
+      const sixGrass = Array(6).fill(Biome.GRASS);
+      const twelveGrass = Array(12).fill(Biome.GRASS);
+      const cityL1 = new City(coord(0, 0), 'Small', 'test', 1, 1);
+      const cityL3 = new City(coord(0, 0), 'Large', 'test', 3, 3);
+      // The key thing: more tiles in the territory means more resources
+      // L1 with 6 grass → 6 stars; L3 with 12 grass → 12 stars
+      expect(cityL1.getStarsPerTurn(sixGrass)).toBe(6);
+      expect(cityL3.getStarsPerTurn(twelveGrass)).toBe(12);
     });
   });
 

@@ -427,14 +427,26 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** GDD §5.2 — Collect biomes from all tiles within the city's territory radius. */
+  private getTerritoryBiomes(city: City): Biome[] {
+    const biomes: Biome[] = [];
+    const radius = city.territoryRadius;
+    for (let dq = -radius; dq <= radius; dq++) {
+      for (let dr = -radius; dr <= radius; dr++) {
+        const ds = -dq - dr;
+        if (Math.max(Math.abs(dq), Math.abs(dr), Math.abs(ds)) <= radius) {
+          const t = this.tiles.get(new HexCoord(city.position.q + dq, city.position.r + dr).toString());
+          if (t) biomes.push(t.biome);
+        }
+      }
+    }
+    return biomes;
+  }
+
   private collectAiResources(tribe: Tribe): void {
     let stars = 0;
     for (const city of tribe.cities) {
-      const biomes: Biome[] = [];
-      for (const n of city.position.neighbors()) {
-        const t = this.tiles.get(n.toString());
-        if (t) biomes.push(t.biome);
-      }
+      const biomes = this.getTerritoryBiomes(city);
       stars += city.getStarsPerTurn(biomes);
       city.processFood(biomes);
     }
@@ -465,11 +477,7 @@ export class GameScene extends Phaser.Scene {
   private collectHumanResources(): void {
     let stars = 0;
     for (const city of this.humanTribe.cities) {
-      const biomes: Biome[] = [];
-      for (const n of city.position.neighbors()) {
-        const t = this.tiles.get(n.toString());
-        if (t) biomes.push(t.biome);
-      }
+      const biomes = this.getTerritoryBiomes(city);
       stars += city.getStarsPerTurn(biomes);
       city.processFood(biomes);
     }
@@ -1100,7 +1108,21 @@ export class GameScene extends Phaser.Scene {
       const c = new HexCoord(q, r);
       const pos = c.toPixel(HEX_SIZE);
       const sel = this.selectedHex && this.selectedHex.equals(c);
-      this.drawHex(this.hexGraphics, pos.x, pos.y, HEX_SIZE, BiomeColors[tile.biome], sel ? 0xffff00 : undefined);
+      // GDD §5.2 — Territory boundary highlight (subtle colored border on edge tiles)
+      let territoryHighlight: number | undefined;
+      if (!sel) {
+        for (const tribe of this.tribes) {
+          for (const city of tribe.cities) {
+            const dist = c.distanceTo(city.position);
+            if (dist === city.territoryRadius) {
+              territoryHighlight = 0x4488ff;
+              break;
+            }
+          }
+          if (territoryHighlight) break;
+        }
+      }
+      this.drawHex(this.hexGraphics, pos.x, pos.y, HEX_SIZE, BiomeColors[tile.biome], sel ? 0xffff00 : territoryHighlight);
       // Resource dot
       if (tile.resource) {
         this.entityGraphics.fillStyle(ResourceColors[tile.resource], 0.9);
@@ -1216,11 +1238,7 @@ export class GameScene extends Phaser.Scene {
   private getHumanStarIncome(): number {
     let income = this.humanTribe.starsPerTurn;
     for (const city of this.humanTribe.cities) {
-      const biomes: Biome[] = [];
-      for (const n of city.position.neighbors()) {
-        const t = this.tiles.get(n.toString());
-        if (t) biomes.push(t.biome);
-      }
+      const biomes = this.getTerritoryBiomes(city);
       income += city.getStarsPerTurn(biomes);
     }
     return income;
