@@ -435,4 +435,96 @@ describe('CombatSystem', () => {
       expect(CombatSystem.canRangedAttack(attacker, defender, tiles)).toBe(false);
     });
   });
+
+  describe('GDD §4.2 — Poison status', () => {
+    it('unit starts with 0 poisonTurns', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      expect(u.poisonTurns).toBe(0);
+      expect(u.isPoisoned).toBe(false);
+    });
+
+    it('applyPoison sets poisonTurns to 3', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      u.applyPoison();
+      expect(u.poisonTurns).toBe(3);
+      expect(u.isPoisoned).toBe(true);
+    });
+
+    it('poison does not stack — re-apply resets to 3', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      u.applyPoison();
+      expect(u.poisonTurns).toBe(3);
+      // Simulate 1 tick passing
+      u.processPoison();
+      expect(u.poisonTurns).toBe(2);
+      // Re-apply should reset, not stack
+      u.applyPoison();
+      expect(u.poisonTurns).toBe(3);
+    });
+
+    it('processPoison deals 1 damage and decrements counter', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0, 10);
+      u.applyPoison();
+      const died = u.processPoison();
+      expect(died).toBe(false);
+      expect(u.health).toBe(9);
+      expect(u.poisonTurns).toBe(2);
+    });
+
+    it('processPoison returns true when unit dies', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0, 1);
+      u.applyPoison();
+      const died = u.processPoison();
+      expect(died).toBe(true);
+      expect(u.health).toBe(0);
+      expect(u.poisonTurns).toBe(0);
+    });
+
+    it('processPoison does nothing when not poisoned', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0, 10);
+      const died = u.processPoison();
+      expect(died).toBe(false);
+      expect(u.health).toBe(10);
+      expect(u.poisonTurns).toBe(0);
+    });
+
+    it('poison lasts exactly 3 turns', () => {
+      const u = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0, 10);
+      u.applyPoison();
+      u.processPoison(); // turn 1: 10→9
+      expect(u.poisonTurns).toBe(2);
+      u.processPoison(); // turn 2: 9→8
+      expect(u.poisonTurns).toBe(1);
+      u.processPoison(); // turn 3: 8→7
+      expect(u.poisonTurns).toBe(0);
+      expect(u.isPoisoned).toBe(false);
+      expect(u.health).toBe(7);
+    });
+
+    it('Archer attack applies poison to defender', () => {
+      const archer = makeUnit(UnitType.ARCHER, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      expect(defender.isPoisoned).toBe(false);
+      CombatSystem.executeAttack(archer, defender, tiles);
+      expect(defender.isPoisoned).toBe(true);
+      expect(defender.poisonTurns).toBe(3);
+    });
+
+    it('non-Archer attack does NOT apply poison', () => {
+      const warrior = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      CombatSystem.executeAttack(warrior, defender, tiles);
+      expect(defender.isPoisoned).toBe(false);
+    });
+  });
 });

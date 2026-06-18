@@ -357,6 +357,16 @@ export class GameScene extends Phaser.Scene {
     const cur = this.state.getCurrentTribe();
     for (const u of cur.getAliveUnits()) u.resetTurn();
 
+    // GDD §4.2 — Process poison damage at start of turn (before other turn-start logic)
+    for (const u of cur.getAliveUnits()) {
+      if (u.isPoisoned && u.isAlive) {
+        const died = u.processPoison();
+        if (died) {
+          cur.removeUnit(u.id);
+        }
+      }
+    }
+
     // GDD §2.5 — Capture villages: units that START their turn on a village tile capture it
     this.captureVillages(cur);
     // GDD §2.6 — Discover ancient ruins: unit starting turn on a ruin triggers reward

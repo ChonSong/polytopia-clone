@@ -120,6 +120,11 @@ export class Unit {
    * GDD §4.4 — Bonus max HP from veteran promotion. Added on top of base UNIT_MAX_HEALTH.
    */
   public maxHPBonus: number;
+  /**
+   * GDD §4.2 — Poison status. Number of remaining turns the unit will take 1 poison damage
+   * at the start of its turn. 0 = not poisoned.
+   */
+  public poisonTurns: number;
 
   constructor(
     public position: HexCoord,
@@ -137,6 +142,7 @@ export class Unit {
     this.killCount = 0;
     this.isVeteran = false;
     this.maxHPBonus = 0;
+    this.poisonTurns = 0;
   }
 
   get stats(): UnitStats {
@@ -215,6 +221,31 @@ export class Unit {
     this.maxHPBonus = 5;
     this.health = this.maxHealth; // full heal to new max
     this.killCount = 0;
+  }
+
+  /** GDD §4.2 — Whether this unit is currently poisoned. */
+  get isPoisoned(): boolean {
+    return this.poisonTurns > 0;
+  }
+
+  /** GDD §4.2 — Apply poison to this unit. Resets duration to 3 turns (does not stack). */
+  applyPoison(): void {
+    this.poisonTurns = 3;
+  }
+
+  /**
+   * GDD §4.2 — Process poison damage at start of turn.
+   * Deals 1 damage per tick. Returns true if unit died from poison.
+   */
+  processPoison(): boolean {
+    if (this.poisonTurns <= 0) return false;
+    this.poisonTurns--;
+    this.health = Math.max(0, this.health - 1);
+    if (this.health <= 0) {
+      this.poisonTurns = 0; // clear poison on death
+      return true;
+    }
+    return false;
   }
 
   /** Call at the start of the tribe's turn to reset action state. */

@@ -165,6 +165,8 @@ export class CombatSystem {
   /**
    * Execute a simultaneous attack between two units.
    * Returns the calculated damages without mutating the units.
+   *
+   * GDD §4.2 — Archer attacks apply poison (1 damage/turn for 3 turns).
    */
   static executeAttack(
     attacker: Unit,
@@ -187,6 +189,11 @@ export class CombatSystem {
       if (dist === 1 || defender.ranged) {
         attackerDamage = CombatSystem.calculateDamage(defender, attacker, attackerTile, dist);
       }
+    }
+
+    // GDD §4.2 — Archer applies poison on hit (does not stack, resets duration)
+    if (attacker.type === UnitType.ARCHER && defender.isAlive) {
+      defender.applyPoison();
     }
 
     return {
