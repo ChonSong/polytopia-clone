@@ -1,16 +1,10 @@
 import Phaser from 'phaser';
+import { MAP_TYPES } from '../hex/MapGenerator';
 import { TRIBE_CONFIGS } from '../entities/Tribe';
 
 export enum GameMode {
   DOMINATION = 'DOMINATION',
   PERFECTION = 'PERFECTION',
-}
-
-export enum MapType {
-  CONTINENTS = 'CONTINENTS',
-  LAKES = 'LAKES',
-  DRYLAND = 'DRYLAND',
-  ARCHIPELAGO = 'ARCHIPELAGO',
 }
 
 export class SelectScene extends Phaser.Scene {
@@ -30,8 +24,8 @@ export class SelectScene extends Phaser.Scene {
 
     // Map type selector
     this.add.text(160, 80, 'Map:', { fontSize: '16px', color: '#8af', fontFamily: 'monospace' });
-    const mapTypes = [MapType.CONTINENTS, MapType.LAKES, MapType.DRYLAND, MapType.ARCHIPELAGO];
-    let selectedMap = MapType.CONTINENTS;
+    const mapTypes = MAP_TYPES;
+    let selectedMap = MAP_TYPES[0];
     const mapLabels: Phaser.GameObjects.Text[] = [];
     mapTypes.forEach((mt, i) => {
       const lbl = this.add.text(220 + i * 130, 80, mt, {

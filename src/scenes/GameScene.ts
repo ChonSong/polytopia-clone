@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { HexCoord } from '../hex/HexCoord';
 import { HEX_SIZE, GRID_WIDTH, GRID_HEIGHT } from '../hex/constants';
 import { TileData, Biome, BiomeColors, ResourceColors } from '../hex/Tile';
-import { generateMap } from '../hex/MapGenerator';
+import { generateMap, MapType } from '../hex/MapGenerator';
 import { GameState } from '../entities/GameState';
 import { Tribe, TRIBE_CONFIGS } from '../entities/Tribe';
 import { Unit, UnitType, UNIT_COSTS, UNIT_MAX_HEALTH } from '../entities/Unit';
@@ -32,6 +32,7 @@ export class GameScene extends Phaser.Scene {
   private humanTribe!: Tribe;
   private humanTribeIndex = 0;
   private gameMode = 'DOMINATION';
+  private mapType: MapType = 'CONTINENTS';
   private turnLimit = 99;
   private turnManager!: TurnManager;
   private ais: Map<string, BasicAI> = new Map();
@@ -64,11 +65,12 @@ export class GameScene extends Phaser.Scene {
   init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string }): void {
     this.humanTribeIndex = data.humanTribeIndex ?? 0;
     this.gameMode = data.gameMode ?? 'DOMINATION';
+    this.mapType = (data.mapType as MapType) ?? 'CONTINENTS';
     this.turnLimit = this.gameMode === 'PERFECTION' ? 30 : 99;
   }
 
   create(): void {
-    this.tiles = generateMap(GRID_WIDTH, GRID_HEIGHT);
+    this.tiles = generateMap(GRID_WIDTH, GRID_HEIGHT, this.mapType);
     this.tribes = TRIBE_CONFIGS.map(c => new Tribe(c));
     this.humanTribe = this.tribes[this.humanTribeIndex];
     this.humanTribe.stars = 15;
