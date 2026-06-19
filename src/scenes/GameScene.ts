@@ -277,8 +277,13 @@ export class GameScene extends Phaser.Scene {
 
   private placeCities(): void {
     const pos = [
-      new HexCoord(2, 2), new HexCoord(GRID_WIDTH - 3, 2),
-      new HexCoord(2, GRID_HEIGHT - 3), new HexCoord(GRID_WIDTH - 3, GRID_HEIGHT - 3),
+      new HexCoord(2, 2),                         // Xin-xi   — top-left
+      new HexCoord(GRID_WIDTH - 3, 2),             // Imperius — top-right
+      new HexCoord(2, GRID_HEIGHT - 3),            // Bardur   — bottom-left
+      new HexCoord(GRID_WIDTH - 3, GRID_HEIGHT - 3), // Oumaji  — bottom-right
+      new HexCoord(Math.floor(GRID_WIDTH / 2), 3), // Polaris  — top-center
+      new HexCoord(3, Math.floor(GRID_HEIGHT / 2)), // Cymanti — left-center
+      new HexCoord(GRID_WIDTH - 4, Math.floor(GRID_HEIGHT / 2)), // Elyrion — right-center
     ];
     for (let i = 0; i < this.tribes.length; i++) {
       const p = pos[i];
