@@ -38,21 +38,21 @@
     {"task": "gdd-4.7-battle-preview", "sha": "06e4e30", "date": "2026-06-19", "summary": "Battle preview on hover: predicted attack/counter-attack damage in info bar, 💀 on guaranteed kill, ⚠️ on lethal counter-attack, 6 new tests, 333 total passing", "coach": "approved"},
     {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"},
     {"task": "gdd-5.6-explorer-pathfinding", "sha": "8e1c2c5", "date": "2026-06-19", "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing", "coach": "approved"},
-    {"task": "gdd-5.7-trade-routes", "sha": "8b55eba", "date": "2026-06-19", "summary": "Trade routes, city connections, Grand Bazaar: roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing", "coach": "approved"}
+    {"task": "gdd-5.7-trade-routes", "sha": "8b55eba", "date": "2026-06-19", "summary": "Trade routes, city connections, Grand Bazaar: roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing", "coach": "approved"},
+    {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"}
   ],
   "health": "369_pass_0_error_0_fail",
-  "last_sha": "8b55eba",
+  "last_sha": "18ebdce",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Resource proximity constraint (2-tile radius)", "type": "missing_feature", "priority": 2, "evidence": "Resources spawn globally without city/village proximity check — enforceResourceProximity() not found in codebase"},
     {"item": "Scout 5x5 vision on disembark", "type": "missing_mechanic", "priority": 3, "evidence": "Scout unit exists but disembark vision reveal not implemented"},
     {"item": "Fog-of-war retaliation suppression", "type": "missing_mechanic", "priority": 4, "evidence": "Retaliation always happens regardless of attacker visibility"},
     {"item": "Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy)", "type": "missing_feature", "priority": 5, "evidence": "Only 11 of 17 techs implemented; Swordsman/Rammer gated incorrectly"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "8b55eba",
-    "last_reviewed_at": "2026-06-19T19:08:00Z",
+    "last_reviewed_sha": "18ebdce",
+    "last_reviewed_at": "2026-06-19T19:13:00Z",
     "verdict": "approved",
-    "notes": "gdd-5.7-trade-routes: TradeRouteSystem (215 lines) with BFS connection detection, canBuildRoad/canBuildBridge validators, applyConnectionBonuses with Grand Bazaar at 5+ connections. Building.ts adds ROAD(3⭐) and BRIDGE(5⭐). GameScene wires road/bridge building into city menu with visual indicators (brown/blue-gray dashes). 16 new tests, 369 total passing. Build passes. Site returns 200. Also fixed checkpoint: removed spurious gdd-2.4-resource-proximity entry (was added with sha=TBD, coach=human but not implemented), corrected last_sha from TBD to 8b55eba, fixed spec_gaps status for resource proximity."
+    "notes": "gdd-2.4-resource-proximity: enforceResourceProximity() in GameScene.ts collects all city+village positions, strips resources from tiles >2 hexes away. 3 new tests in mapgen.test.ts (11 total). 369 tests pass. Build passes. Also approved gdd-5.7-trade-routes (8b55eba) in same review cycle. Checkpoint fixed: removed spurious human-approved entry, corrected last_sha."
   }
 }
