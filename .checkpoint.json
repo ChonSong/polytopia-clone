@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "gdd-10.1-polaris-tribe",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -42,19 +42,22 @@
     {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"},
     {"task": "gdd-3.2-scout-disembark-vision", "sha": "0c7ea89", "date": "2026-06-19", "summary": "Scout 5×5 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (≈5×5 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing", "coach": "approved"},
     {"task": "gdd-4.3-fog-retaliation-suppress", "sha": "261a38e", "date": "2026-06-19", "summary": "Fog retaliation suppression: attacker not visible to defender's tribe → no counter-attack. Optional GameState param in executeAttack. 4 new tests, 375 total passing", "coach": "approved"},
-    {"task": "gdd-6.2-extended-tech-tree", "sha": "0deff0b", "date": "2026-06-19", "summary": "Extended tech tree: 6 new techs (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), fixed Swordsman→Smithery, Rammer→Aquaculture, Defender→Strategy gates, dynamic tech tree UI, 384 total tests passing", "coach": "pending"}
+    {"task": "gdd-6.2-extended-tech-tree", "sha": "0deff0b", "date": "2026-06-19", "summary": "Extended tech tree: 6 new techs (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), fixed Swordsman→Smithery, Rammer→Aquaculture, Defender→Strategy gates, dynamic tech tree UI, 384 total tests passing", "coach": "approved"}
   ],
   "health": "384_pass_0_error_0_fail",
-  "last_sha": "0deff0b",
+  "last_sha": "0fef106",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Fog-of-war retaliation suppression", "type": "implemented", "priority": 4, "evidence": "gdd-4.3-fog-retaliation-suppress committed 2026-06-19"},
-    {"item": "Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy)", "type": "implemented", "priority": 5, "evidence": "gdd-6.2-extended-tech-tree committed 2026-06-19"}
+    {"item": "Polaris tribe (freeze mechanics, Ice Bank, Mooni, Battle Sled, Gaami)", "type": "missing_feature", "priority": 1, "evidence": "GDD §7.1 — not in code"},
+    {"item": "Cymanti tribe (organic economy, poison, Centipede, Hexapod, Doomux)", "type": "missing_feature", "priority": 2, "evidence": "GDD §7.2 — not in code"},
+    {"item": "Elyrion tribe (Sanctuary, Enchantment, Dragon maturation, Prophetic Vision)", "type": "missing_feature", "priority": 3, "evidence": "GDD §7.3 — not in code"},
+    {"item": "Scoring extensions (territorial, exploration, monuments, temples, parks)", "type": "missing_feature", "priority": 4, "evidence": "GDD §9 gaps — not in code"},
+    {"item": "GDD gaps section needs update — many items marked [x] are actually implemented", "type": "stale_doc", "priority": 5, "evidence": "GDD §9 gaps section doesn't match checkpoint state"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "0deff0b",
-    "last_reviewed_at": "2026-06-19T20:45:00Z",
-    "verdict": "pending",
-    "notes": "Awaiting coach review"
+    "last_reviewed_sha": "0fef106",
+    "last_reviewed_at": "2026-06-19T21:07:00Z",
+    "verdict": "approved",
+    "notes": "Approved gdd-6.2-extended-tech-tree. All 384 tests pass. Generated 3 new tasks for special tribes."
   }
 }
