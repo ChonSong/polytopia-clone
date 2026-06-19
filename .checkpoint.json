@@ -36,7 +36,7 @@
     {"task": "gdd-3.1-cloak-unit", "sha": "c91ba38", "date": "2026-06-19", "summary": "Cloak submerge/emerge: GameState methods, CombatSystem attack blocking, UI buttons, 7 new tests, 317 total passing", "coach": "approved"},
     {"task": "gdd-3.3-stiff-splash-skills", "sha": "3c34c40", "date": "2026-06-19", "summary": "Stiff (Catapult/Giant/Bomber/Raft): no move after attack, no retaliation. Splash (Bomber): half damage to adjacent enemies. 12 new tests, 327 total passing", "coach": "approved"},
     {"task": "gdd-4.7-battle-preview", "sha": "06e4e30", "date": "2026-06-19", "summary": "Battle preview on hover: predicted attack/counter-attack damage in info bar, 💀 on guaranteed kill, ⚠️ on lethal counter-attack, 6 new tests, 333 total passing", "coach": "approved"},
-    {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "pending"}
+    {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"}
   ],
   "health": "337_pass_0_error_0_fail",
   "last_sha": "9564cad",
