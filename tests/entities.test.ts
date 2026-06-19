@@ -1493,3 +1493,46 @@ describe('GDD §5.7 Building definitions', () => {
     expect(BUILDING_DEFS[BuildingType.BRIDGE].name).toBe('Bridge');
   });
 });
+
+describe('GDD §3.2 Scout disembark vision reveal', () => {
+  it('revealVision with range 2 covers a 5×5 hex area (19 tiles)', () => {
+    const tribe = createTestTribe();
+    const gs = new GameState([tribe]);
+    const tribeId = tribe.id;
+
+    const allCoords: HexCoord[] = [];
+    for (let q = -4; q <= 4; q++) {
+      for (let r = -4; r <= 4; r++) {
+        allCoords.push(new HexCoord(q, r));
+      }
+    }
+
+    gs.revealVision(tribeId, new HexCoord(0, 0), 2, allCoords);
+
+    // Center visible
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), tribeId)).toBe(true);
+    // Ring 1 (distance 1) visible
+    expect(gs.isTileVisibleToTribe(new HexCoord(1, 0), tribeId)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 1), tribeId)).toBe(true);
+    // Ring 2 (distance 2) visible
+    expect(gs.isTileVisibleToTribe(new HexCoord(2, 0), tribeId)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 2), tribeId)).toBe(true);
+    expect(gs.isTileVisibleToTribe(new HexCoord(-1, 2), tribeId)).toBe(true);
+    // Distance 3 NOT visible
+    expect(gs.isTileVisibleToTribe(new HexCoord(3, 0), tribeId)).toBe(false);
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 3), tribeId)).toBe(false);
+    // Other tribe NOT visible
+    expect(gs.isTileVisibleToTribe(new HexCoord(0, 0), 'other-tribe')).toBe(false);
+  });
+
+  it('Scout is a naval unit', () => {
+    const scout = new Unit(coord(0, 0), UnitType.SCOUT, 'test');
+    expect(scout.isNaval).toBe(true);
+  });
+
+  it('Raft is a naval unit but not SCOUT', () => {
+    const raft = new Unit(coord(0, 0), UnitType.RAFT, 'test');
+    expect(raft.isNaval).toBe(true);
+    expect(raft.type).not.toBe(UnitType.SCOUT);
+  });
+});

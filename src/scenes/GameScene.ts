@@ -1072,10 +1072,20 @@ export class GameScene extends Phaser.Scene {
           return;
         }
 
+        // GDD §3.2 — Scout 5×5 vision reveal on disembark (water → land)
+        const wasOnWater = this.selectedUnit.isNaval && !isWater;
+        const isScoutDisembark = wasOnWater && this.selectedUnit.type === UnitType.SCOUT;
+
         this.selectedUnit.position = coord;
         this.selectedUnit.hasActed = true;
         this.selectedUnit = null;
         this.selectedHex = null;
+
+        if (isScoutDisembark) {
+          // Reveal 5×5 area (hex range 2 ≈ diameter 5) around disembark point
+          this.state.revealVision(this.humanTribe.id, coord, 2, this.getAllTileCoords());
+        }
+
         this.renderAll(); this.updateUI();
         return;
       }
