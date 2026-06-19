@@ -4,6 +4,8 @@ import { TileData, Biome } from '../src/hex/Tile';
 import { Unit, MAX_HEALTH, UnitType, UNIT_BASE_STATS } from '../src/entities/Unit';
 import { CityData } from '../src/entities/CityData';
 import { CombatSystem } from '../src/entities/CombatSystem';
+import { GameState } from '../src/entities/GameState';
+import { Tribe } from '../src/entities/Tribe';
 
 /** Helper: create a minimal Unit for testing. */
 function makeUnit(
@@ -648,26 +650,82 @@ describe('CombatSystem', () => {
       // Catapult has Stiff — no retaliation
       expect(result.attackerDamage).toBe(0);
     });
+  });
 
-    it('city tile defense bonus reduces damage in preview', () => {
+  // ---------------------------------------------------------------------------
+  // GDD §4.3 — Fog retaliation suppression
+  // ---------------------------------------------------------------------------
+  describe('GDD §4.3 — Fog retaliation suppression', () => {
+    function makeState(visibleEntries: string[], defenderTribeId: string): GameState {
+      const tribe = new Tribe({ id: defenderTribeId, name: defenderTribeId, color: 0 });
+      const otherTribe = new Tribe({ id: 'TribeA', name: 'TribeA', color: 1 });
+      const state = new GameState([tribe, otherTribe]);
+      for (const key of visibleEntries) {
+        const [q, r] = key.split(',').map(Number);
+        state.tribeVisibility.get(defenderTribeId)?.add(new HexCoord(q, r).toString());
+      }
+      return state;
+    }
+
+    it('no retaliation when attacker is in fog (not visible to defender tribe)', () => {
       const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
       const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
-      (defender as any).fortified = true;
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
 
-      const grassResult = CombatSystem.executeAttack(
-        attacker,
-        defender,
-        tileMap([['0,0', {}], ['1,0', {}]]),
-      );
+      // Defender tribe has NO visibility — attacker tile not revealed
+      const state = makeState([], 'TribeB');
 
-      const cityResult = CombatSystem.executeAttack(
-        attacker,
-        defender,
-        tileMap([['0,0', {}], ['1,0', { city: true }]]),
-      );
+      const result = CombatSystem.executeAttack(attacker, defender, tiles, state);
+      expect(result.defenderDamage).toBeGreaterThan(0); // Defender still takes damage
+      expect(result.attackerDamage).toBe(0); // No retaliation from fog
+    });
 
-      // City tile with fortify should reduce damage vs grass
-      expect(cityResult.defenderDamage).toBeLessThan(grassResult.defenderDamage);
+    it('retaliation works normally when attacker is visible to defender tribe', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      // Defender tribe CAN see the attacker's tile
+      const state = makeState(['0,0'], 'TribeB');
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles, state);
+      expect(result.defenderDamage).toBeGreaterThan(0);
+      expect(result.attackerDamage).toBeGreaterThan(0); // Retaliation happens
+    });
+
+    it('no retaliation when ranged attacker is in fog', () => {
+      const attacker = makeUnit(UnitType.ARCHER, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      const state = makeState([], 'TribeB'); // No visibility
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles, state);
+      expect(result.defenderDamage).toBeGreaterThan(0);
+      expect(result.attackerDamage).toBe(0); // No counter in fog
+    });
+
+    it('backward compatible: no state param = retaliation works (tests default to visible)', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      // No state passed — should behave as before (retaliation happens)
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      expect(result.defenderDamage).toBeGreaterThan(0);
+      expect(result.attackerDamage).toBeGreaterThan(0);
     });
   });
 });

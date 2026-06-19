@@ -585,7 +585,7 @@ export class GameScene extends Phaser.Scene {
         const targetPos = new HexCoord(p.targetQ, p.targetR);
         const target = this.findUnit(targetPos);
         if (unit && target && CombatSystem.canAttack(unit, target, this.tiles)) {
-          const r = CombatSystem.executeAttack(unit, target, this.tiles);
+          const r = CombatSystem.executeAttack(unit, target, this.tiles, this.state);
           unit.takeDamage(r.attackerDamage);
           target.takeDamage(r.defenderDamage);
 
@@ -953,7 +953,7 @@ export class GameScene extends Phaser.Scene {
     if (this.selectedUnit && !this.selectedUnit.hasActed) {
       if (cu && cu.owner !== this.humanTribe.id) {
         if (CombatSystem.canAttack(this.selectedUnit, cu, this.tiles)) {
-          const r = CombatSystem.executeAttack(this.selectedUnit, cu, this.tiles);
+          const r = CombatSystem.executeAttack(this.selectedUnit, cu, this.tiles, this.state);
           this.selectedUnit.takeDamage(r.attackerDamage);
           cu.takeDamage(r.defenderDamage);
 
@@ -1849,7 +1849,7 @@ export class GameScene extends Phaser.Scene {
     if (!CombatSystem.canAttack(selected, target, this.tiles)) return;
 
     this.hoveredEnemy = target;
-    const result = CombatSystem.executeAttack(selected, target, this.tiles);
+    const result = CombatSystem.executeAttack(selected, target, this.tiles, this.state);
 
     // Build preview text
     const atkDmg = result.defenderDamage;

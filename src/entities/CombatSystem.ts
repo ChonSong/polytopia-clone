@@ -2,6 +2,7 @@ import { HexCoord } from '../hex/HexCoord';
 import { TileData, Biome } from '../hex/Tile';
 import { Unit, UNIT_MAX_HEALTH, MAX_HEALTH, UnitType } from './Unit';
 import { CityData } from './CityData';
+import { GameState } from './GameState';
 
 export interface CombatResult {
   attackerDamage: number;
@@ -172,11 +173,13 @@ export class CombatSystem {
    *
    * GDD §4.2 — Archer attacks apply poison (1 damage/turn for 3 turns).
    * GDD §3.3 — Stiff: attacker takes no retaliation damage from Stiff defenders.
+   * GDD §4.3 — Fog retaliation suppression: if attacker is not visible to defender's tribe, no retaliation.
    */
   static executeAttack(
     attacker: Unit,
     defender: Unit,
     tiles: Map<string, TileData>,
+    state?: GameState,
   ): CombatResult {
     const dist = getDistance(attacker, defender);
 
@@ -190,11 +193,18 @@ export class CombatSystem {
 
     // Counter-attack: defender strikes back if in melee range or if defender is also ranged
     // GDD §3.3 — Stiff: attacker takes no retaliation damage from Stiff defenders
+    // GDD §4.3 — Fog retaliation suppression: if attacker's tile is not visible to defender's tribe, no retaliation
     let attackerDamage = 0;
     if (defender.isAlive) {
       if (dist === 1 || defender.ranged) {
         if (!defender.hasStiff) {
-          attackerDamage = CombatSystem.calculateDamage(defender, attacker, attackerTile, dist);
+          // GDD §4.3 — Check fog-of-war visibility before allowing retaliation
+          const attackerVisibleToDefender = state
+            ? state.isTileVisibleToTribe(attacker.position, defender.owner)
+            : true; // No state = tests default to visible (backward compatible)
+          if (attackerVisibleToDefender) {
+            attackerDamage = CombatSystem.calculateDamage(defender, attacker, attackerTile, dist);
+          }
         }
       }
     }
