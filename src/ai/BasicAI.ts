@@ -493,45 +493,64 @@ export class BasicAI {
     for (const unit of this.tribe.units) {
       if (!unit.isAlive) continue;
 
-      // Check adjacent hexes for enemies
+      // GDD §8.4 — Collect all adjacent enemies, then sort by priority:
+      //   1. Ascending current HP (finish off weak targets first)
+      //   2. Descending attack value for ties (eliminate biggest threats)
+      const adjacentEnemies: Unit[] = [];
+      const adjacentPositions: { q: number; r: number }[] = [];
+
       for (const neighbor of unit.position.neighbors()) {
-        // Check enemy units first
         const enemyUnit = enemyUnits.find(
           eu => eu.position.q === neighbor.q && eu.position.r === neighbor.r,
         );
         if (enemyUnit) {
-          actions.push({
-            type: 'ATTACK',
-            params: {
-              unitId: unit.id,
-              targetId: enemyUnit.id,
-              targetType: 'unit',
-              targetQ: neighbor.q,
-              targetR: neighbor.r,
-            },
-          });
-          // GDD §3.3 — Persist (Knight) can attack all adjacent enemies; others get one attack
-          if (!unit.hasPersist) break;
-          continue;
+          adjacentEnemies.push(enemyUnit);
+          adjacentPositions.push({ q: neighbor.q, r: neighbor.r });
         }
+      }
 
-        // Check enemy cities
-        const enemyCity = enemyCities.find(
-          ec => ec.position.q === neighbor.q && ec.position.r === neighbor.r,
-        );
-        if (enemyCity) {
-          actions.push({
-            type: 'ATTACK',
-            params: {
-              unitId: unit.id,
-              targetId: `city-${neighbor.q}-${neighbor.r}`,
-              targetType: 'city',
-              targetQ: neighbor.q,
-              targetR: neighbor.r,
-            },
-          });
-          if (!unit.hasPersist) break;
-          continue;
+      // Sort: lowest HP first, then highest attack for ties
+      const indexed = adjacentEnemies.map((eu, i) => ({ enemy: eu, pos: adjacentPositions[i] }));
+      indexed.sort((a, b) => {
+        if (a.enemy.health !== b.enemy.health) return a.enemy.health - b.enemy.health;
+        return b.enemy.attack - a.enemy.attack;
+      });
+
+      // Attack sorted enemies
+      for (const { enemy, pos } of indexed) {
+        actions.push({
+          type: 'ATTACK',
+          params: {
+            unitId: unit.id,
+            targetId: enemy.id,
+            targetType: 'unit',
+            targetQ: pos.q,
+            targetR: pos.r,
+          },
+        });
+        // GDD §3.3 — Persist (Knight) can attack all adjacent enemies; others get one attack
+        if (!unit.hasPersist) break;
+      }
+
+      // If no enemy units adjacent, check adjacent cities
+      if (indexed.length === 0) {
+        for (const neighbor of unit.position.neighbors()) {
+          const enemyCity = enemyCities.find(
+            ec => ec.position.q === neighbor.q && ec.position.r === neighbor.r,
+          );
+          if (enemyCity) {
+            actions.push({
+              type: 'ATTACK',
+              params: {
+                unitId: unit.id,
+                targetId: `city-${neighbor.q}-${neighbor.r}`,
+                targetType: 'city',
+                targetQ: neighbor.q,
+                targetR: neighbor.r,
+              },
+            });
+            break; // only attack one city
+          }
         }
       }
     }

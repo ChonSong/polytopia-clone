@@ -504,6 +504,89 @@ describe('BasicAI', () => {
   });
 
   // -----------------------------------------------------------------------
+  // GDD §8.4 — AI low-HP targeting
+  // -----------------------------------------------------------------------
+
+  it('targets the lowest-HP adjacent enemy first', () => {
+    const warrior = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior);
+
+    // Two adjacent enemies: one high HP, one low HP
+    const strongEnemy = new Unit(new HexCoord(6, 5), UnitType.DEFENDER, 'enemy');
+    strongEnemy.health = 15; // full HP
+    const weakEnemy = new Unit(new HexCoord(4, 5), UnitType.WARRIOR, 'enemy');
+    weakEnemy.health = 2; // almost dead
+    enemyTribe.units.push(strongEnemy, weakEnemy);
+
+    const actions = ai.decide(gameState, TurnPhase.ATTACK);
+
+    expect(actions.length).toBe(1);
+    expect(actions[0].type).toBe('ATTACK');
+    // Should target the low-HP enemy (weakEnemy at 4,5)
+    expect(actions[0].params.targetId).toBe(weakEnemy.id);
+    expect(actions[0].params.targetQ).toBe(4);
+    expect(actions[0].params.targetR).toBe(5);
+  });
+
+  it('breaks ties by attacking the highest-attack enemy', () => {
+    const warrior = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior);
+
+    // Two adjacent enemies with same HP but different attack
+    const lowAtkEnemy = new Unit(new HexCoord(6, 5), UnitType.DEFENDER, 'enemy');
+    lowAtkEnemy.health = 5;
+    const highAtkEnemy = new Unit(new HexCoord(4, 5), UnitType.SWORDSMAN, 'enemy');
+    highAtkEnemy.health = 5;
+    enemyTribe.units.push(lowAtkEnemy, highAtkEnemy);
+
+    const actions = ai.decide(gameState, TurnPhase.ATTACK);
+
+    expect(actions.length).toBe(1);
+    // Should target the higher-attack enemy (Swordsman at 4,5)
+    expect(actions[0].params.targetId).toBe(highAtkEnemy.id);
+  });
+
+  it('attacks all adjacent enemies when unit has Persist (Knight)', () => {
+    const knight = new Unit(new HexCoord(5, 5), UnitType.KNIGHT, 'player');
+    tribe.units.push(knight);
+
+    // Three adjacent enemies with different HP
+    const enemy1 = new Unit(new HexCoord(6, 5), UnitType.WARRIOR, 'enemy');
+    enemy1.health = 8;
+    const enemy2 = new Unit(new HexCoord(4, 5), UnitType.WARRIOR, 'enemy');
+    enemy2.health = 3;
+    const enemy3 = new Unit(new HexCoord(5, 6), UnitType.WARRIOR, 'enemy');
+    enemy3.health = 5;
+    enemyTribe.units.push(enemy1, enemy2, enemy3);
+
+    const actions = ai.decide(gameState, TurnPhase.ATTACK);
+
+    // Knight with Persist should attack all 3, sorted by HP
+    expect(actions.length).toBe(3);
+    expect(actions[0].params.targetId).toBe(enemy2.id); // HP 3 first
+    expect(actions[1].params.targetId).toBe(enemy3.id); // HP 5 second
+    expect(actions[2].params.targetId).toBe(enemy1.id); // HP 8 last
+  });
+
+  it('attacks city only when no adjacent enemy units', () => {
+    const warrior = new Unit(new HexCoord(9, 10), UnitType.WARRIOR, 'player');
+    tribe.units.push(warrior);
+
+    // One adjacent enemy unit AND adjacent city
+    const enemyWarrior = new Unit(new HexCoord(10, 10), UnitType.WARRIOR, 'enemy');
+    enemyWarrior.health = 10;
+    enemyTribe.units.push(enemyWarrior);
+    // Enemy city is also at (10,10) — but unit is there too, so unit takes priority
+
+    const actions = ai.decide(gameState, TurnPhase.ATTACK);
+
+    // Should attack the unit, not the city
+    expect(actions.length).toBe(1);
+    expect(actions[0].params.targetType).toBe('unit');
+    expect(actions[0].params.targetId).toBe(enemyWarrior.id);
+  });
+
+  // -----------------------------------------------------------------------
   // EXPLORE and END phases
   // -----------------------------------------------------------------------
 
