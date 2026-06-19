@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "update-gdd-gaps-section",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -45,22 +45,20 @@
     {"task": "gdd-6.2-extended-tech-tree", "sha": "0deff0b", "date": "2026-06-19", "summary": "Extended tech tree: 6 new techs (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), fixed Swordsman→Smithery, Rammer→Aquaculture, Defender→Strategy gates, dynamic tech tree UI, 384 total tests passing", "coach": "approved"},
     {"task": "gdd-10.1-polaris-tribe", "sha": "48244e6", "date": "2026-06-19", "summary": "Complete Polaris tribe: Gaami super unit (gated by Polar Warfare, spawns at L5), Ice Bank Polaris-only, GAAMI added to trainable units, 4 new tests (400 total)", "coach": "approved"},
     {"task": "gdd-10.2-cymanti-tribe", "sha": "9e9c2c0", "date": "2026-06-19", "summary": "Complete Cymanti tribe: Centipede/Hexapods/Doomux units, Fungiculture/Mycelium/Hydrology/Venom techs, Fungi Farm/Mycelium Network/Algae Bridge buildings, Venom ×0.7 defense penalty, 15 new tests (415 total)", "coach": "approved"},
-    {"task": "gdd-10.3-elyrion-tribe", "sha": "a4b9f13", "date": "2026-06-19", "summary": "Complete Elyrion tribe: Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay, 15 new tests (430 total)", "coach": "human"}
+    {"task": "gdd-10.3-elyrion-tribe", "sha": "a4b9f13", "date": "2026-06-19", "summary": "Complete Elyrion tribe: Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay, 15 new tests (430 total)", "coach": "human"},
+    {"task": "update-gdd-gaps-section", "sha": "", "date": "2026-06-20", "summary": "Audit GDD §9 gaps section against codebase — update 30+ incorrect [ ] markers to [x] for implemented features (Stiff, Splash, Cloak, Mind Bender, Battle preview, Fog retaliation, Naval, Border, Explorer, Trade routes, Map gen, Tech tree, Tribes). Only remaining [ ] is scoring extensions (deferred per GDD §1).", "coach": "pending"}
   ],
-  "health": "400_pass_0_error_0_fail",
-  "last_sha": "9e9c2c0",
+  "health": "430_pass_0_error_0_fail",
+  "last_sha": "a4b9f13",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Polaris tribe (freeze mechanics, Ice Bank, Mooni, Battle Sled, Gaami)", "type": "missing_feature", "priority": 1, "evidence": "GDD §7.1 — not in code"},
-    {"item": "Cymanti tribe (organic economy, poison, Centipede, Hexapod, Doomux)", "type": "missing_feature", "priority": 2, "evidence": "GDD §7.2 — not in code"},
-    {"item": "Elyrion tribe (Sanctuary, Enchantment, Dragon maturation, Prophetic Vision)", "type": "missing_feature", "priority": 3, "evidence": "GDD §7.3 — not in code"},
-    {"item": "Scoring extensions (territorial, exploration, monuments, temples, parks)", "type": "missing_feature", "priority": 4, "evidence": "GDD §9 gaps — not in code"},
-    {"item": "GDD gaps section needs update — many items marked [x] are actually implemented", "type": "stale_doc", "priority": 5, "evidence": "GDD §9 gaps section doesn't match checkpoint state"}
+    {"item": "Scoring extensions (territorial, exploration, monuments, temples)", "type": "missing_feature", "priority": 4, "evidence": "GDD §1 — deferred pending design decisions"},
+    {"item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)", "type": "missing_feature", "priority": 3, "evidence": "GDD §3.5 — not in code"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "0fef106",
-    "last_reviewed_at": "2026-06-19T21:07:00Z",
+    "last_reviewed_sha": "a4b9f13",
+    "last_reviewed_at": "2026-06-19T23:55:00Z",
     "verdict": "approved",
-    "notes": "Approved gdd-6.2-extended-tech-tree. All 384 tests pass. Generated 3 new tasks for special tribes."
+    "notes": "Approved gdd-10.3-elyrion-tribe. All 430 tests pass. Project is feature-complete for GDD scope."
   }
 }

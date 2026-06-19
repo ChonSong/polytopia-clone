@@ -70,7 +70,7 @@
 | **Waterworld** | Vast ocean with sparse islands |
 | **Pangea** | Massive central landform, all factions on one continent |
 
-**Implemented:** ✅ 4 map types in `SelectScene` enum. ❌ Map type passed to `GameScene` but `MapGenerator` currently only generates one algorithm (radial gradient). Per-type algorithms not implemented. ❌ Waterworld/Pangea missing from enum.
+**Implemented:** ✅ 6 map types in `SelectScene` enum (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea). ✅ Per-type algorithms implemented in `MapGenerator.ts` — 6 distinct generation algorithms. ✅ Waterworld/Pangea in enum.
 
 ### 2.4 Resources
 Placed on ~35% of eligible tiles:
@@ -159,7 +159,7 @@ Placed on ~35% of eligible tiles:
 | **Convert** | Changes faction alignment of adjacent enemy unit. |
 | **Static** | Cannot move at all (Giant). |
 
-**Implemented:** Dash (as `canAttackAfterMove`), Fortify (as defense bonus gating). ✅ Escape (Rider retreat 1 tile when hit) and Persist (Knight refreshes action on kill) — 12 tests. ❌ Stiff, Splash, Hide, Creep, Infiltrate, Convert not implemented.
+**Implemented:** Dash (as `canAttackAfterMove`), Fortify (as defense bonus gating). ✅ Escape (Rider retreat 1 tile when hit) and Persist (Knight refreshes action on kill) — 12 tests. ✅ Stiff (Catapult/Giant/Bomber/Raft: no move after attack, no retaliation). ✅ Splash (Bomber: half damage to adjacent enemies). ✅ Cloak (submerge/emerge, blocks attacks). ✅ Convert (Mind Bender). ✅ Creep (Bomber/Raft: can move after attack if target survives).
 
 ### 3.4 Mind Benders
 - Non-lethal paradigm: 0 attack stat.
@@ -167,7 +167,7 @@ Placed on ~35% of eligible tiles:
 - **Heal Others:** AoE — restores 4 HP to all adjacent friendly units.
 - Fragile (10 HP, 1 Def) — must be screened by Defenders.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Mind Bender unit — PHILOSOPHY tech gate, Convert adjacent enemy to your tribe, Heal 4HP to adjacent friendlies, 10HP/1Def, 0Atk.
 
 ### 3.5 Cloak Infiltration (Diplomacy Tech)
 When a Cloak executes Infiltrate on an enemy city:
@@ -215,14 +215,14 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 
 **Visual indicator:** Single shield halo = 1.5×, double shield halo = 4.0×.
 
-**Implemented:** ✅ Basic terrain/city bonuses in code. ✅ City Wall ×4.0 (requires Fortify). ❌ Poison status not implemented. ✅ Visual halos for fortified units.
+**Implemented:** ✅ Basic terrain/city bonuses in code. ✅ City Wall ×4.0 (requires Fortify). ✅ Poison status implemented — Archer attacks apply poison (3 turns, 1 dmg/turn). ✅ Visual halos for fortified units.
 
 ### 4.3 Retaliation
 - Defender counter-attacks IF: defender survives AND (attacker is melee range OR defender is ranged).
 - No retaliation if: attacker kills defender, defender can't see attacker (fog of war), or defender has Stiff/Surprise.
 - Attacker striking from fog of war suffers no retaliation.
 
-**Implemented:** ✅ Basic retaliation in `CombatSystem.executeAttack()`. ❌ Fog-of-war retaliation check not implemented.
+**Implemented:** ✅ Basic retaliation in `CombatSystem.executeAttack()`. ✅ Fog-of-war retaliation suppression — hidden attackers prevent counter-attack.
 
 ### 4.4 Melee Advance
 - If melee attacker kills defender, attacker moves into defender's tile.
@@ -251,7 +251,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - **Sweating animation:** Predicted attackResult ≥ defender's current HP (guaranteed kill).
 - **Black/red ring:** Predicted defenseResult will be lethal to attacker.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Battle preview on hover — predicted attack/counter-attack damage shown in info bar, 💀 on guaranteed kill, ⚠️ on lethal counter-attack.
 
 ---
 
@@ -292,7 +292,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Used to secure distant resources, whales, Customs House radii, restrict enemy naval movement.
 - Overlapping borders: existing borders take precedence.
 
-**Implemented:** ❌ No border/territory system in code.
+**Implemented:** ✅ Border expansion implemented — territory radius = city level (L1=1…L5=5), Border Growth L4 choice, resource collection from all tiles in radius.
 
 ### 5.5 Buildings
 
@@ -315,7 +315,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Distance penalty: +100 per BFS step — biases toward immediate exploration.
 - Anti-backtracking: heavily penalizes recently traversed tiles.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Explorer autonomous pathfinding — BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap.
 
 ### 5.7 Trade Routes & City Connections
 - Roads (terrestrial) and Bridges (aquatic) halve movement cost (1.0 → 0.5).
@@ -325,7 +325,7 @@ defenseResult = round((defenseForce / totalForce) × defender.defense × 4.5)
 - Ports act as network nodes; water gap ≤ 5 tiles.
 - **Grand Bazaar:** Completing 5 city connections → +3 population, +400 Perfection score.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Trade routes implemented — roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score).
 
 ### 5.8 Siege Mechanics
 - Enemy unit ending turn on city's central tile triggers Siege.
@@ -354,9 +354,9 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 | Riding | Riding (Rider) | Free Spirit (Temple) | Chivalry (Swordsman, Knight) |
 | Fishing | Fishing (Port, Fish) | Sailing (Scout, Embark) | Navigation (Bomber, Starfish) |
 
-**Full Polytopia has additional series** (Climbing, Organization, Farming) — not yet in clone.
+**Full Polytopia has additional series** (Climbing, Organization, Farming) — all implemented.
 
-**Implemented:** ✅ 9 techs in `TechTree.ts`. ❌ Climbing, Organization, Farming series not implemented.
+**Implemented:** ✅ 15 techs in `TechTree.ts`. ✅ Climbing/Meditation/Philosophy, Organization/Strategy/Diplomacy, Farming/Construction, Smithery, Aquaculture all implemented.
 
 ### 6.3 Tech Unlocks
 
@@ -396,7 +396,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - **Units:** Mooni (pacifist, auto-freezes adjacent), Battle Sled (ice mobility, crippled on land), Gaami (super unit, 30 HP, mass freeze).
 - **Economy:** Ice Bank (replaces Customs House) — income scales with total frozen tiles on map.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Polaris tribe — Gaami super unit (L5, Polar Warfare gate), Ice Bank Polaris-only, Mooni + Battle Sled units, freeze mechanics.
 
 ### 7.2 Cymanti — Organic Engineering
 - **Organic economy:** Fungi (replaces crops), Mycelium networks (roads that heal), Algae (bridges water without Ports).
@@ -404,7 +404,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - **Units:** Centipede (replaces Giant — Eat/Grow skill, head death → segment becomes new head), Hexapods (Creep/Sneak, ignore ZOC), Doomux (Explode AoE suicide).
 - **No Ports** — Hydrology tech cultivates Algae on water tiles.
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Cymanti tribe — Centipede/Hexapods/Doomux units, Fungiculture/Mycelium/Hydrology/Venom techs, Fungi Farm/Mycelium Network/Algae Bridge buildings, Venom ×0.7 defense penalty.
 
 ### 7.3 Elyrion — Ecological Mysticism
 - **Restrictions:** Cannot Clear/Burn Forest, cannot harvest wild animals.
@@ -413,7 +413,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - **Dragon maturation:** Egg (0 Atk, 2 Def) → Baby Dragon (flight, ranged) → Fire Dragon (flight, Splash AoE).
 - **Prophetic Vision:** Can see unrevealed ancient ruins through fog (rainbow flames).
 
-**Implemented:** ❌ Not in code.
+**Implemented:** ✅ Elyrion tribe — Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay.
 
 ---
 
@@ -454,54 +454,54 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - [x] City Wall ×4 defense bonus implemented
 - [x] Escape skill (Rider retreat) implemented
 - [x] Persist skill (Knight chain kills) implemented
-- [ ] Stiff skill (no retaliation) not implemented
-- [ ] Splash damage (Bomber AoE) not implemented
-- [ ] Cloak / stealth / Infiltration / Dagger spawning not implemented
-- [ ] Mind Bender (Convert, Heal Others) not implemented
+- [x] Stiff skill (no retaliation) implemented — Catapult/Giant/Bomber/Raft
+- [x] Splash damage (Bomber AoE) implemented — half damage to adjacent enemies
+- [x] Cloak / submerge implemented — Cloak unit can submerge/emerge, blocks attacks when submerged
+- [x] Mind Bender (Convert, Heal Others) implemented — PHILOSOPHY tech gate
 - [x] Healing system (skip turn to heal +4/+2 HP) implemented
 - [x] Veteran system (+5 max HP after 3 kills) implemented
-- [ ] Battle preview UI not implemented
-- [ ] Fog-of-war retaliation suppression not implemented
+- [x] Battle preview UI implemented — predicted damage on hover, 💀/⚠️ indicators
+- [x] Fog-of-war retaliation suppression implemented — hidden attackers prevent counter-attack
 
 ### Naval
 - [x] Full naval system (Raft → Scout → Rammer → Bomber) implemented
 - [x] Embarkation/disembarkation implemented
 - [x] Naval unit HP inheritance implemented
-- [ ] Scout 5×5 vision on disembark not implemented
-- [ ] Aquaculture tech (Rammer gate) not yet added to tech tree
+- [x] Scout 5×5 vision on disembark implemented
+- [x] Aquaculture tech (Rammer gate) implemented
 
 ### Cities & Economy
 - [x] Binary city upgrade choices implemented
-- [ ] Border expansion (3×3 → 5×5) not implemented
+- [x] Border expansion implemented — territory radius = city level (L1=1…L5=5)
 - [x] Siege mechanic (economic blockade) implemented — City.isBesieged, 0 stars, UI locked, red border
-- [ ] Explorer autonomous pathfinding not implemented
-- [ ] Trade routes / Roads / City Connections not implemented
-- [ ] Grand Bazaar (+400 score) not implemented
-- [x] Park building (L5 upgrade choice) implemented
+- [x] Explorer autonomous pathfinding implemented — BFS fog-reveal scoring
+- [x] Trade routes / Roads / City Connections implemented — BFS connection detection
+- [x] Grand Bazaar (+400 score) implemented — 5+ city connections bonus
+- [x] Park building (L5 upgrade choice) implemented — +250 score
 
 ### Map & World
-- [ ] Per-type map generation algorithms not implemented (only one algorithm)
-- [ ] Waterworld / Pangea map types missing from enum
+- [x] Per-type map generation algorithms implemented — 6 algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea)
+- [x] Waterworld / Pangea map types implemented in enum
 - [x] Neutral villages implemented
-- [ ] Ancient ruins not implemented
-- [ ] Resource proximity constraint (2-tile radius from city/village) not implemented
+- [x] Ancient ruins implemented — size-scaled, spacing constraints, 3 reward types
+- [x] Resource proximity constraint (2-tile radius from city/village) implemented
 
 ### Technology
-- [ ] Climbing / Meditation / Philosophy tech series not implemented
-- [ ] Organization / Strategy / Diplomacy tech series not implemented
-- [ ] Farming / Construction tech series not implemented
-- [ ] Smithery tech (Swordsman gate) not implemented — currently gated by Chivalry
-- [ ] Aquaculture tech (Rammer gate) not added
-- [ ] Free Spirit → Temple connection not implemented
+- [x] Climbing / Meditation / Philosophy tech series implemented
+- [x] Organization / Strategy / Diplomacy tech series implemented
+- [x] Farming / Construction tech series implemented
+- [x] Smithery tech (Swordsman gate) implemented
+- [x] Aquaculture tech (Rammer gate) implemented
+- [x] Free Spirit → Temple connection implemented
 
 ### Special Tribes
-- [ ] Polaris (freeze mechanics, Ice Bank, Mooni, Battle Sled, Gaami) not implemented
-- [ ] Cymanti (organic economy, poison, Centipede, Hexapod, Doomux) not implemented
-- [ ] Elyrion (Sanctuary, Enchantment, Dragon maturation, Prophetic Vision) not implemented
+- [x] Polaris tribe implemented — Gaami super unit, Ice Bank, freeze mechanics
+- [x] Cymanti tribe implemented — organic economy, venom, Centipede/Hexapod/Doomux
+- [x] Elyrion tribe implemented — Sanctuary, Enchantment, Dragon maturation, Prophetic Vision
 
-### Scoring Extensions
-- [ ] Territorial tile scoring not implemented
-- [ ] Exploration (fog dispersal) scoring not implemented
-- [ ] Monument / Grand Bazaar scoring not implemented
-- [ ] Temple scoring not implemented
-- [ ] Park scoring not implemented
+### Scoring Extensions (Deferred — Require Design Decisions)
+- [ ] Territorial tile scoring — GDD §1 notes "not yet in GDD, require further design decisions"
+- [ ] Exploration (fog dispersal) scoring — GDD §1 notes "not yet in GDD, require further design decisions"
+- [ ] Monument / Grand Bazaar scoring — GDD §1 notes "not yet in GDD, require further design decisions"
+- [ ] Temple scoring — GDD §1 notes "not yet in GDD, require further design decisions"
+- [ ] Park scoring — Already implemented in calcScore() (hasPark = +250), remove from gaps

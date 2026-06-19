@@ -558,3 +558,12 @@ Ordered by priority. Each task is one unit of work for one player tick.
   - Enchant animal, verify Polytaur creation
   - Verify Dragon maturation chain
   - Run `npx vitest run` — all tests pass
+
+### Backlog: Documentation Accuracy
+
+#### Task: update-gdd-gaps-section
+- **Status**: 🔲 Pending
+- **GDD**: §9
+- **Description**: The GDD §9 "Gaps vs Real Polytopia" section is massively outdated — it claims dozens of features are "not implemented" when they actually are fully implemented in code. Audit the entire §9 section against the actual codebase and update all incorrect `[ ]` markers to `[x]`. Features confirmed implemented: Stiff, Splash, Cloak/submerge, Mind Bender (Convert+Heal), Battle preview, Fog retaliation suppression, Scout 5×5 disembark vision, Aquaculture tech, Border expansion, Explorer pathfinding, Trade routes + Grand Bazaar, Per-type map generation (6 algorithms), Waterworld/Pangea map types, Ancient ruins, Resource proximity constraint, Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), Polaris/Cymanti/Elyrion tribes, Park scoring. Features genuinely not implemented: scoring extensions (territorial, exploration, monuments, temples) — GDD main text defers these as "require further design decisions". Leave those as `[ ]`.
+- **Success criteria**: GDD §9 checklist matches actual implementation status. Running `grep -c "\- \[ \]" GDD.md` in the gaps section shows only the genuinely unimplemented items (scoring extensions). No features marked `[ ]` that exist in code.
+- **Coach checks**: Pick 5 random `[ ]` items from the old gaps section and verify in code that they are actually implemented. Verify scoring extensions are left as `[ ]` with a note about design decisions needed.
