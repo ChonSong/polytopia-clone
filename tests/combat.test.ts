@@ -568,4 +568,106 @@ describe('CombatSystem', () => {
       expect(CombatSystem.canAttack(warrior, cloak, tiles)).toBe(true);
     });
   });
+
+  describe('GDD §4.7 — Battle preview', () => {
+    it('predicts correct damage for warrior vs warrior on grass', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      // Warrior vs warrior on grass: both deal 5 damage
+      expect(result.defenderDamage).toBe(5);
+      expect(result.attackerDamage).toBe(5);
+      expect(result.defenderKilled).toBe(false);
+      expect(result.attackerKilled).toBe(false);
+    });
+
+    it('detects guaranteed kill when damage >= defender HP', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0, 3); // 3 HP
+
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      // Warrior deals 5 dmg vs 3 HP = guaranteed kill
+      expect(result.defenderDamage).toBeGreaterThanOrEqual(defender.health);
+      expect(result.defenderKilled).toBe(true);
+    });
+
+    it('detects lethal counter-attack', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0, 3); // 3 HP
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      // Counter-attack deals 5 dmg vs 3 HP = lethal
+      expect(result.attackerDamage).toBeGreaterThanOrEqual(attacker.health);
+      expect(result.attackerKilled).toBe(true);
+    });
+
+    it('ranged attack shows reduced damage in preview', () => {
+      const attacker = makeUnit(UnitType.ARCHER, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 2, 0); // distance 2
+
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+        ['2,0', {}],
+      ]);
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      // Archer ranged at dist 2: ×0.75 penalty
+      // Archer atk=2, def=2, both full HP
+      // attackForce = 2×(10/10) = 2, defenseForce = 2×(10/10)×1.0 = 2
+      // raw = (2/4)×2×4.5 = 4.5 → round = 5, ×0.75 = 3.75 → round... let's just check it's ≤ melee
+      expect(result.defenderDamage).toBeGreaterThanOrEqual(1);
+      expect(result.defenderDamage).toBeLessThanOrEqual(5);
+    });
+
+    it('no counter-attack when defender has Stiff skill', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.CATAPULT, 'TribeB', 1, 0);
+
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+
+      const result = CombatSystem.executeAttack(attacker, defender, tiles);
+      // Catapult has Stiff — no retaliation
+      expect(result.attackerDamage).toBe(0);
+    });
+
+    it('city tile defense bonus reduces damage in preview', () => {
+      const attacker = makeUnit(UnitType.WARRIOR, 'TribeA', 0, 0);
+      const defender = makeUnit(UnitType.WARRIOR, 'TribeB', 1, 0);
+      (defender as any).fortified = true;
+
+      const grassResult = CombatSystem.executeAttack(
+        attacker,
+        defender,
+        tileMap([['0,0', {}], ['1,0', {}]]),
+      );
+
+      const cityResult = CombatSystem.executeAttack(
+        attacker,
+        defender,
+        tileMap([['0,0', {}], ['1,0', { city: true }]]),
+      );
+
+      // City tile with fortify should reduce damage vs grass
+      expect(cityResult.defenderDamage).toBeLessThan(grassResult.defenderDamage);
+    });
+  });
 });

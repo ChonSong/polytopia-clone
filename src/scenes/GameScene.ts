@@ -54,6 +54,8 @@ export class GameScene extends Phaser.Scene {
   private tribeText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
   private infoText!: Phaser.GameObjects.Text;
+  private battlePreviewGraphics!: Phaser.GameObjects.Graphics;
+  private hoveredEnemy: Unit | null = null;
 
   private readonly PHASE_ORDER = [
     TurnPhase.EXPLORE,
@@ -97,6 +99,7 @@ export class GameScene extends Phaser.Scene {
     this.entityGraphics = this.add.graphics();
     this.rangeGraphics = this.add.graphics().setDepth(5);
     this.fogGraphics = this.add.graphics().setDepth(10);
+    this.battlePreviewGraphics = this.add.graphics().setDepth(15);
 
     this.cameras.main.setBounds(-300, -300, 2000, 1600);
 
@@ -109,6 +112,10 @@ export class GameScene extends Phaser.Scene {
           this.cameras.main.scrollX -= dx;
           this.cameras.main.scrollY -= dy;
         }
+      }
+      // GDD §4.7 — Battle preview on hover when a unit is selected
+      if (!p.isDown && this.selectedUnit && !this.selectedUnit.hasActed && !this.isAiRunning) {
+        this.updateBattlePreview(p.x, p.y);
       }
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
@@ -440,6 +447,10 @@ export class GameScene extends Phaser.Scene {
 
     // GDD §8 — Reveal tiles visible to this tribe's units and cities
     this.revealTribeVision(cur);
+
+    // Clean up any stale UI from previous turn
+    this.hideCityMenu();
+    this.selectedCity = null;
 
     if (cur !== this.humanTribe) {
       this.isAiRunning = true;
@@ -972,20 +983,21 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // Click on own city — show build menu (takes priority over unit selection,
+    // since a city tile is primarily a city interaction point even if a unit stands on it)
+    if (cc && cc.tribeId === this.humanTribe.id) {
+      this.selectedUnit = null;
+      this.selectedHex = coord;
+      this.showCityMenu(cc, coord);
+      this.renderAll(); this.updateUI();
+      return;
+    }
+
     // Select own unit
     if (cu && cu.owner === this.humanTribe.id && !cu.hasActed) {
       this.selectedUnit = cu;
       this.selectedHex = coord;
       this.hideCityMenu();
-      this.renderAll(); this.updateUI();
-      return;
-    }
-
-    // Click on own city — show build menu
-    if (cc && cc.tribeId === this.humanTribe.id) {
-      this.selectedUnit = null;
-      this.selectedHex = coord;
-      this.showCityMenu(cc, coord);
       this.renderAll(); this.updateUI();
       return;
     }
@@ -1368,6 +1380,7 @@ export class GameScene extends Phaser.Scene {
     this.entityGraphics.clear();
     this.rangeGraphics.clear();
     this.fogGraphics.clear();
+    this.battlePreviewGraphics.clear();
 
     const humanTribeId = this.humanTribe.id;
 
@@ -1509,6 +1522,8 @@ export class GameScene extends Phaser.Scene {
       ? ` 🍖${this.humanTribe.cities[0].food}/${this.humanTribe.cities[0].population * 10}`
       : '';
     this.phaseText.setText(`Stars: ${cur?.stars ?? 0}  ⭐+${this.getHumanStarIncome()}/turn${foodInfo}  Cities: ${this.humanTribe.cities.filter(c => !c.captured).length}`);
+    // GDD §4.7 — Don't overwrite battle preview text
+    if (!this.hoveredEnemy) {
     let info = '';
     if (this.selectedHex) {
       const tile = this.tiles.get(this.selectedHex.toString());
@@ -1520,6 +1535,7 @@ export class GameScene extends Phaser.Scene {
       if (u) info += ` ⚔ ${u.type} HP:${u.health}/10`;
     }
     this.infoText.setText(info);
+    }
     // Wait button visibility: show when a unit is selected and hasn't acted
     if (this.waitBtn) {
       this.waitBtn.setVisible(!!this.selectedUnit && !this.selectedUnit.hasActed);
@@ -1649,6 +1665,61 @@ export class GameScene extends Phaser.Scene {
 
   private delay(ms: number): Promise<void> {
     return new Promise(r => this.time.delayedCall(ms, r));
+  }
+
+  /**
+   * GDD §4.7 — Battle preview: calculate and display predicted combat results
+   * when hovering over an enemy unit with a selected friendly unit.
+   */
+  private updateBattlePreview(px: number, py: number): void {
+    this.battlePreviewGraphics.clear();
+    this.hoveredEnemy = null;
+
+    const worldX = px + this.cameras.main.scrollX;
+    const worldY = py + this.cameras.main.scrollY;
+    const coord = HexCoord.fromPixel(worldX, worldY, HEX_SIZE);
+    if (!this.tiles.has(coord.toString())) return;
+
+    const selected = this.selectedUnit;
+    if (!selected) return;
+
+    const target = this.findUnit(coord);
+    if (!target || target.owner === this.humanTribe.id || !target.isAlive) return;
+    if (!CombatSystem.canAttack(selected, target, this.tiles)) return;
+
+    this.hoveredEnemy = target;
+    const result = CombatSystem.executeAttack(selected, target, this.tiles);
+
+    // Build preview text
+    const atkDmg = result.defenderDamage;
+    const counterDmg = result.attackerDamage;
+    const guaranteedKill = atkDmg >= target.health;
+    const lethalCounter = counterDmg >= selected.health;
+
+    let preview = `⚔ ${selected.type} → ${target.type}: ${atkDmg} dmg`;
+    if (guaranteedKill) preview += ' 💀';
+    preview += ` | ↩ ${counterDmg} dmg`;
+    if (lethalCounter) preview += ' ⚠️';
+
+    this.infoText.setText(preview);
+
+    // Visual indicators on the map
+    const targetPos = target.position.toPixel(HEX_SIZE);
+    const attackerPos = selected.position.toPixel(HEX_SIZE);
+
+    if (guaranteedKill) {
+      // Sweating indicator: pulsing red circle on target
+      this.battlePreviewGraphics.lineStyle(3, 0xff4444, 0.9);
+      this.battlePreviewGraphics.strokeCircle(targetPos.x, targetPos.y, HEX_SIZE * 0.45);
+    }
+
+    if (lethalCounter) {
+      // Warning ring: black/red on attacker
+      this.battlePreviewGraphics.lineStyle(3, 0x880000, 0.9);
+      this.battlePreviewGraphics.strokeCircle(attackerPos.x, attackerPos.y, HEX_SIZE * 0.45);
+      this.battlePreviewGraphics.lineStyle(1, 0xff0000, 0.7);
+      this.battlePreviewGraphics.strokeCircle(attackerPos.x, attackerPos.y, HEX_SIZE * 0.52);
+    }
   }
 
   private drawHex(g: Phaser.GameObjects.Graphics, cx: number, cy: number, size: number, color: number, highlight?: number, alpha?: number): void {

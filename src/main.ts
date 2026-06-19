@@ -16,4 +16,6 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+// Expose for Playwright E2E tests
+(window as any).__PHASER_GAME__ = game;
