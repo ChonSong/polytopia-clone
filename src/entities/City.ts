@@ -10,9 +10,11 @@ export interface CityResource {
 /** Static city name pools per tribe (4 tribes, ~6 names each) */
 export const CITY_NAMES: Record<string, string[]> = {
   'Xin-xi':   ['Xin', 'Xi', 'An', 'Tu', 'Li', 'Kai'],
-  Imperius:   ['Imperius', 'Lucian', 'Aurelius', 'Caesar', 'Titus', 'Octavius'],
-  Bardur:     ['Bardur', 'Bjarni', 'Bjorn', 'Ulf', 'Hakon', 'Ragnar'],
-  Oumaji:     ['Oumaji', 'Kazim', 'Jafar', 'Zara', 'Omar', 'Nadia'],
+  'Imperius':   ['Imperius', 'Lucian', 'Aurelius', 'Caesar', 'Titus', 'Octavius'],
+  'Bardur':     ['Bardur', 'Bjarni', 'Bjorn', 'Ulf', 'Hakon', 'Ragnar'],
+  'Oumaji':     ['Oumaji', 'Kazim', 'Jafar', 'Zara', 'Omar', 'Nadia'],
+  // GDD §7.1 — Polaris tribe
+  'Polaris':    ['Polaris', 'Frostheim', 'Glacier', 'Nordheim', 'Icehold', 'Cryon'],
 };
 
 /** Resource yield contributed by each adjacent biome tile. */
@@ -22,6 +24,9 @@ export const BIOME_YIELDS: Partial<Record<Biome, CityResource>> = {
   [Biome.MOUNTAIN]: { food: 0, stars: 2 },
   [Biome.WATER]:    { food: 1, stars: 0 },
   [Biome.SAND]:     { food: 0, stars: 1 },
+  // GDD §7.1 — Polaris freeze biomes
+  [Biome.ICE]:      { food: 0, stars: 1 },
+  [Biome.TUNDRA]:   { food: 1, stars: 0 },
 };
 
 export class City {

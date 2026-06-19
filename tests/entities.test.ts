@@ -4,7 +4,7 @@ import { Biome, TileData } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
 import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
 import { BUILDING_DEFS, BuildingType } from '../src/entities/Building';
-import { TechId } from '../src/entities/TechTree';
+import { TechId, TRIBE_STARTING_TECHS, UNIT_TECH_GATES } from '../src/entities/TechTree';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
 import { CombatSystem } from '../src/entities/CombatSystem';
@@ -707,7 +707,8 @@ describe('City', () => {
 // ---------------------------------------------------------------------------
 describe('GameState', () => {
   function createGameWithFourTribes(): GameState {
-    const tribes = TRIBE_CONFIGS.map(c => new Tribe(c));
+    // Use only the first 4 original tribes (not Polaris) for backward compat
+    const tribes = TRIBE_CONFIGS.slice(0, 4).map(c => new Tribe(c));
     // Give each tribe a capital so they're not defeated at start
     tribes.forEach((t, i) => {
       t.addCity(new City(coord(i * 3, 0), `Capital`, t.id));
@@ -1539,5 +1540,111 @@ describe('GDD §3.2 Scout disembark vision reveal', () => {
     const raft = new Unit(coord(0, 0), UnitType.RAFT, 'test');
     expect(raft.isNaval).toBe(true);
     expect(raft.type).not.toBe(UnitType.SCOUT);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §7.1 — Polaris tribe tests
+// ---------------------------------------------------------------------------
+describe('Polaris Tribe (GDD §7.1)', () => {
+  it('Mooni unit has freeze ability', () => {
+    const mooni = new Unit(coord(0, 0), UnitType.MOONI, 'polaris');
+    expect(mooni.hasFreeze).toBe(true);
+    expect(mooni.hasMassFreeze).toBe(false);
+    expect(mooni.hasIceMobility).toBe(false);
+  });
+
+  it('Gaami unit has mass freeze ability', () => {
+    const gaami = new Unit(coord(0, 0), UnitType.GAAMI, 'polaris');
+    expect(gaami.hasMassFreeze).toBe(true);
+    expect(gaami.hasFreeze).toBe(false);
+    expect(gaami.hasIceMobility).toBe(false);
+  });
+
+  it('Battle Sled unit has ice mobility', () => {
+    const sled = new Unit(coord(0, 0), UnitType.BATTLE_SLED, 'polaris');
+    expect(sled.hasIceMobility).toBe(true);
+    expect(sled.hasFreeze).toBe(false);
+    expect(sled.hasMassFreeze).toBe(false);
+  });
+
+  it('Mooni has correct stats: 0 atk, 1 def, 1 mov, 8 HP', () => {
+    const mooni = new Unit(coord(0, 0), UnitType.MOONI, 'polaris');
+    expect(mooni.attack).toBe(0);
+    expect(mooni.defense).toBe(1);
+    expect(mooni.movementRange).toBe(1);
+    expect(mooni.maxHealth).toBe(8);
+  });
+
+  it('Battle Sled has correct stats: 3 atk, 2 def, 3 mov, 12 HP', () => {
+    const sled = new Unit(coord(0, 0), UnitType.BATTLE_SLED, 'polaris');
+    expect(sled.attack).toBe(3);
+    expect(sled.defense).toBe(2);
+    expect(sled.movementRange).toBe(3);
+    expect(sled.maxHealth).toBe(12);
+  });
+
+  it('Gaami has correct stats: 5 atk, 3 def, 1 mov, 30 HP', () => {
+    const gaami = new Unit(coord(0, 0), UnitType.GAAMI, 'polaris');
+    expect(gaami.attack).toBe(5);
+    expect(gaami.defense).toBe(3);
+    expect(gaami.movementRange).toBe(1);
+    expect(gaami.maxHealth).toBe(30);
+  });
+
+  it('Polaris tribe config exists', () => {
+    const polaris = TRIBE_CONFIGS.find(t => t.id === 'polaris');
+    expect(polaris).toBeDefined();
+    expect(polaris!.name).toBe('Polaris');
+  });
+
+  it('Polaris starts with Frostwork tech', () => {
+    expect(TRIBE_STARTING_TECHS['polaris']).toContain(TechId.FROSTWORK);
+  });
+
+  it('Mooni is gated by Frostwork tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.MOONI]).toBe(TechId.FROSTWORK);
+  });
+
+  it('Battle Sled is gated by Sledding tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.BATTLE_SLED]).toBe(TechId.SLEDDING);
+  });
+
+  it('Polaris tribe can train Mooni after researching Frostwork', () => {
+    const polaris = new Tribe({ id: 'polaris', name: 'Polaris', color: 0x87ceeb });
+    expect(polaris.hasTech(TechId.FROSTWORK)).toBe(true);
+    const trainable = polaris.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.MOONI);
+  });
+
+  it('Polaris tribe can train Battle Sled after researching Sledding', () => {
+    const polaris = new Tribe({ id: 'polaris', name: 'Polaris', color: 0x87ceeb });
+    polaris.researchTech(TechId.SLEDDING);
+    const trainable = polaris.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.BATTLE_SLED);
+  });
+
+  it('Gaami is gated by Polar Warfare tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.GAAMI]).toBe(TechId.POLAR_WARFARE);
+  });
+
+  it('Polaris tribe can train Gaami after researching Polar Warfare', () => {
+    const polaris = new Tribe({ id: 'polaris', name: 'Polaris', color: 0x87ceeb });
+    polaris.researchTech(TechId.POLAR_WARFARE);
+    const trainable = polaris.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.GAAMI);
+  });
+
+  it('Gaami has mass freeze ability', () => {
+    const gaami = new Unit(coord(0, 0), UnitType.GAAMI, 'polaris');
+    expect(gaami.hasMassFreeze).toBe(true);
+    expect(gaami.hasFreeze).toBe(false);
+    expect(gaami.hasIceMobility).toBe(false);
+  });
+
+  it('Ice Bank building type exists', () => {
+    expect(BuildingType.ICE_BANK).toBe('ICE_BANK');
+    expect(BUILDING_DEFS[BuildingType.ICE_BANK].name).toBe('Ice Bank');
+    expect(BUILDING_DEFS[BuildingType.ICE_BANK].cost).toBe(7);
   });
 });

@@ -18,6 +18,10 @@ export enum UnitType {
   // GDD §3.1 — Special units
   CLOAK    = 'CLOAK',
   MIND_BENDER = 'MIND_BENDER',
+  // GDD §7.1 — Polaris tribe units
+  MOONI      = 'MOONI',
+  BATTLE_SLED = 'BATTLE_SLED',
+  GAAMI      = 'GAAMI',
 }
 
 export interface UnitStats {
@@ -47,6 +51,10 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     8,
   [UnitType.MIND_BENDER]: 5,
+  // GDD §7.1 — Polaris tribe unit costs
+  [UnitType.MOONI]:      3,
+  [UnitType.BATTLE_SLED]: 8,
+  [UnitType.GAAMI]:      0, // super unit — not purchasable normally
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -68,6 +76,10 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     5,
   [UnitType.MIND_BENDER]: 10,
+  // GDD §7.1 — Polaris tribe unit health
+  [UnitType.MOONI]:      8,
+  [UnitType.BATTLE_SLED]: 12,
+  [UnitType.GAAMI]:      30,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -89,6 +101,10 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:    { attack: 0, defense: 0.5, movementRange: 2, canAttackAfterMove: true, ranged: false },
   [UnitType.MIND_BENDER]: { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  // GDD §7.1 — Polaris tribe unit stats
+  [UnitType.MOONI]:      { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  [UnitType.BATTLE_SLED]: { attack: 3, defense: 2, movementRange: 3, canAttackAfterMove: true, ranged: false },
+  [UnitType.GAAMI]:      { attack: 5, defense: 3, movementRange: 1, canAttackAfterMove: true, ranged: false },
 };
 
 export const MAX_HEALTH = 10;
@@ -238,6 +254,21 @@ export class Unit {
   /** GDD §3.4 — Heal: Mind Bender restores 4 HP to all adjacent friendly units. */
   get hasHeal(): boolean {
     return this.type === UnitType.MIND_BENDER;
+  }
+
+  /** GDD §7.1 — Freeze: Mooni auto-freezes adjacent tiles. */
+  get hasFreeze(): boolean {
+    return this.type === UnitType.MOONI;
+  }
+
+  /** GDD §7.1 — Mass Freeze: Gaami freezes all adjacent tiles. */
+  get hasMassFreeze(): boolean {
+    return this.type === UnitType.GAAMI;
+  }
+
+  /** GDD §7.1 — Ice Mobility: Battle Sled moves on ice but is crippled on land. */
+  get hasIceMobility(): boolean {
+    return this.type === UnitType.BATTLE_SLED;
   }
 
   /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */

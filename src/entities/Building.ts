@@ -9,6 +9,8 @@ export enum BuildingType {
   ROAD = 'ROAD',
   /** GDD §5.7 — Bridge: built on water tiles, halves movement cost on water. */
   BRIDGE = 'BRIDGE',
+  /** GDD §7.1 — Ice Bank: Polaris tribe building, income scales with frozen tiles. */
+  ICE_BANK = 'ICE_BANK',
 }
 
 export interface BuildingDef {
@@ -71,5 +73,13 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     requiresResource: Resource.METAL,
     popBonus: 0,
     starsBonus: 0,
+  },
+  [BuildingType.ICE_BANK]: {
+    type: BuildingType.ICE_BANK,
+    name: 'Ice Bank',
+    cost: 7,
+    requiresResource: Resource.FISH,
+    popBonus: 1,
+    starsBonus: 0, // Income scales with frozen tiles — computed dynamically
   },
 };

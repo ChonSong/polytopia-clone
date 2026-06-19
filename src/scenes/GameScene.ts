@@ -22,6 +22,7 @@ const COLORS: Record<string, number> = {
   'imperius': 0x3b7dbd,
   'bardur': 0x5a8f3c,
   'oumaji': 0xc0392b,
+  'polaris': 0x87ceeb,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -478,6 +479,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // GDD §7.1 — Polaris freeze mechanic: Mooni auto-freezes adjacent tiles, Gaami mass-freeze
+    this.applyPolarisFreeze(cur);
+
     // GDD §2.5 — Capture villages: units that START their turn on a village tile capture it
     this.captureVillages(cur);
     // GDD §2.6 — Discover ancient ruins: unit starting turn on a ruin triggers reward
@@ -716,6 +720,10 @@ export class GameScene extends Phaser.Scene {
       stars += city.getStarsPerTurn(biomes);
       city.processFood(biomes);
     }
+    // GDD §7.1 — Ice Bank income for Polaris AI
+    if (tribe.id === 'polaris') {
+      stars += this.countFrozenTiles();
+    }
     tribe.stars += stars + tribe.starsPerTurn;
     this.healInactiveUnits(tribe);
   }
@@ -748,8 +756,46 @@ export class GameScene extends Phaser.Scene {
       stars += city.getStarsPerTurn(biomes);
       city.processFood(biomes);
     }
+    // GDD §7.1 — Ice Bank income: +1 star per frozen tile on map
+    const frozenTiles = this.countFrozenTiles();
+    if (frozenTiles > 0) {
+      stars += frozenTiles;
+    }
     this.humanTribe.stars += stars + this.humanTribe.starsPerTurn;
     this.healInactiveUnits(this.humanTribe);
+  }
+
+  /** GDD §7.1 — Count frozen tiles (ICE biome) on the map. */
+  private countFrozenTiles(): number {
+    let count = 0;
+    for (const tile of this.tiles.values()) {
+      if (tile.biome === Biome.ICE || tile.biome === Biome.TUNDRA) count++;
+    }
+    return count;
+  }
+
+  /** GDD §7.1 — Polaris freeze mechanic: Mooni auto-freezes adjacent tiles, Gaami mass-freeze. */
+  private applyPolarisFreeze(tribe: Tribe): void {
+    if (tribe.id !== 'polaris') return;
+    for (const unit of tribe.getAliveUnits()) {
+      if (unit.hasFreeze || unit.hasMassFreeze) {
+        const range = unit.hasMassFreeze ? 2 : 1;
+        // Get all tiles within range using hex distance
+        for (const [key, tile] of this.tiles) {
+          const [q, r] = key.split(',').map(Number);
+          const coord = new HexCoord(q, r);
+          const dist = unit.position.distanceTo(coord);
+          if (dist > 0 && dist <= range) {
+            const biome = tile.biome as Biome;
+            if (biome === Biome.WATER) {
+              tile.biome = Biome.ICE;
+            } else if (biome !== Biome.ICE && biome !== Biome.TUNDRA) {
+              tile.biome = Biome.TUNDRA;
+            }
+          }
+        }
+      }
+    }
   }
 
   private advanceTurn(): void {
@@ -1306,15 +1352,28 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    // --- GDD §7.1 GAAMI (Polaris super unit at L5, replaces Giant for Polaris) ---
+    if (city.level >= 5 && city.upgradeChoices[5] === 'B' && !city.giantSpawned && this.humanTribe.id === 'polaris') {
+      items.push('SUMMON GAAMI (0⭐)  30HP 5⚔ 3🛡 Mass Freeze');
+      handlers.push(() => {
+        city.giantSpawned = true;
+        this.humanTribe.addUnit(new Unit(city.position, UnitType.GAAMI, this.humanTribe.id));
+        this.hideCityMenu();
+        this.renderAll(); this.updateUI();
+      });
+    }
+
     // --- BUILDINGS ---
     const adjacentResources: Resource[] = [];
     for (const n of city.position.neighbors()) {
       const t = this.tiles.get(n.toString());
       if (t?.resource) adjacentResources.push(t.resource);
     }
-    const buildableTypes = Object.values(BuildingType).filter(bt =>
-      city.canBuild(bt, adjacentResources) && this.humanTribe.stars >= BUILDING_DEFS[bt].cost
-    );
+    const buildableTypes = Object.values(BuildingType).filter(bt => {
+      // GDD §7.1 — Ice Bank is Polaris-only
+      if (bt === BuildingType.ICE_BANK && this.humanTribe.id !== 'polaris') return false;
+      return city.canBuild(bt, adjacentResources) && this.humanTribe.stars >= BUILDING_DEFS[bt].cost;
+    });
     if (buildableTypes.length > 0) {
       items.push('── BUILDINGS ──');
       handlers.push(() => {}); // separator — no-op

@@ -14,6 +14,8 @@ export const TRIBE_CONFIGS: TribeConfig[] = [
   { id: 'imperius', name: 'Imperius', color: 0x3b7dbd },
   { id: 'bardur',   name: 'Bardur',   color: 0x5a8f3c },
   { id: 'oumaji',   name: 'Oumaji',   color: 0xc0392b },
+  // GDD §7.1 — Polaris tribe
+  { id: 'polaris',  name: 'Polaris',  color: 0x87ceeb },
 ];
 
 export class Tribe {
@@ -91,6 +93,11 @@ export class Tribe {
     }
     // GDD §3.1 — Special units
     for (const ut of [UnitType.CLOAK, UnitType.MIND_BENDER]) {
+      const gate = UNIT_TECH_GATES[ut];
+      if (!gate || this.techs.has(gate)) all.push(ut);
+    }
+    // GDD §7.1 — Polaris tribe units
+    for (const ut of [UnitType.MOONI, UnitType.BATTLE_SLED, UnitType.GAAMI]) {
       const gate = UNIT_TECH_GATES[ut];
       if (!gate || this.techs.has(gate)) all.push(ut);
     }

@@ -24,6 +24,11 @@ export enum TechId {
   SMITHERY     = 'SMITHERY',
   AQUACULTURE  = 'AQUACULTURE',
   STRATEGY     = 'STRATEGY',
+  // GDD §7.1 — Polaris tribe techs
+  FROSTWORK    = 'FROSTWORK',
+  SLEDDING     = 'SLEDDING',
+  POLAR_WARFARE = 'POLAR_WARFARE',
+  POLARISM     = 'POLARISM',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
@@ -34,9 +39,11 @@ export const TECH_SERIES: Record<string, TechId[]> = {
   organization: [TechId.ORGANIZATION, TechId.STRATEGY],
   farming:     [TechId.FARMING, TechId.SMITHERY],
   aquaculture: [TechId.AQUACULTURE],
+  // GDD §7.1 — Polaris tribe tech series
+  frostwork:    [TechId.FROSTWORK, TechId.SLEDDING, TechId.POLAR_WARFARE, TechId.POLARISM],
 };
 
-export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture'] as const;
+export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture', 'frostwork'] as const;
 export type TechSeries = typeof TECH_SERIES_ORDER[number];
 
 export interface TechDef {
@@ -211,6 +218,43 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [UnitType.DEFENDER],
     prerequisites: [TechId.ORGANIZATION],
   },
+  // GDD §7.1 — Polaris tribe techs
+  [TechId.FROSTWORK]: {
+    id: TechId.FROSTWORK,
+    name: 'Frostwork',
+    description: 'Unlocks Mooni • Outposts',
+    tier: 1,
+    series: 'frostwork',
+    unlocksUnits: [UnitType.MOONI],
+    prerequisites: [],
+  },
+  [TechId.SLEDDING]: {
+    id: TechId.SLEDDING,
+    name: 'Sledding',
+    description: 'Unlocks Battle Sled',
+    tier: 2,
+    series: 'frostwork',
+    unlocksUnits: [UnitType.BATTLE_SLED],
+    prerequisites: [TechId.FROSTWORK],
+  },
+  [TechId.POLAR_WARFARE]: {
+    id: TechId.POLAR_WARFARE,
+    name: 'Polar Warfare',
+    description: 'Ice Fortresses',
+    tier: 3,
+    series: 'frostwork',
+    unlocksUnits: [],
+    prerequisites: [TechId.SLEDDING],
+  },
+  [TechId.POLARISM]: {
+    id: TechId.POLARISM,
+    name: 'Polarism',
+    description: 'Ice Temples',
+    tier: 3,
+    series: 'frostwork',
+    unlocksUnits: [],
+    prerequisites: [TechId.SLEDDING],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -219,6 +263,8 @@ export const TRIBE_STARTING_TECHS: Record<string, TechId[]> = {
   'imperius': [TechId.FISHING],
   'bardur':   [TechId.HUNTING],
   'oumaji':   [TechId.RIDING],
+  // GDD §7.1 — Polaris tribe
+  'polaris':  [TechId.FROSTWORK],
 };
 
 /** Available (non-premium) unit types and which tech gates them. */
@@ -239,5 +285,8 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.MIND_BENDER]: TechId.PHILOSOPHY,
   // GDD §3.1 Defender gated by Strategy
   [UnitType.DEFENDER]:  TechId.STRATEGY,
-  // Warrior, Boat, Raft are unlocked by default or via other paths
+  // GDD §7.1 — Polaris tribe unit gates
+  [UnitType.MOONI]:      TechId.FROSTWORK,
+  [UnitType.BATTLE_SLED]: TechId.SLEDDING,
+  [UnitType.GAAMI]:      TechId.POLAR_WARFARE,
 };

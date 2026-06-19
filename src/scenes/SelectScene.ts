@@ -58,7 +58,9 @@ export class SelectScene extends Phaser.Scene {
     });
 
     // Tribe cards
-    const cardW = 170, gap = 15, startX = (width - (cardW * 4 + gap * 3)) / 2;
+    const cardW = 170, gap = 15;
+    const totalCards = TRIBE_CONFIGS.length;
+    const startX = (width - (cardW * totalCards + gap * (totalCards - 1))) / 2;
     TRIBE_CONFIGS.forEach((cfg, i) => {
       const cx = startX + i * (cardW + gap);
       const bg = this.add.graphics();
@@ -72,7 +74,7 @@ export class SelectScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       const startTech = cfg.id === 'xin-xi' || cfg.id === 'oumaji' ? 'Riding' :
-        cfg.id === 'bardur' ? 'Hunting' : 'Fishing';
+        cfg.id === 'bardur' ? 'Hunting' : cfg.id === 'polaris' ? 'Frostwork' : 'Fishing';
       this.add.text(cx + cardW / 2, 200, `Start: ${startTech}`, {
         fontSize: '12px', color: '#aaa', fontFamily: 'monospace',
       }).setOrigin(0.5);

@@ -5,6 +5,9 @@ export enum Biome {
   WATER = 'WATER',
   SAND = 'SAND',
   SNOW = 'SNOW',
+  // GDD §7.1 — Polaris freeze biomes
+  ICE = 'ICE',
+  TUNDRA = 'TUNDRA',
 }
 
 export enum Resource {
@@ -42,6 +45,9 @@ export const BiomeColors: Record<Biome, number> = {
   [Biome.WATER]: 0x3b7dbd,
   [Biome.SAND]: 0xd4b86a,
   [Biome.SNOW]: 0xffffff,
+  // GDD §7.1 — Polaris freeze biome colors
+  [Biome.ICE]: 0xb0e0e6,
+  [Biome.TUNDRA]: 0xc8d8c8,
 };
 
 /** Resource dot colors for rendering. */
