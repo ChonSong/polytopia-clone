@@ -29,6 +29,10 @@ export interface TileData {
   ruin?: boolean;
   /** GDD §2.6 — Whether this ruin has been discovered already. */
   ruinDiscovered?: boolean;
+  /** GDD §5.7 — Road built on this tile (terrestrial). Halves movement cost. */
+  road?: boolean;
+  /** GDD §5.7 — Bridge built on this tile (aquatic). Halves movement cost on water. */
+  bridge?: boolean;
 }
 
 export const BiomeColors: Record<Biome, number> = {

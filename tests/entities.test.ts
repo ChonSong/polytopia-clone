@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { HexCoord } from '../src/hex/HexCoord';
 import { Biome, TileData } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
@@ -1258,5 +1258,238 @@ describe('Philosophy tech', () => {
     // Now Philosophy should be researchable
     tribe.researchTech(TechId.PHILOSOPHY);
     expect(tribe.hasTech(TechId.PHILOSOPHY)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §5.7 — Trade Routes & City Connections
+// ---------------------------------------------------------------------------
+import { TradeRouteSystem } from '../src/entities/TradeRouteSystem';
+
+describe('TradeRouteSystem', () => {
+  let system: TradeRouteSystem;
+
+  beforeEach(() => {
+    system = new TradeRouteSystem();
+  });
+
+  describe('canBuildRoad', () => {
+    it('allows road on grass tile', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5 };
+      expect(system.canBuildRoad(tile)).toBe(true);
+    });
+
+    it('allows road on forest tile', () => {
+      const tile: TileData = { biome: Biome.FOREST, elevation: 0.6 };
+      expect(system.canBuildRoad(tile)).toBe(true);
+    });
+
+    it('blocks road on water tile', () => {
+      const tile: TileData = { biome: Biome.WATER, elevation: 0.1 };
+      expect(system.canBuildRoad(tile)).toBe(false);
+    });
+
+    it('blocks road on tile that already has road', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5, road: true };
+      expect(system.canBuildRoad(tile)).toBe(false);
+    });
+
+    it('blocks road on city tile', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5, city: true };
+      expect(system.canBuildRoad(tile)).toBe(false);
+    });
+
+    it('blocks road on undefined tile', () => {
+      expect(system.canBuildRoad(undefined)).toBe(false);
+    });
+  });
+
+  describe('canBuildBridge', () => {
+    it('allows bridge on water tile', () => {
+      const tile: TileData = { biome: Biome.WATER, elevation: 0.1 };
+      expect(system.canBuildBridge(tile)).toBe(true);
+    });
+
+    it('blocks bridge on grass tile', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5 };
+      expect(system.canBuildBridge(tile)).toBe(false);
+    });
+
+    it('blocks bridge on tile that already has bridge', () => {
+      const tile: TileData = { biome: Biome.WATER, elevation: 0.1, bridge: true };
+      expect(system.canBuildBridge(tile)).toBe(false);
+    });
+  });
+
+  describe('isTradeTile', () => {
+    it('returns true for road tile', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5, road: true };
+      expect(system.isTradeTile(tile)).toBe(true);
+    });
+
+    it('returns true for bridge tile', () => {
+      const tile: TileData = { biome: Biome.WATER, elevation: 0.1, bridge: true };
+      expect(system.isTradeTile(tile)).toBe(true);
+    });
+
+    it('returns false for plain grass tile', () => {
+      const tile: TileData = { biome: Biome.GRASS, elevation: 0.5 };
+      expect(system.isTradeTile(tile)).toBe(false);
+    });
+
+    it('returns false for undefined', () => {
+      expect(system.isTradeTile(undefined)).toBe(false);
+    });
+  });
+
+  describe('detectConnections', () => {
+    function makeTileMap(entries: Array<[string, Partial<TileData>]>): Map<string, TileData> {
+      const m = new Map<string, TileData>();
+      for (const [key, data] of entries) {
+        m.set(key, { biome: Biome.GRASS, elevation: 0, ...data });
+      }
+      return m;
+    }
+
+    it('detects direct road connection between two adjacent cities', () => {
+      const tribe = createTestTribe();
+      const cityA = new City(coord(0, 0), 'CityA', 'test', 1, 1);
+      const cityB = new City(coord(1, 0), 'CityB', 'test', 1, 1);
+
+      const tileMap = makeTileMap([
+        ['0,0', { city: true }],
+        ['1,0', { city: true, road: true }],
+      ]);
+
+      const connections = system.detectConnections([cityA, cityB], tileMap);
+      expect(connections.get(cityA.id)).toContain(cityB.id);
+      expect(connections.get(cityB.id)).toContain(cityA.id);
+    });
+
+    it('detects connection via chain of roads', () => {
+      const cityA = new City(coord(0, 0), 'CityA', 'test', 1, 1);
+      const cityB = new City(coord(3, 0), 'CityB', 'test', 1, 1);
+
+      const tileMap = makeTileMap([
+        ['0,0', { city: true }],
+        ['1,0', { road: true }],
+        ['2,0', { road: true }],
+        ['3,0', { city: true }],
+      ]);
+
+      const connections = system.detectConnections([cityA, cityB], tileMap);
+      expect(connections.get(cityA.id)).toContain(cityB.id);
+    });
+
+    it('no connection when path is broken', () => {
+      const cityA = new City(coord(0, 0), 'CityA', 'test', 1, 1);
+      const cityB = new City(coord(3, 0), 'CityB', 'test', 1, 1);
+
+      const tileMap = makeTileMap([
+        ['0,0', { city: true }],
+        ['1,0', { road: true }],
+        // gap at 2,0 — no road
+        ['3,0', { city: true }],
+      ]);
+
+      const connections = system.detectConnections([cityA, cityB], tileMap);
+      // Without a continuous road/land path, cities shouldn't connect
+      // (land tiles without roads don't propagate the trade route)
+      expect(connections.get(cityA.id)?.length ?? 0).toBe(0);
+    });
+  });
+
+  describe('applyConnectionBonuses', () => {
+    function makeTileMap(entries: Array<[string, Partial<TileData>]>): Map<string, TileData> {
+      const m = new Map<string, TileData>();
+      for (const [key, data] of entries) {
+        m.set(key, { biome: Biome.GRASS, elevation: 0, ...data });
+      }
+      return m;
+    }
+
+    it('grants +1 population to both connected cities', () => {
+      const cityA = new City(coord(0, 0), 'CityA', 'test', 1, 1);
+      const cityB = new City(coord(1, 0), 'CityB', 'test', 1, 1);
+
+      const tileMap = makeTileMap([
+        ['0,0', { city: true }],
+        ['1,0', { city: true, road: true }],
+      ]);
+
+      system.applyConnectionBonuses([cityA, cityB], tileMap);
+      // Both cities should have +1 population from connection
+      expect(cityA.population).toBe(2);
+      expect(cityB.population).toBe(2);
+    });
+
+    it('tracks connectedCityIds on both cities', () => {
+      const cityA = new City(coord(0, 0), 'CityA', 'test', 1, 1);
+      const cityB = new City(coord(1, 0), 'CityB', 'test', 1, 1);
+
+      const tileMap = makeTileMap([
+        ['0,0', { city: true }],
+        ['1,0', { city: true, road: true }],
+      ]);
+
+      system.applyConnectionBonuses([cityA, cityB], tileMap);
+      expect(cityA.connectedCityIds).toContain(cityB.id);
+      expect(cityB.connectedCityIds).toContain(cityA.id);
+    });
+
+    it('awards Grand Bazaar at 5 connections', () => {
+      // Create a central city connected to 5 others via roads
+      const center = new City(coord(0, 0), 'Center', 'test', 1, 1);
+      const others: City[] = [];
+      const entries: Array<[string, Partial<TileData>]> = [['0,0', { city: true }]];
+
+      // Place 5 cities adjacent to center via road tiles
+      const positions = [[1, 0], [0, 1], [-1, 1], [-1, 0], [0, -1]];
+      for (let i = 0; i < 5; i++) {
+        const c = new City(coord(positions[i][0], positions[i][1]), `C${i}`, 'test', 1, 1);
+        others.push(c);
+        entries.push([`${positions[i][0]},${positions[i][1]}`, { city: true, road: true }]);
+      }
+
+      const tileMap = makeTileMap(entries);
+      const allCities = [center, ...others];
+
+      const score = system.applyConnectionBonuses(allCities, tileMap);
+      expect(score).toBe(400);
+      expect(center.hasGrandBazaar).toBe(true);
+      // +3 from Grand Bazaar + 5 from connections = +8 total
+      expect(center.population).toBe(9);
+    });
+
+    it('does not award Grand Bazaar with fewer than 5 connections', () => {
+      const center = new City(coord(0, 0), 'Center', 'test', 1, 1);
+      const others: City[] = [];
+      const entries: Array<[string, Partial<TileData>]> = [['0,0', { city: true }]];
+
+      for (let i = 0; i < 4; i++) {
+        const c = new City(coord(i + 1, 0), `C${i}`, 'test', 1, 1);
+        others.push(c);
+        entries.push([`${i + 1},0`, { city: true, road: true }]);
+      }
+
+      const tileMap = makeTileMap(entries);
+      const allCities = [center, ...others];
+
+      const score = system.applyConnectionBonuses(allCities, tileMap);
+      expect(score).toBe(0);
+      expect(center.hasGrandBazaar).toBe(false);
+    });
+  });
+});
+
+describe('GDD §5.7 Building definitions', () => {
+  it('ROAD building type exists with correct cost', () => {
+    expect(BUILDING_DEFS[BuildingType.ROAD].cost).toBe(3);
+    expect(BUILDING_DEFS[BuildingType.ROAD].name).toBe('Road');
+  });
+
+  it('BRIDGE building type exists with correct cost', () => {
+    expect(BUILDING_DEFS[BuildingType.BRIDGE].cost).toBe(5);
+    expect(BUILDING_DEFS[BuildingType.BRIDGE].name).toBe('Bridge');
   });
 });

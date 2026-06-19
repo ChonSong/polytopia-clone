@@ -41,6 +41,12 @@ export class City {
   /** GDD §5.3 — tracks binary upgrade choices per level (2=A, 3=B, etc.) */
   public upgradeChoices: Record<number, 'A' | 'B'> = {};
 
+  /** GDD §5.7 — IDs of cities this city is connected to via roads/bridges/ports. */
+  public connectedCityIds: string[] = [];
+
+  /** GDD §5.7 — Whether Grand Bazaar bonus has been awarded (5+ connections). */
+  public hasGrandBazaar: boolean = false;
+
   constructor(
     public position: HexCoord,
     public name: string,

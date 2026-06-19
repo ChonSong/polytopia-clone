@@ -5,6 +5,10 @@ export enum BuildingType {
   MINE = 'MINE',
   FARM = 'FARM',
   PORT = 'PORT',
+  /** GDD §5.7 — Road: built on land tiles, halves movement cost. */
+  ROAD = 'ROAD',
+  /** GDD §5.7 — Bridge: built on water tiles, halves movement cost on water. */
+  BRIDGE = 'BRIDGE',
 }
 
 export interface BuildingDef {
@@ -51,5 +55,21 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     requiresResource: Resource.FISH,
     popBonus: 1,
     starsBonus: 2,
+  },
+  [BuildingType.ROAD]: {
+    type: BuildingType.ROAD,
+    name: 'Road',
+    cost: 3,
+    requiresResource: Resource.ANIMALS,
+    popBonus: 0,
+    starsBonus: 0,
+  },
+  [BuildingType.BRIDGE]: {
+    type: BuildingType.BRIDGE,
+    name: 'Bridge',
+    cost: 5,
+    requiresResource: Resource.METAL,
+    popBonus: 0,
+    starsBonus: 0,
   },
 };

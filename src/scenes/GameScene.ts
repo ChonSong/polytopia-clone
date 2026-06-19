@@ -15,6 +15,7 @@ import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost, UNIT_TECH_GATES } from 
 import { BUILDING_DEFS, BuildingType } from '../entities/Building';
 import { Resource } from '../hex/Tile';
 import { runExplorerPathfinding } from '../entities/Explorer';
+import { TradeRouteSystem } from '../entities/TradeRouteSystem';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -37,6 +38,7 @@ export class GameScene extends Phaser.Scene {
   private mapType: MapType = 'CONTINENTS';
   private turnLimit = 99;
   private turnManager!: TurnManager;
+  private tradeRoutes!: TradeRouteSystem;
   private ais: Map<string, BasicAI> = new Map();
   private selectedUnit: Unit | null = null;
   private selectedHex: HexCoord | null = null;
@@ -90,6 +92,7 @@ export class GameScene extends Phaser.Scene {
     // Share tile map with AI via GameState (BasicAI accesses it via cast)
     (this.state as any).tileMap = this.tiles;
     this.turnManager = new TurnManager();
+    this.tradeRoutes = new TradeRouteSystem();
     // Create AI for non-human tribes
     for (const t of this.tribes) {
       if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t));
@@ -1297,6 +1300,49 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // --- GDD §5.7 TRADE ROUTES: ROAD / BRIDGE ---
+    const hasRoadTech = true; // Roads available from start
+    if (hasRoadTech) {
+      // Check for buildable road tiles (adjacent land without road)
+      const roadTiles: HexCoord[] = [];
+      const bridgeTiles: HexCoord[] = [];
+      for (const n of city.position.neighbors()) {
+        const t = this.tiles.get(n.toString());
+        if (this.tradeRoutes.canBuildRoad(t)) roadTiles.push(n);
+        if (this.tradeRoutes.canBuildBridge(t)) bridgeTiles.push(n);
+      }
+      if (roadTiles.length > 0 && this.humanTribe.stars >= BUILDING_DEFS[BuildingType.ROAD].cost) {
+        for (const rt of roadTiles) {
+          items.push(`  ROAD (${BUILDING_DEFS[BuildingType.ROAD].cost}⭐) → (${rt.q},${rt.r})`);
+          handlers.push(() => {
+            const tile = this.tiles.get(rt.toString());
+            if (tile) tile.road = true;
+            this.humanTribe.stars -= BUILDING_DEFS[BuildingType.ROAD].cost;
+            // Re-detect connections
+            const allCities = this.tribes.flatMap(t => t.cities);
+            this.tradeRoutes.applyConnectionBonuses(allCities, this.tiles);
+            this.hideCityMenu();
+            this.renderAll(); this.updateUI();
+          });
+        }
+      }
+      if (bridgeTiles.length > 0 && this.humanTribe.stars >= BUILDING_DEFS[BuildingType.BRIDGE].cost) {
+        for (const bt of bridgeTiles) {
+          items.push(`  BRIDGE (${BUILDING_DEFS[BuildingType.BRIDGE].cost}⭐) → (${bt.q},${bt.r})`);
+          handlers.push(() => {
+            const tile = this.tiles.get(bt.toString());
+            if (tile) tile.bridge = true;
+            this.humanTribe.stars -= BUILDING_DEFS[BuildingType.BRIDGE].cost;
+            // Re-detect connections
+            const allCities = this.tribes.flatMap(t => t.cities);
+            this.tradeRoutes.applyConnectionBonuses(allCities, this.tiles);
+            this.hideCityMenu();
+            this.renderAll(); this.updateUI();
+          });
+        }
+      }
+    }
+
     // --- GDD §3.2 NAVAL: EMBARK (if city has Port) ---
     const hasPort = city.buildings.includes(BuildingType.PORT);
     if (hasPort) {
@@ -1474,6 +1520,16 @@ export class GameScene extends Phaser.Scene {
         this.entityGraphics.fillCircle(pos.x, pos.y - 2, 3);
         this.entityGraphics.lineStyle(1, 0x666, 0.5);
         this.entityGraphics.strokeCircle(pos.x, pos.y - 2, 3);
+      }
+      // GDD §5.7 — Road indicator (brown dashes on land)
+      if (tile.road) {
+        this.entityGraphics.lineStyle(2, 0x8B4513, 0.8);
+        this.entityGraphics.lineBetween(pos.x - 5, pos.y + 4, pos.x + 5, pos.y + 4);
+      }
+      // GDD §5.7 — Bridge indicator (blue-gray dashes on water)
+      if (tile.bridge) {
+        this.entityGraphics.lineStyle(2, 0x708090, 0.9);
+        this.entityGraphics.lineBetween(pos.x - 5, pos.y + 4, pos.x + 5, pos.y + 4);
       }
     }
 
