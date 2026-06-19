@@ -11,6 +11,12 @@ export enum BuildingType {
   BRIDGE = 'BRIDGE',
   /** GDD §7.1 — Ice Bank: Polaris tribe building, income scales with frozen tiles. */
   ICE_BANK = 'ICE_BANK',
+  /** GDD §7.2 — Fungi Farm: Cymanti building, replaces Farm for organic economy. */
+  FUNGI_FARM = 'FUNGI_FARM',
+  /** GDD §7.2 — Mycelium Network: Cymanti road that heals units. */
+  MYCELIUM_NETWORK = 'MYCELIUM_NETWORK',
+  /** GDD §7.2 — Algae Bridge: Cymanti water crossing without Port. */
+  ALGAE_BRIDGE = 'ALGAE_BRIDGE',
 }
 
 export interface BuildingDef {
@@ -81,5 +87,29 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     requiresResource: Resource.FISH,
     popBonus: 1,
     starsBonus: 0, // Income scales with frozen tiles — computed dynamically
+  },
+  [BuildingType.FUNGI_FARM]: {
+    type: BuildingType.FUNGI_FARM,
+    name: 'Fungi Farm',
+    cost: 5,
+    requiresResource: Resource.CROPS,
+    popBonus: 2,
+    starsBonus: 0, // Organic economy — food bonus instead of stars
+  },
+  [BuildingType.MYCELIUM_NETWORK]: {
+    type: BuildingType.MYCELIUM_NETWORK,
+    name: 'Mycelium Network',
+    cost: 3,
+    requiresResource: Resource.ANIMALS,
+    popBonus: 0,
+    starsBonus: 0, // Heals units that move through — effect computed dynamically
+  },
+  [BuildingType.ALGAE_BRIDGE]: {
+    type: BuildingType.ALGAE_BRIDGE,
+    name: 'Algae Bridge',
+    cost: 5,
+    requiresResource: Resource.FISH,
+    popBonus: 0,
+    starsBonus: 0, // Allows water crossing without Port
   },
 };

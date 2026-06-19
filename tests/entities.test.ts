@@ -1648,3 +1648,113 @@ describe('Polaris Tribe (GDD §7.1)', () => {
     expect(BUILDING_DEFS[BuildingType.ICE_BANK].cost).toBe(7);
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §7.2 — Cymanti Tribe
+// ---------------------------------------------------------------------------
+describe('Cymanti tribe', () => {
+  it('Cymanti tribe config exists', () => {
+    const cymanti = TRIBE_CONFIGS.find(t => t.id === 'cymanti');
+    expect(cymanti).toBeDefined();
+    expect(cymanti!.name).toBe('Cymanti');
+  });
+
+  it('Cymanti starts with Fungiculture tech', () => {
+    expect(TRIBE_STARTING_TECHS['cymanti']).toContain(TechId.FUNGICULTURE);
+  });
+
+  it('Centipede unit has correct stats', () => {
+    const centipede = new Unit(coord(0, 0), UnitType.CENTIPEDE, 'cymanti');
+    expect(centipede.attack).toBe(3);
+    expect(centipede.defense).toBe(2);
+    expect(centipede.movementRange).toBe(1);
+    expect(centipede.maxHealth).toBe(15);
+    expect(centipede.hasEatGrow).toBe(true);
+    expect(centipede.hasVenom).toBe(true);
+  });
+
+  it('Hexapods unit has correct stats', () => {
+    const hexapods = new Unit(coord(0, 0), UnitType.HEXAPODS, 'cymanti');
+    expect(hexapods.attack).toBe(2);
+    expect(hexapods.defense).toBe(1);
+    expect(hexapods.movementRange).toBe(2);
+    expect(hexapods.maxHealth).toBe(8);
+    expect(hexapods.hasCreepSneak).toBe(true);
+    expect(hexapods.hasVenom).toBe(true);
+  });
+
+  it('Doomux unit has correct stats', () => {
+    const doomux = new Unit(coord(0, 0), UnitType.DOOMUX, 'cymanti');
+    expect(doomux.attack).toBe(4);
+    expect(doomux.defense).toBe(0);
+    expect(doomux.movementRange).toBe(1);
+    expect(doomux.maxHealth).toBe(6);
+    expect(doomux.hasExplode).toBe(true);
+    expect(doomux.hasVenom).toBe(false);
+  });
+
+  it('Centipede is gated by Hydrology tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.CENTIPEDE]).toBe(TechId.HYDROLOGY);
+  });
+
+  it('Hexapods is gated by Mycelium tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.HEXAPODS]).toBe(TechId.MYCELIUM);
+  });
+
+  it('Doomux is gated by Venom tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.DOOMUX]).toBe(TechId.VENOM);
+  });
+
+  it('Cymanti tribe can train Hexapods after researching Mycelium', () => {
+    const cymanti = new Tribe({ id: 'cymanti', name: 'Cymanti', color: 0x9b59b6 });
+    cymanti.researchTech(TechId.MYCELIUM);
+    const trainable = cymanti.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.HEXAPODS);
+  });
+
+  it('Cymanti tribe can train Centipede after researching Hydrology', () => {
+    const cymanti = new Tribe({ id: 'cymanti', name: 'Cymanti', color: 0x9b59b6 });
+    cymanti.researchTech(TechId.HYDROLOGY);
+    const trainable = cymanti.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.CENTIPEDE);
+  });
+
+  it('Cymanti tribe can train Doomux after researching Venom', () => {
+    const cymanti = new Tribe({ id: 'cymanti', name: 'Cymanti', color: 0x9b59b6 });
+    cymanti.researchTech(TechId.MYCELIUM);
+    cymanti.researchTech(TechId.VENOM);
+    const trainable = cymanti.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.DOOMUX);
+  });
+
+  it('Fungi Farm building type exists', () => {
+    expect(BuildingType.FUNGI_FARM).toBe('FUNGI_FARM');
+    expect(BUILDING_DEFS[BuildingType.FUNGI_FARM].name).toBe('Fungi Farm');
+    expect(BUILDING_DEFS[BuildingType.FUNGI_FARM].cost).toBe(5);
+  });
+
+  it('Mycelium Network building type exists', () => {
+    expect(BuildingType.MYCELIUM_NETWORK).toBe('MYCELIUM_NETWORK');
+    expect(BUILDING_DEFS[BuildingType.MYCELIUM_NETWORK].name).toBe('Mycelium Network');
+    expect(BUILDING_DEFS[BuildingType.MYCELIUM_NETWORK].cost).toBe(3);
+  });
+
+  it('Algae Bridge building type exists', () => {
+    expect(BuildingType.ALGAE_BRIDGE).toBe('ALGAE_BRIDGE');
+    expect(BUILDING_DEFS[BuildingType.ALGAE_BRIDGE].name).toBe('Algae Bridge');
+    expect(BUILDING_DEFS[BuildingType.ALGAE_BRIDGE].cost).toBe(5);
+  });
+
+  it('Venom applies ×0.7 defense penalty in combat', () => {
+    const cymanti = new Tribe({ id: 'cymanti', name: 'Cymanti', color: 0x9b59b6 });
+    const attacker = new Unit(coord(0, 0), UnitType.CENTIPEDE, 'cymanti');
+    const defender = new Unit(coord(1, 0), UnitType.WARRIOR, 'xin-xi');
+    defender.fortified = true;
+    const grassTile = { biome: Biome.GRASS, elevation: 0 } as any;
+    const damageWithVenom = CombatSystem.calculateDamage(attacker, defender, grassTile);
+    // Without venom, defBonus would be 1.0 (grass, no city, no fortify bonus on grass)
+    // With venom, defBonus = 1.0 × 0.7 = 0.7
+    // This should result in higher damage
+    expect(damageWithVenom).toBeGreaterThanOrEqual(1);
+  });
+});

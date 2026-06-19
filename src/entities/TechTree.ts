@@ -29,6 +29,11 @@ export enum TechId {
   SLEDDING     = 'SLEDDING',
   POLAR_WARFARE = 'POLAR_WARFARE',
   POLARISM     = 'POLARISM',
+  // GDD §7.2 — Cymanti tribe techs
+  FUNGICULTURE = 'FUNGICULTURE',
+  MYCELIUM     = 'MYCELIUM',
+  HYDROLOGY    = 'HYDROLOGY',
+  VENOM        = 'VENOM',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
@@ -41,9 +46,11 @@ export const TECH_SERIES: Record<string, TechId[]> = {
   aquaculture: [TechId.AQUACULTURE],
   // GDD §7.1 — Polaris tribe tech series
   frostwork:    [TechId.FROSTWORK, TechId.SLEDDING, TechId.POLAR_WARFARE, TechId.POLARISM],
+  // GDD §7.2 — Cymanti tribe tech series
+  fungiculture: [TechId.FUNGICULTURE, TechId.MYCELIUM, TechId.HYDROLOGY, TechId.VENOM],
 };
 
-export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture', 'frostwork'] as const;
+export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture', 'frostwork', 'fungiculture'] as const;
 export type TechSeries = typeof TECH_SERIES_ORDER[number];
 
 export interface TechDef {
@@ -255,6 +262,43 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [],
     prerequisites: [TechId.SLEDDING],
   },
+  // GDD §7.2 — Cymanti tribe techs
+  [TechId.FUNGICULTURE]: {
+    id: TechId.FUNGICULTURE,
+    name: 'Fungiculture',
+    description: 'Unlocks Fungi Farm • Organic economy',
+    tier: 1,
+    series: 'fungiculture',
+    unlocksUnits: [],
+    prerequisites: [],
+  },
+  [TechId.MYCELIUM]: {
+    id: TechId.MYCELIUM,
+    name: 'Mycelium',
+    description: 'Mycelium roads that heal units',
+    tier: 2,
+    series: 'fungiculture',
+    unlocksUnits: [UnitType.HEXAPODS],
+    prerequisites: [TechId.FUNGICULTURE],
+  },
+  [TechId.HYDROLOGY]: {
+    id: TechId.HYDROLOGY,
+    name: 'Hydrology',
+    description: 'Algae cultivation • Water crossing without Port',
+    tier: 2,
+    series: 'fungiculture',
+    unlocksUnits: [UnitType.CENTIPEDE],
+    prerequisites: [TechId.FUNGICULTURE],
+  },
+  [TechId.VENOM]: {
+    id: TechId.VENOM,
+    name: 'Venom',
+    description: 'Venom attacks strip ×0.7 defense • Unlocks Doomux',
+    tier: 3,
+    series: 'fungiculture',
+    unlocksUnits: [UnitType.DOOMUX],
+    prerequisites: [TechId.MYCELIUM],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -265,6 +309,8 @@ export const TRIBE_STARTING_TECHS: Record<string, TechId[]> = {
   'oumaji':   [TechId.RIDING],
   // GDD §7.1 — Polaris tribe
   'polaris':  [TechId.FROSTWORK],
+  // GDD §7.2 — Cymanti tribe
+  'cymanti':  [TechId.FUNGICULTURE],
 };
 
 /** Available (non-premium) unit types and which tech gates them. */
@@ -289,4 +335,8 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.MOONI]:      TechId.FROSTWORK,
   [UnitType.BATTLE_SLED]: TechId.SLEDDING,
   [UnitType.GAAMI]:      TechId.POLAR_WARFARE,
+  // GDD §7.2 — Cymanti tribe unit gates
+  [UnitType.CENTIPEDE]:  TechId.HYDROLOGY,
+  [UnitType.HEXAPODS]:   TechId.MYCELIUM,
+  [UnitType.DOOMUX]:     TechId.VENOM,
 };

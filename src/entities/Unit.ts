@@ -22,6 +22,10 @@ export enum UnitType {
   MOONI      = 'MOONI',
   BATTLE_SLED = 'BATTLE_SLED',
   GAAMI      = 'GAAMI',
+  // GDD §7.2 — Cymanti tribe units
+  CENTIPEDE  = 'CENTIPEDE',
+  HEXAPODS   = 'HEXAPODS',
+  DOOMUX     = 'DOOMUX',
 }
 
 export interface UnitStats {
@@ -55,6 +59,10 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   [UnitType.MOONI]:      3,
   [UnitType.BATTLE_SLED]: 8,
   [UnitType.GAAMI]:      0, // super unit — not purchasable normally
+  // GDD §7.2 — Cymanti tribe unit costs
+  [UnitType.CENTIPEDE]:  10,
+  [UnitType.HEXAPODS]:   6,
+  [UnitType.DOOMUX]:     8,
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -80,6 +88,10 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   [UnitType.MOONI]:      8,
   [UnitType.BATTLE_SLED]: 12,
   [UnitType.GAAMI]:      30,
+  // GDD §7.2 — Cymanti tribe unit health
+  [UnitType.CENTIPEDE]:  15,
+  [UnitType.HEXAPODS]:   8,
+  [UnitType.DOOMUX]:     6,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -105,6 +117,10 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.MOONI]:      { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
   [UnitType.BATTLE_SLED]: { attack: 3, defense: 2, movementRange: 3, canAttackAfterMove: true, ranged: false },
   [UnitType.GAAMI]:      { attack: 5, defense: 3, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  // GDD §7.2 — Cymanti tribe unit stats
+  [UnitType.CENTIPEDE]:  { attack: 3, defense: 2, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  [UnitType.HEXAPODS]:   { attack: 2, defense: 1, movementRange: 2, canAttackAfterMove: true, ranged: false },
+  [UnitType.DOOMUX]:     { attack: 4, defense: 0, movementRange: 1, canAttackAfterMove: true, ranged: false },
 };
 
 export const MAX_HEALTH = 10;
@@ -269,6 +285,26 @@ export class Unit {
   /** GDD §7.1 — Ice Mobility: Battle Sled moves on ice but is crippled on land. */
   get hasIceMobility(): boolean {
     return this.type === UnitType.BATTLE_SLED;
+  }
+
+  /** GDD §7.2 — Eat/Grow: Centipede gains +2 max HP when it kills a unit. */
+  get hasEatGrow(): boolean {
+    return this.type === UnitType.CENTIPEDE;
+  }
+
+  /** GDD §7.2 — Creep/Sneak: Hexapods ignore ZOC (zone of control). */
+  get hasCreepSneak(): boolean {
+    return this.type === UnitType.HEXAPODS;
+  }
+
+  /** GDD §7.2 — Explode: Doomux deals AoE damage to all adjacent enemies on death. */
+  get hasExplode(): boolean {
+    return this.type === UnitType.DOOMUX;
+  }
+
+  /** GDD §7.2 — Venom: Cymanti attacker applies venom that strips ×0.7 defense. */
+  get hasVenom(): boolean {
+    return this.type === UnitType.CENTIPEDE || this.type === UnitType.HEXAPODS;
   }
 
   /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */

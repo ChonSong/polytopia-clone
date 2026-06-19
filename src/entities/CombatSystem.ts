@@ -131,6 +131,8 @@ export class CombatSystem {
   ): number {
     const attackForce = attacker.attack * (attacker.health / UNIT_MAX_HEALTH[attacker.type]);
     let defBonus = 1.0;
+    // GDD §7.2 — Venom: Cymanti attackers strip ×0.7 defense from enemies
+    const venomActive = attacker.hasVenom;
     // GDD §4.2 — Defense bonuses only apply if defender is fortified
     if (defender.isFortified) {
       // Terrain defense bonus
@@ -142,6 +144,8 @@ export class CombatSystem {
         defBonus = defenderTile.cityWall ? 4.0 : 1.5;
       }
     }
+    // GDD §7.2 — Venom strips terrain/structure defense bonuses (×0.7 multiplier)
+    if (venomActive) defBonus *= 0.7;
     const defenseForce = defender.defense * (defender.health / UNIT_MAX_HEALTH[defender.type]) * defBonus;
     const totalForce = attackForce + defenseForce;
     let damage = (attackForce / totalForce) * attacker.attack * 4.5;
