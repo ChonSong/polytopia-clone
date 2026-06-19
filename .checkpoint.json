@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-3.2-scout-disembark-vision",
+  "current_task": "gdd-4.3-fog-retaliation-suppress",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -27,7 +27,7 @@
     {"task": "gdd-3.4-unit-skills-escape-persist-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Escape (lines 464-469, 737-742) and Persist (lines 479-482) already implemented", "coach": "approved"},
     {"task": "gdd-2.2-per-type-map-gen", "sha": "7c58083", "date": "2026-06-19", "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing", "coach": "approved"},
     {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "approved"},
-    {"task": "gdd-4.4-veteran-system", "sha": "3622fb8", "date": "2026-06-19", "summary": "Veteran system: kill tracking, +5 max HP, full heal, naval/Giant exclusion, 10 new tests, 251 total passing", "coach": "approved"},
+    {"task": "gdd-4.4-veteran-system", "sha": "3622fb8", "date": "2026-06-19", "summary": "Veteran system: kill tracking, +5 max HP, full heal, naval+Giant exclusion, 10 new tests, 251 total passing", "coach": "approved"},
     {"task": "gdd-2.4-ancient-ruins", "sha": "5c8426d", "date": "2026-06-19", "summary": "Ancient ruins: size-scaled placement (4-23), ≥2 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing", "coach": "approved"},
     {"task": "gdd-5.8-siege-mechanics", "sha": "b354898", "date": "2026-06-19", "summary": "Siege mechanics: City.isBesieged, 0 stars when besieged, UI lock, red border indicator, 7 new tests, 269 total passing", "coach": "approved"},
     {"task": "gdd-4.2-poison-status", "sha": "871d030", "date": "2026-06-19", "summary": "Poison status: poisonTurns field on Unit, applyPoison() resets to 3, processPoison() 1dmg/turn, Archer attacks apply poison, GameScene.startTurn processes poison, 9 new tests, 278 total passing", "coach": "approved"},
@@ -39,13 +39,13 @@
     {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"},
     {"task": "gdd-5.6-explorer-pathfinding", "sha": "8e1c2c5", "date": "2026-06-19", "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing", "coach": "approved"},
     {"task": "gdd-5.7-trade-routes", "sha": "8b55eba", "date": "2026-06-19", "summary": "Trade routes, city connections, Grand Bazaar: roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing", "coach": "approved"},
-    {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"}
+    {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"},
+    {"task": "gdd-3.2-scout-disembark-vision", "sha": "0c7ea89", "date": "2026-06-19", "summary": "Scout 5×5 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (≈5×5 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing", "coach": "human"}
   ],
-  "health": "369_pass_0_error_0_fail",
-  "last_sha": "18ebdce",
+  "health": "372_pass_0_error_0_fail",
+  "last_sha": "0c7ea89",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Scout 5x5 vision on disembark", "type": "missing_mechanic", "priority": 3, "evidence": "Scout unit exists but disembark vision reveal not implemented"},
     {"item": "Fog-of-war retaliation suppression", "type": "missing_mechanic", "priority": 4, "evidence": "Retaliation always happens regardless of attacker visibility"},
     {"item": "Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy)", "type": "missing_feature", "priority": 5, "evidence": "Only 11 of 17 techs implemented; Swordsman/Rammer gated incorrectly"}
   ],
