@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-4.3-fog-retaliation-suppress",
+  "current_task": "gdd-6.2-extended-tech-tree",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -40,19 +40,20 @@
     {"task": "gdd-5.6-explorer-pathfinding", "sha": "8e1c2c5", "date": "2026-06-19", "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing", "coach": "approved"},
     {"task": "gdd-5.7-trade-routes", "sha": "8b55eba", "date": "2026-06-19", "summary": "Trade routes, city connections, Grand Bazaar: roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing", "coach": "approved"},
     {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"},
-    {"task": "gdd-3.2-scout-disembark-vision", "sha": "0c7ea89", "date": "2026-06-19", "summary": "Scout 5×5 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (≈5×5 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing", "coach": "approved"}
+    {"task": "gdd-3.2-scout-disembark-vision", "sha": "0c7ea89", "date": "2026-06-19", "summary": "Scout 5×5 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (≈5×5 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing", "coach": "approved"},
+    {"task": "gdd-4.3-fog-retaliation-suppress", "sha": "261a38e", "date": "2026-06-19", "summary": "Fog retaliation suppression: attacker not visible to defender's tribe → no counter-attack. Optional GameState param in executeAttack. 4 new tests, 375 total passing", "coach": "approved"}
   ],
-  "health": "372_pass_0_error_0_fail",
-  "last_sha": "0c7ea89",
+  "health": "375_pass_0_error_0_fail",
+  "last_sha": "261a38e",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Fog-of-war retaliation suppression", "type": "missing_mechanic", "priority": 4, "evidence": "Retaliation always happens regardless of attacker visibility"},
+    {"item": "Fog-of-war retaliation suppression", "type": "implemented", "priority": 4, "evidence": "gdd-4.3-fog-retaliation-suppress committed 2026-06-19"},
     {"item": "Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy)", "type": "missing_feature", "priority": 5, "evidence": "Only 11 of 17 techs implemented; Swordsman/Rammer gated incorrectly"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "0c7ea89",
-    "last_reviewed_at": "2026-06-19T20:15:00Z",
+    "last_reviewed_sha": "261a38e",
+    "last_reviewed_at": "2026-06-19T20:40:00Z",
     "verdict": "approved",
-    "notes": "gdd-3.2-scout-disembark-vision: Scout 5x5 vision reveal on disembark. wasOnWater=isNaval&&!isWater, isScoutDisembark check, revealVision(range=2). 3 new tests (19 tiles at range 2, Scout is naval, Raft is not SCOUT). 372/372 pass. Build passes. Site 200 OK."
+    "notes": "gdd-4.3-fog-retaliation-suppress: executeAttack accepts optional GameState param. Fog check via state.isTileVisibleToTribe(attacker.position, defender.owner). Backward compatible — no state defaults to visible (retaliation works). 4 new tests: fog no retaliation, visible retaliation, ranged in fog, backward compat. 53 combat tests pass. Build passes. Site 200 OK. NOTE: 5 pre-existing test failures in working tree from player's uncommitted gdd-6.2-extended-tech-tree work (TechTree.ts changes broke techtree.test.ts, entities.test.ts, ai.test.ts). These are NOT from this commit."
   }
 }
