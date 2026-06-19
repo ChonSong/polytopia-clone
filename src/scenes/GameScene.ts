@@ -87,6 +87,7 @@ export class GameScene extends Phaser.Scene {
 
     this.placeCities();
     this.placeVillages();
+    this.enforceResourceProximity();
     this.placeRuins();
     this.state = new GameState(this.tribes);
     // Share tile map with AI via GameState (BasicAI accesses it via cast)
@@ -320,6 +321,41 @@ export class GameScene extends Phaser.Scene {
       placed.push(coord);
       const tile = this.tiles.get(coord.toString())!;
       tile.village = true;
+    }
+  }
+
+  /** GDD §2.4 — Enforce resource proximity constraint. Resources only spawn
+   * within a 2-tile radius of a city or neutral village. */
+  private enforceResourceProximity(): void {
+    // Collect all city and village positions
+    const settlementPositions: HexCoord[] = [];
+    for (const tribe of this.tribes) {
+      for (const city of tribe.cities) {
+        settlementPositions.push(city.position);
+      }
+    }
+    for (const [key, tile] of this.tiles) {
+      if (tile.village) {
+        const parts = key.split(',');
+        settlementPositions.push(new HexCoord(parseInt(parts[0]), parseInt(parts[1])));
+      }
+    }
+
+    // Remove resources from tiles >2 hexes from any settlement
+    for (const [key, tile] of this.tiles) {
+      if (!tile.resource) continue;
+      const parts = key.split(',');
+      const coord = new HexCoord(parseInt(parts[0]), parseInt(parts[1]));
+      let nearSettlement = false;
+      for (const sp of settlementPositions) {
+        if (coord.distanceTo(sp) <= 2) {
+          nearSettlement = true;
+          break;
+        }
+      }
+      if (!nearSettlement) {
+        tile.resource = undefined;
+      }
     }
   }
 

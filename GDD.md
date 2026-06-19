@@ -85,7 +85,7 @@ Placed on ~35% of eligible tiles:
 
 **Key constraint (real Polytopia):** Resources spawn within a 2-tile radius of a city or neutral village. No resources in the "wilderness" beyond this radius. This enables predictive triangulation of hidden villages.
 
-**Implemented:** ✅ Resource seeding by biome in `MapGenerator`. ❌ No city/village proximity constraint — resources spawn globally.
+**Implemented:** ✅ Resource seeding by biome in `MapGenerator`. ✅ City/village proximity constraint in `enforceResourceProximity()` — resources stripped beyond 2-tile radius. 3 new tests.
 
 ### 2.5 Neutral Villages
 - Spawn at game start, placed sequentially with proximity rules (not within 2 tiles of map edge, other villages, or capitals).
