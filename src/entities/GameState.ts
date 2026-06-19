@@ -1,6 +1,6 @@
 import { HexCoord } from '../hex/HexCoord';
 import { Tribe } from './Tribe';
-import { Unit } from './Unit';
+import { Unit, UnitType } from './Unit';
 
 export type TileOwnership = Map<string, string>; // "q,r" -> tribeId
 
@@ -93,6 +93,23 @@ export class GameState {
     unit.hasActed = true;
     unit.hasAttacked = true;
   }
+  /** GDD §3.1 — Submerge a Cloak unit (hide from non-adjacent enemies). */
+  submergeCloak(unit: Unit): void {
+    if (unit.type !== UnitType.CLOAK) return;
+    if (unit.hasActed) return;
+    unit.isSubmerged = true;
+    unit.hasActed = true;
+    unit.hasAttacked = true;
+  }
+
+  /** GDD §3.1 — Emerge a Cloak unit (become visible again). */
+  emergeCloak(unit: Unit): void {
+    if (unit.type !== UnitType.CLOAK) return;
+    if (unit.hasActed) return;
+    unit.isSubmerged = false;
+    unit.hasActed = true;
+  }
+
   revealVision(tribeId: string, center: HexCoord, range: number, allCoords: HexCoord[]): void {
     const visible = this.tribeVisibility.get(tribeId);
     if (!visible) return;

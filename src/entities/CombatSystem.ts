@@ -77,7 +77,8 @@ export class CombatSystem {
       if (dist !== 1) return false;
     }
 
-    // GDD §3.1 — Submerged Cloak is invisible to non-adjacent enemies
+    // GDD §3.1 — Submerged Cloak cannot attack or be attacked by non-adjacent enemies
+    if (attacker.isSubmerged) return false;
     if (defender.isSubmerged && dist > 1) return false;
 
     // Boat restriction: both must be on WATER tiles

@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { HexCoord } from '../src/hex/HexCoord';
-import { Biome } from '../src/hex/Tile';
+import { Biome, TileData } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
 import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
 import { BUILDING_DEFS, BuildingType } from '../src/entities/Building';
 import { TechId } from '../src/entities/TechTree';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
+import { CombatSystem } from '../src/entities/CombatSystem';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -17,6 +18,14 @@ function createTestTribe(overrides?: Partial<TribeConfig>): Tribe {
 
 function coord(q: number, r: number): HexCoord {
   return new HexCoord(q, r);
+}
+
+function tileMap(entries: Array<[string, Partial<TileData>]>): Map<string, TileData> {
+  const m = new Map<string, TileData>();
+  for (const [key, data] of entries) {
+    m.set(key, { biome: Biome.GRASS, elevation: 0, ...data });
+  }
+  return m;
 }
 
 // ---------------------------------------------------------------------------
@@ -1030,6 +1039,117 @@ describe('Cloak unit', () => {
     expect(cloak.isSubmerged).toBe(true);
     cloak.isSubmerged = false;
     expect(cloak.isSubmerged).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §3.1 — Cloak submerge/emerge mechanics via GameState
+// ---------------------------------------------------------------------------
+describe('Cloak submerge/emerge mechanics', () => {
+  it('submergeCloak sets isSubmerged and consumes action', () => {
+    const tribe = createTestTribe();
+    const state = new GameState([tribe]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, tribe.id);
+    tribe.units.push(cloak);
+
+    state.submergeCloak(cloak);
+    expect(cloak.isSubmerged).toBe(true);
+    expect(cloak.hasActed).toBe(true);
+    expect(cloak.hasAttacked).toBe(true);
+  });
+
+  it('emergeCloak clears isSubmerged and consumes action', () => {
+    const tribe = createTestTribe();
+    const state = new GameState([tribe]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, tribe.id);
+    cloak.isSubmerged = true;
+    tribe.units.push(cloak);
+
+    state.emergeCloak(cloak);
+    expect(cloak.isSubmerged).toBe(false);
+    expect(cloak.hasActed).toBe(true);
+  });
+
+  it('submergeCloak ignores non-Cloak units', () => {
+    const tribe = createTestTribe();
+    const state = new GameState([tribe]);
+    const warrior = new Unit(coord(0, 0), UnitType.WARRIOR, tribe.id);
+    tribe.units.push(warrior);
+
+    state.submergeCloak(warrior);
+    expect(warrior.isSubmerged).toBe(false);
+    expect(warrior.hasActed).toBe(false);
+  });
+
+  it('submergeCloak ignores units that already acted', () => {
+    const tribe = createTestTribe();
+    const state = new GameState([tribe]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, tribe.id);
+    cloak.hasActed = true;
+    tribe.units.push(cloak);
+
+    state.submergeCloak(cloak);
+    expect(cloak.isSubmerged).toBe(false);
+  });
+
+  it('submerged Cloak cannot attack', () => {
+    const tribeA = new Tribe({ ...TRIBE_CONFIGS[0], id: 'tribeA', name: 'TribeA' });
+    const tribeB = new Tribe({ ...TRIBE_CONFIGS[1], id: 'tribeB', name: 'TribeB' });
+    const state = new GameState([tribeA, tribeB]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'tribeA');
+    const enemy = new Unit(coord(1, 0), UnitType.WARRIOR, 'tribeB');
+    tribeA.units.push(cloak);
+    tribeB.units.push(enemy);
+
+    // Submerge the Cloak
+    state.submergeCloak(cloak);
+
+    const tiles = tileMap([
+      ['0,0', {}],
+      ['1,0', {}],
+    ]);
+    // Submerged Cloak can't attack even though it's adjacent
+    expect(CombatSystem.canAttack(cloak, enemy, tiles)).toBe(false);
+  });
+
+  it('submerged Cloak cannot be attacked by non-adjacent enemies', () => {
+    const tribeA = new Tribe({ ...TRIBE_CONFIGS[0], id: 'tribeA', name: 'TribeA' });
+    const tribeB = new Tribe({ ...TRIBE_CONFIGS[1], id: 'tribeB', name: 'TribeB' });
+    const state = new GameState([tribeA, tribeB]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'tribeA');
+    const enemy = new Unit(coord(2, 0), UnitType.ARCHER, 'tribeB');
+    tribeA.units.push(cloak);
+    tribeB.units.push(enemy);
+
+    // Submerge the Cloak
+    state.submergeCloak(cloak);
+
+    const tiles = tileMap([
+      ['0,0', {}],
+      ['2,0', {}],
+    ]);
+    // Non-adjacent enemy can't attack submerged Cloak
+    expect(CombatSystem.canAttack(enemy, cloak, tiles)).toBe(false);
+  });
+
+  it('adjacent enemy can still attack submerged Cloak', () => {
+    const tribeA = new Tribe({ ...TRIBE_CONFIGS[0], id: 'tribeA', name: 'TribeA' });
+    const tribeB = new Tribe({ ...TRIBE_CONFIGS[1], id: 'tribeB', name: 'TribeB' });
+    const state = new GameState([tribeA, tribeB]);
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'tribeA');
+    const enemy = new Unit(coord(1, 0), UnitType.WARRIOR, 'tribeB');
+    tribeA.units.push(cloak);
+    tribeB.units.push(enemy);
+
+    // Submerge the Cloak
+    state.submergeCloak(cloak);
+
+    const tiles = tileMap([
+      ['0,0', {}],
+      ['1,0', {}],
+    ]);
+    // Adjacent enemy CAN attack submerged Cloak (distance 1 exception)
+    expect(CombatSystem.canAttack(enemy, cloak, tiles)).toBe(true);
   });
 });
 

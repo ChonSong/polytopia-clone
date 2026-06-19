@@ -42,6 +42,8 @@ export class GameScene extends Phaser.Scene {
   private waitBtn: Phaser.GameObjects.Text | null = null;
   private convertBtn: Phaser.GameObjects.Text | null = null;
   private healBtn: Phaser.GameObjects.Text | null = null;
+  private submergeBtn: Phaser.GameObjects.Text | null = null;
+  private emergeBtn: Phaser.GameObjects.Text | null = null;
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
   private skipPhase = false;
@@ -172,6 +174,36 @@ export class GameScene extends Phaser.Scene {
     this.healBtn.on('pointerover', () => this.healBtn!.setStyle({ backgroundColor: '#353' }));
     this.healBtn.on('pointerout', () => this.healBtn!.setStyle({ backgroundColor: '#232' }));
     this.healBtn.setVisible(false);
+
+    // Submerge button (Cloak) — camera-fixed
+    this.submergeBtn = this.add.text(440, 70, '[ SUBMERGE ]', {
+      fontSize: '14px', color: '#88f', fontFamily: 'monospace',
+      backgroundColor: '#223', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.submergeBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && !this.selectedUnit.isSubmerged) {
+        this.state.submergeCloak(this.selectedUnit);
+        this.renderAll(); this.updateUI();
+      }
+    });
+    this.submergeBtn.on('pointerover', () => this.submergeBtn!.setStyle({ backgroundColor: '#335' }));
+    this.submergeBtn.on('pointerout', () => this.submergeBtn!.setStyle({ backgroundColor: '#223' }));
+    this.submergeBtn.setVisible(false);
+
+    // Emerge button (Cloak) — camera-fixed
+    this.emergeBtn = this.add.text(560, 70, '[ EMERGE ]', {
+      fontSize: '14px', color: '#8cf', fontFamily: 'monospace',
+      backgroundColor: '#233', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.emergeBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged) {
+        this.state.emergeCloak(this.selectedUnit);
+        this.renderAll(); this.updateUI();
+      }
+    });
+    this.emergeBtn.on('pointerover', () => this.emergeBtn!.setStyle({ backgroundColor: '#355' }));
+    this.emergeBtn.on('pointerout', () => this.emergeBtn!.setStyle({ backgroundColor: '#233' }));
+    this.emergeBtn.setVisible(false);
 
     // End Turn (camera-fixed)
     const btn = this.add.text(660, 10, '[ END TURN ]', {
@@ -1460,6 +1492,14 @@ export class GameScene extends Phaser.Scene {
     // Heal button: show when a Mind Bender is selected and hasn't acted
     if (this.healBtn) {
       this.healBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed);
+    }
+    // Submerge button: show when a Cloak is selected, hasn't acted, and is not submerged
+    if (this.submergeBtn) {
+      this.submergeBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && !this.selectedUnit.isSubmerged);
+    }
+    // Emerge button: show when a Cloak is selected, hasn't acted, and is submerged
+    if (this.emergeBtn) {
+      this.emergeBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged);
     }
   }
 
