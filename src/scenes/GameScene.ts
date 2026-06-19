@@ -14,6 +14,7 @@ import { createCity } from '../entities/CityData';
 import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost, UNIT_TECH_GATES } from '../entities/TechTree';
 import { BUILDING_DEFS, BuildingType } from '../entities/Building';
 import { Resource } from '../hex/Tile';
+import { runExplorerPathfinding } from '../entities/Explorer';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -514,14 +515,14 @@ export class GameScene extends Phaser.Scene {
           // Apply instant effects for AI
           const level = city.level;
           if (level === 2 && choice === 'B') {
-            // Explorer — spawn scouts on adjacent empty tiles
-            for (const dir of HexCoord.DIRECTIONS) {
-              const pos = new HexCoord(city.position.q + dir.q, city.position.r + dir.r);
-              const tile = this.tiles.get(pos.toString());
-              if (tile && !this.findUnit(pos) && !this.findCity(pos)) {
-                tribe.addUnit(new Unit(pos, UnitType.WARRIOR, tribe.id));
-                break; // just one scout for AI simplicity
-              }
+            // GDD §5.6 — Explorer: spawn a scout that moves autonomously
+            const pos = this.findNearbyEmptyTile(city.position);
+            if (pos) {
+              const explorer = new Unit(pos, UnitType.SCOUT, tribe.id);
+              tribe.addUnit(explorer);
+              this.time.delayedCall(300, () => {
+                this.runExplorerAutonomous(explorer);
+              });
             }
           } else if (level === 3 && choice === 'B') {
             tribe.stars += 5; // Resources
@@ -794,12 +795,15 @@ export class GameScene extends Phaser.Scene {
   private applyUpgradeEffect(city: City, choice: 'A' | 'B'): void {
     const level = city.level;
     if (level === 2 && choice === 'B') {
-      // Explorer — spawn 2 scouts on nearby empty tiles
-      for (let i = 0; i < 2; i++) {
-        const pos = this.findNearbyEmptyTile(city.position);
-        if (pos) {
-          this.humanTribe.addUnit(new Unit(pos, UnitType.WARRIOR, this.humanTribe.id));
-        }
+      // GDD §5.6 — Explorer: spawn a scout that moves autonomously
+      const pos = this.findNearbyEmptyTile(city.position);
+      if (pos) {
+        const explorer = new Unit(pos, UnitType.SCOUT, this.humanTribe.id);
+        this.humanTribe.addUnit(explorer);
+        // Run autonomous pathfinding after a short delay for visual effect
+        this.time.delayedCall(300, () => {
+          this.runExplorerAutonomous(explorer);
+        });
       }
     } else if (level === 3 && choice === 'B') {
       // Resources — +5⭐ now
@@ -812,6 +816,61 @@ export class GameScene extends Phaser.Scene {
     }
     // City Wall, Workshop, Border Growth, Park, Giant are passive flags
     // handled by the upgrade choice tracking on the City object
+  }
+
+  /** GDD §5.6 — Run autonomous explorer movement sequence. */
+  private runExplorerAutonomous(explorer: Unit): void {
+    if (!explorer.isAlive) return;
+
+    const path = runExplorerPathfinding(
+      explorer.position,
+      this.state,
+      explorer.owner,
+      this.tiles,
+      15,
+    );
+
+    if (path.length === 0) {
+      explorer.hasActed = true;
+      return;
+    }
+
+    // Execute moves with visual delay
+    let stepIndex = 0;
+    const moveNext = () => {
+      if (stepIndex >= path.length || !explorer.isAlive) {
+        explorer.hasActed = true;
+        this.renderAll();
+        this.updateUI();
+        return;
+      }
+      const target = path[stepIndex];
+      // only move to empty tiles (don't walk into units/cities)
+      if (!this.findUnit(target) && !this.findCity(target)) {
+        explorer.position = target;
+        // Reveal vision from new position
+        this.state.revealVision(explorer.owner, target, explorer.visionRange, this.getAllTileCoords());
+      }
+      stepIndex++;
+      this.renderAll();
+      this.updateUI();
+      if (stepIndex < path.length) {
+        this.time.delayedCall(150, moveNext);
+      } else {
+        explorer.hasActed = true;
+      }
+    };
+    moveNext();
+  }
+
+  /** Get all tile coordinates from the tile map. */
+  private getAllTileCoords(): HexCoord[] {
+    const coords: HexCoord[] = [];
+    for (const key of this.tiles.keys()) {
+      const [q, r] = key.split(',').map(Number);
+      coords.push(new HexCoord(q, r));
+    }
+    return coords;
   }
 
   /** Find an empty tile adjacent to center (for Explorer spawns). */
@@ -983,21 +1042,21 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Click on own city — show build menu (takes priority over unit selection,
-    // since a city tile is primarily a city interaction point even if a unit stands on it)
-    if (cc && cc.tribeId === this.humanTribe.id) {
-      this.selectedUnit = null;
-      this.selectedHex = coord;
-      this.showCityMenu(cc, coord);
-      this.renderAll(); this.updateUI();
-      return;
-    }
-
-    // Select own unit
+    // Select own unit that hasn't acted yet — takes priority over city menu
+    // so starting warriors (placed on the city tile) can be selected and moved.
     if (cu && cu.owner === this.humanTribe.id && !cu.hasActed) {
       this.selectedUnit = cu;
       this.selectedHex = coord;
       this.hideCityMenu();
+      this.renderAll(); this.updateUI();
+      return;
+    }
+
+    // Click on own city — show build menu (only after any unit on the tile has acted)
+    if (cc && cc.tribeId === this.humanTribe.id) {
+      this.selectedUnit = null;
+      this.selectedHex = coord;
+      this.showCityMenu(cc, coord);
       this.renderAll(); this.updateUI();
       return;
     }
