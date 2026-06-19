@@ -234,14 +234,6 @@ export class CombatSystem {
   }
 
   /**
-   * GDD §3.3 — Splash damage for Bomber.
-   * Returns splash damage (floor of primary damage / 2) to apply to each adjacent enemy.
-   */
-  static calculateSplashDamage(primaryDamage: number): number {
-    return Math.floor(primaryDamage / 2);
-  }
-
-  /**
    * Check if a ranged attack has line of sight.
    * No MOUNTAIN tiles may exist between attacker and defender.
    */
