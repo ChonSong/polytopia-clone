@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-5.6-explorer-pathfinding",
+  "current_task": "gdd-5.7-trade-routes",
   "completed": [
     {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
     {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
@@ -36,9 +36,17 @@
     {"task": "gdd-3.1-cloak-unit", "sha": "c91ba38", "date": "2026-06-19", "summary": "Cloak submerge/emerge: GameState methods, CombatSystem attack blocking, UI buttons, 7 new tests, 317 total passing", "coach": "approved"},
     {"task": "gdd-3.3-stiff-splash-skills", "sha": "3c34c40", "date": "2026-06-19", "summary": "Stiff (Catapult/Giant/Bomber/Raft): no move after attack, no retaliation. Splash (Bomber): half damage to adjacent enemies. 12 new tests, 327 total passing", "coach": "approved"},
     {"task": "gdd-4.7-battle-preview", "sha": "06e4e30", "date": "2026-06-19", "summary": "Battle preview on hover: predicted attack/counter-attack damage in info bar, 💀 on guaranteed kill, ⚠️ on lethal counter-attack, 6 new tests, 333 total passing", "coach": "approved"},
-    {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"}
+    {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"},
+    {"task": "gdd-5.6-explorer-pathfinding", "sha": "8e1c2c5", "date": "2026-06-19", "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing", "coach": "approved"}
   ],
-  "health": "337_pass_0_error_0_fail",
-  "last_sha": "9564cad",
-  "blocker": null
+  "health": "344_pass_0_error_0_fail",
+  "last_sha": "8e1c2c5",
+  "blocker": null,
+  "spec_gaps": [
+    {"item": "Trade routes / Roads / City Connections / Grand Bazaar", "type": "missing_feature", "priority": 1, "evidence": "No code exists for roads, bridges, city connections, or Grand Bazaar scoring"},
+    {"item": "Resource proximity constraint (2-tile radius)", "type": "missing_feature", "priority": 2, "evidence": "Resources spawn globally without city/village proximity check"},
+    {"item": "Scout 5x5 vision on disembark", "type": "missing_mechanic", "priority": 3, "evidence": "Scout unit exists but disembark vision reveal not implemented"},
+    {"item": "Fog-of-war retaliation suppression", "type": "missing_mechanic", "priority": 4, "evidence": "Retaliation always happens regardless of attacker visibility"},
+    {"item": "Extended tech tree (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy)", "type": "missing_feature", "priority": 5, "evidence": "Only 11 of 17 techs implemented; Swordsman/Rammer gated incorrectly"}
+  ]
 }
