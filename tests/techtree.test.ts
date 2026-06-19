@@ -3,8 +3,8 @@ import { TechId, TECH_DEFS, techCost, TRIBE_STARTING_TECHS, UNIT_TECH_GATES } fr
 import { UnitType } from '../src/entities/Unit';
 
 describe('TechTree', () => {
-  it('has 11 techs defined across 3 series', () => {
-    expect(Object.keys(TECH_DEFS).length).toBe(11);
+  it('has 17 techs defined across 7 series', () => {
+    expect(Object.keys(TECH_DEFS).length).toBe(17);
   });
 
   describe('techCost formula', () => {
@@ -36,13 +36,17 @@ describe('TechTree', () => {
     it('Rider is gated behind Riding', () => {
       expect(UNIT_TECH_GATES[UnitType.RIDER]).toBe(TechId.RIDING);
     });
-    it('Swordsman and Knight are gated behind Chivalry', () => {
-      expect(UNIT_TECH_GATES[UnitType.SWORDSMAN]).toBe(TechId.CHIVALRY);
+    it('Swordsman is gated behind Smithery (not Chivalry)', () => {
+      expect(UNIT_TECH_GATES[UnitType.SWORDSMAN]).toBe(TechId.SMITHERY);
+    });
+    it('Knight is gated behind Chivalry', () => {
       expect(UNIT_TECH_GATES[UnitType.KNIGHT]).toBe(TechId.CHIVALRY);
     });
-    it('Warrior and Defender have no gate', () => {
+    it('Warrior has no gate', () => {
       expect(UNIT_TECH_GATES[UnitType.WARRIOR]).toBeUndefined();
-      expect(UNIT_TECH_GATES[UnitType.DEFENDER]).toBeUndefined();
+    });
+    it('Defender is gated behind Strategy', () => {
+      expect(UNIT_TECH_GATES[UnitType.DEFENDER]).toBe(TechId.STRATEGY);
     });
   });
 
@@ -58,6 +62,34 @@ describe('TechTree', () => {
     });
     it('Oumaji starts with Riding', () => {
       expect(TRIBE_STARTING_TECHS['oumaji']).toContain(TechId.RIDING);
+    });
+  });
+
+  describe('extended tech series (GDD §6.2)', () => {
+    it('Climbing is a tier-1 tech with no prerequisites', () => {
+      expect(TECH_DEFS[TechId.CLIMBING].tier).toBe(1);
+      expect(TECH_DEFS[TechId.CLIMBING].prerequisites).toEqual([]);
+      expect(TECH_DEFS[TechId.CLIMBING].series).toBe('climbing');
+    });
+    it('Organization and Strategy form the organization series', () => {
+      expect(TECH_DEFS[TechId.ORGANIZATION].tier).toBe(1);
+      expect(TECH_DEFS[TechId.STRATEGY].tier).toBe(2);
+      expect(TECH_DEFS[TechId.STRATEGY].prerequisites).toContain(TechId.ORGANIZATION);
+    });
+    it('Farming and Smithery form the farming series', () => {
+      expect(TECH_DEFS[TechId.FARMING].tier).toBe(1);
+      expect(TECH_DEFS[TechId.SMITHERY].tier).toBe(2);
+      expect(TECH_DEFS[TechId.SMITHERY].prerequisites).toContain(TechId.FARMING);
+    });
+    it('Aquaculture is a tier-2 tech that unlocks Rammer', () => {
+      expect(TECH_DEFS[TechId.AQUACULTURE].tier).toBe(2);
+      expect(TECH_DEFS[TechId.AQUACULTURE].unlocksUnits).toContain(UnitType.RAMMER);
+    });
+    it('Smithery unlocks Swordsman', () => {
+      expect(TECH_DEFS[TechId.SMITHERY].unlocksUnits).toContain(UnitType.SWORDSMAN);
+    });
+    it('Strategy unlocks Defender', () => {
+      expect(TECH_DEFS[TechId.STRATEGY].unlocksUnits).toContain(UnitType.DEFENDER);
     });
   });
 });

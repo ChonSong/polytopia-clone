@@ -381,12 +381,17 @@ describe('Tribe', () => {
       expect(tribe.getTrainableUnitTypes()).toContain(UnitType.SCOUT);
     });
 
-    it('getTrainableUnitTypes includes Rammer and Bomber after researching Navigation', () => {
+    it('getTrainableUnitTypes includes Rammer after researching Aquaculture', () => {
+      const tribe = createTestTribe();
+      tribe.researchTech(TechId.AQUACULTURE);
+      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.RAMMER);
+    });
+
+    it('getTrainableUnitTypes includes Bomber after researching Navigation', () => {
       const tribe = createTestTribe();
       tribe.researchTech(TechId.FISHING);
       tribe.researchTech(TechId.SAILING);
       tribe.researchTech(TechId.NAVIGATION);
-      expect(tribe.getTrainableUnitTypes()).toContain(UnitType.RAMMER);
       expect(tribe.getTrainableUnitTypes()).toContain(UnitType.BOMBER);
     });
   });

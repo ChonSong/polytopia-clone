@@ -5,6 +5,7 @@ import { UnitType } from './Unit';
 // ---------------------------------------------------------------------------
 
 export enum TechId {
+  // Base game series
   HUNTING     = 'HUNTING',
   ARCHERY     = 'ARCHERY',
   MATHEMATICS = 'MATHEMATICS',
@@ -16,15 +17,26 @@ export enum TechId {
   NAVIGATION  = 'NAVIGATION',
   DIPLOMACY   = 'DIPLOMACY',
   PHILOSOPHY  = 'PHILOSOPHY',
+  // Extended series (GDD §6.2)
+  CLIMBING     = 'CLIMBING',
+  ORGANIZATION = 'ORGANIZATION',
+  FARMING      = 'FARMING',
+  SMITHERY     = 'SMITHERY',
+  AQUACULTURE  = 'AQUACULTURE',
+  STRATEGY     = 'STRATEGY',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
-  hunting: [TechId.HUNTING, TechId.ARCHERY, TechId.MATHEMATICS],
-  riding:  [TechId.RIDING, TechId.FREE_SPIRIT, TechId.CHIVALRY],
-  fishing: [TechId.FISHING, TechId.SAILING, TechId.NAVIGATION],
+  hunting:     [TechId.HUNTING, TechId.ARCHERY, TechId.MATHEMATICS],
+  riding:      [TechId.RIDING, TechId.FREE_SPIRIT, TechId.CHIVALRY],
+  fishing:     [TechId.FISHING, TechId.SAILING, TechId.NAVIGATION],
+  climbing:    [TechId.CLIMBING],
+  organization: [TechId.ORGANIZATION, TechId.STRATEGY],
+  farming:     [TechId.FARMING, TechId.SMITHERY],
+  aquaculture: [TechId.AQUACULTURE],
 };
 
-export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing'] as const;
+export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture'] as const;
 export type TechSeries = typeof TECH_SERIES_ORDER[number];
 
 export interface TechDef {
@@ -93,10 +105,10 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
   [TechId.CHIVALRY]: {
     id: TechId.CHIVALRY,
     name: 'Chivalry',
-    description: 'Unlocks Swordsman • Knight',
+    description: 'Unlocks Knight',
     tier: 3,
     series: 'riding',
-    unlocksUnits: [UnitType.SWORDSMAN, UnitType.KNIGHT],
+    unlocksUnits: [UnitType.KNIGHT],
     prerequisites: [TechId.FREE_SPIRIT],
   },
   [TechId.FISHING]: {
@@ -144,6 +156,61 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [UnitType.MIND_BENDER],
     prerequisites: [TechId.FREE_SPIRIT],
   },
+  // Extended series (GDD §6.2)
+  [TechId.CLIMBING]: {
+    id: TechId.CLIMBING,
+    name: 'Climbing',
+    description: 'Mountain movement',
+    tier: 1,
+    series: 'climbing',
+    unlocksUnits: [],
+    prerequisites: [],
+  },
+  [TechId.ORGANIZATION]: {
+    id: TechId.ORGANIZATION,
+    name: 'Organization',
+    description: '+1 population per city',
+    tier: 1,
+    series: 'organization',
+    unlocksUnits: [],
+    prerequisites: [],
+  },
+  [TechId.FARMING]: {
+    id: TechId.FARMING,
+    name: 'Farming',
+    description: '+1 food per turn',
+    tier: 1,
+    series: 'farming',
+    unlocksUnits: [],
+    prerequisites: [],
+  },
+  [TechId.SMITHERY]: {
+    id: TechId.SMITHERY,
+    name: 'Smithery',
+    description: 'Unlocks Swordsman',
+    tier: 2,
+    series: 'farming',
+    unlocksUnits: [UnitType.SWORDSMAN],
+    prerequisites: [TechId.FARMING],
+  },
+  [TechId.AQUACULTURE]: {
+    id: TechId.AQUACULTURE,
+    name: 'Aquaculture',
+    description: 'Unlocks Rammer',
+    tier: 2,
+    series: 'aquaculture',
+    unlocksUnits: [UnitType.RAMMER],
+    prerequisites: [],
+  },
+  [TechId.STRATEGY]: {
+    id: TechId.STRATEGY,
+    name: 'Strategy',
+    description: 'Unlocks Defender',
+    tier: 2,
+    series: 'organization',
+    unlocksUnits: [UnitType.DEFENDER],
+    prerequisites: [TechId.ORGANIZATION],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -159,14 +226,18 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.ARCHER]:    TechId.ARCHERY,
   [UnitType.CATAPULT]:  TechId.MATHEMATICS,
   [UnitType.RIDER]:     TechId.RIDING,
-  [UnitType.SWORDSMAN]: TechId.CHIVALRY,
+  // GDD §3.1 Swordsman gated by Smithery (not Chivalry)
+  [UnitType.SWORDSMAN]: TechId.SMITHERY,
   [UnitType.KNIGHT]:    TechId.CHIVALRY,
   // GDD §3.2 Naval gates
   [UnitType.SCOUT]:     TechId.SAILING,
-  [UnitType.RAMMER]:    TechId.NAVIGATION,
+  // GDD §3.2 Rammer gated by Aquaculture (not Sailing/Navigation)
+  [UnitType.RAMMER]:    TechId.AQUACULTURE,
   [UnitType.BOMBER]:    TechId.NAVIGATION,
   // GDD §3.1 Special unit gates
   [UnitType.CLOAK]:     TechId.DIPLOMACY,
   [UnitType.MIND_BENDER]: TechId.PHILOSOPHY,
-  // Warrior, Defender, Boat, Raft are unlocked by default or via other paths
+  // GDD §3.1 Defender gated by Strategy
+  [UnitType.DEFENDER]:  TechId.STRATEGY,
+  // Warrior, Boat, Raft are unlocked by default or via other paths
 };

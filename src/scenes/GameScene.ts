@@ -1146,17 +1146,20 @@ export class GameScene extends Phaser.Scene {
     const title = this.add.text(300, 48, '— RESEARCH —', titleStyle).setScrollFactor(0).setDepth(29);
     techGroup.add(title);
 
-    // Series columns
-    const colW = 220;
-    const startX = 80;
-    TECH_SERIES_ORDER.forEach((series, si) => {
+    // Series columns — dynamically sized
+    const seriesKeys = TECH_SERIES_ORDER;
+    const colW = Math.min(220, Math.floor(600 / seriesKeys.length));
+    const startX = Math.max(80, Math.floor((720 - seriesKeys.length * colW) / 2));
+    seriesKeys.forEach((series, si) => {
       const seriesTechs = TECH_DEFS;
-      const tier1Id = (() => {
-        switch (series) {
-          case 'hunting': return TechId.HUNTING;
-          case 'riding': return TechId.RIDING;
-          case 'fishing': return TechId.FISHING;
+      const tierIds: TechId[] = (() => {
+        const ids: TechId[] = [];
+        for (const def of Object.values(seriesTechs)) {
+          if (def.series === series) ids.push(def.id);
         }
+        // Sort by tier ascending
+        ids.sort((a, b) => seriesTechs[a].tier - seriesTechs[b].tier);
+        return ids;
       })();
 
       // Series header
@@ -1165,31 +1168,13 @@ export class GameScene extends Phaser.Scene {
       techGroup.add(header);
 
       // Tiers
-      for (let tier = 1; tier <= 3; tier++) {
-        const techId = (() => {
-          if (series === 'hunting') {
-            if (tier === 1) return TechId.HUNTING;
-            if (tier === 2) return TechId.ARCHERY;
-            return TechId.MATHEMATICS;
-          }
-          if (series === 'riding') {
-            if (tier === 1) return TechId.RIDING;
-            if (tier === 2) return TechId.FREE_SPIRIT;
-            return TechId.CHIVALRY;
-          }
-          if (series === 'fishing') {
-            if (tier === 1) return TechId.FISHING;
-            if (tier === 2) return TechId.SAILING;
-            return TechId.NAVIGATION;
-          }
-          return TechId.HUNTING;
-        })();
+      tierIds.forEach((techId, tierIdx) => {
         const def = TECH_DEFS[techId];
         const owned = cur.hasTech(techId);
         const prereqs = def.prerequisites.every(p => cur.hasTech(p));
         const canResearch = !owned && prereqs;
 
-        const y = 108 + (tier - 1) * 50;
+        const y = 108 + tierIdx * 50;
         const cost = techCost(def.tier, numCities);
 
         const textStyle = owned ? ownedStyle : (canResearch ? style : disabledStyle);
@@ -1219,7 +1204,7 @@ export class GameScene extends Phaser.Scene {
             }
           });
         }
-      }
+      });
     });
 
     // Close hint

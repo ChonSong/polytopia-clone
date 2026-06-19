@@ -281,11 +281,18 @@ describe('BasicAI', () => {
     tribe.cities[0].population = 0;
     // Pre-research Hunting (prereq for Archery)
     tribe.researchTech(TechId.HUNTING);
+    // Pre-research new techs so they're not cheapest options
+    tribe.researchTech(TechId.AQUACULTURE);
+    tribe.researchTech(TechId.SMITHERY);
+    tribe.researchTech(TechId.ORGANIZATION);
+    tribe.researchTech(TechId.STRATEGY);
+    tribe.researchTech(TechId.FARMING);
+    tribe.researchTech(TechId.CLIMBING);
     tribe.stars = 20; // enough for anything
 
     // Fishing (tier 1, 5⭐) does NOT unlock units
     // Archery (tier 2, 6⭐, prereq Hunting) DOES unlock Archer (atk 2)
-    // The AI should pick Archery even though Fishing is cheaper
+    // The AI should pick Archery (cheapest unit-unlocking tech available)
     const actions = ai.decide(gameState, TurnPhase.BUILD);
     const researchAction = actions.find(a => a.type === 'RESEARCH');
     expect(researchAction).toBeDefined();
