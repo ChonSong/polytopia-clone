@@ -18,6 +18,8 @@ export const TRIBE_CONFIGS: TribeConfig[] = [
   { id: 'polaris',  name: 'Polaris',  color: 0x87ceeb },
   // GDD §7.2 — Cymanti tribe
   { id: 'cymanti',  name: 'Cymanti',  color: 0x9b59b6 },
+  // GDD §7.3 — Elyrion tribe
+  { id: 'elyrion',  name: 'Elyrion',  color: 0x27ae60 },
 ];
 
 export class Tribe {
@@ -105,6 +107,11 @@ export class Tribe {
     }
     // GDD §7.2 — Cymanti tribe units
     for (const ut of [UnitType.CENTIPEDE, UnitType.HEXAPODS, UnitType.DOOMUX]) {
+      const gate = UNIT_TECH_GATES[ut];
+      if (!gate || this.techs.has(gate)) all.push(ut);
+    }
+    // GDD §7.3 — Elyrion tribe units
+    for (const ut of [UnitType.EGG, UnitType.BABY_DRAGON, UnitType.FIRE_DRAGON, UnitType.POLYTAUR]) {
       const gate = UNIT_TECH_GATES[ut];
       if (!gate || this.techs.has(gate)) all.push(ut);
     }

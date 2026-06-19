@@ -26,6 +26,11 @@ export enum UnitType {
   CENTIPEDE  = 'CENTIPEDE',
   HEXAPODS   = 'HEXAPODS',
   DOOMUX     = 'DOOMUX',
+  // GDD §7.3 — Elyrion tribe units
+  EGG        = 'EGG',
+  BABY_DRAGON = 'BABY_DRAGON',
+  FIRE_DRAGON = 'FIRE_DRAGON',
+  POLYTAUR   = 'POLYTAUR',
 }
 
 export interface UnitStats {
@@ -63,6 +68,11 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   [UnitType.CENTIPEDE]:  10,
   [UnitType.HEXAPODS]:   6,
   [UnitType.DOOMUX]:     8,
+  // GDD §7.3 — Elyrion tribe unit costs
+  [UnitType.EGG]:        0, // spawned at city, not purchasable
+  [UnitType.BABY_DRAGON]: 0, // matures from Egg, not purchasable
+  [UnitType.FIRE_DRAGON]: 0, // matures from Baby Dragon, not purchasable
+  [UnitType.POLYTAUR]:   3, // created via Enchantment
 };
 
 /** Max health per unit type (most are 10, Defender and Swordsman are 15). */
@@ -92,6 +102,11 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   [UnitType.CENTIPEDE]:  15,
   [UnitType.HEXAPODS]:   8,
   [UnitType.DOOMUX]:     6,
+  // GDD §7.3 — Elyrion tribe unit health
+  [UnitType.EGG]:        3,
+  [UnitType.BABY_DRAGON]: 8,
+  [UnitType.FIRE_DRAGON]: 15,
+  [UnitType.POLYTAUR]:   10,
 };
 
 /** Base statistics for every unit type (matching real Polytopia). */
@@ -121,6 +136,11 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   [UnitType.CENTIPEDE]:  { attack: 3, defense: 2, movementRange: 1, canAttackAfterMove: true, ranged: false },
   [UnitType.HEXAPODS]:   { attack: 2, defense: 1, movementRange: 2, canAttackAfterMove: true, ranged: false },
   [UnitType.DOOMUX]:     { attack: 4, defense: 0, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  // GDD §7.3 — Elyrion tribe unit stats
+  [UnitType.EGG]:        { attack: 0, defense: 2, movementRange: 0, canAttackAfterMove: false, ranged: false },
+  [UnitType.BABY_DRAGON]: { attack: 2, defense: 1, movementRange: 2, canAttackAfterMove: true, ranged: true },
+  [UnitType.FIRE_DRAGON]: { attack: 4, defense: 2, movementRange: 2, canAttackAfterMove: true, ranged: true },
+  [UnitType.POLYTAUR]:   { attack: 3, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
 };
 
 export const MAX_HEALTH = 10;
@@ -305,6 +325,26 @@ export class Unit {
   /** GDD §7.2 — Venom: Cymanti attacker applies venom that strips ×0.7 defense. */
   get hasVenom(): boolean {
     return this.type === UnitType.CENTIPEDE || this.type === UnitType.HEXAPODS;
+  }
+
+  /** GDD §7.3 — Flight: Dragon units can move over water/mountain tiles. */
+  get hasFlight(): boolean {
+    return this.type === UnitType.BABY_DRAGON || this.type === UnitType.FIRE_DRAGON;
+  }
+
+  /** GDD §7.3 — Splash AoE: Fire Dragon deals half damage to adjacent enemies. */
+  get hasSplashAoE(): boolean {
+    return this.type === UnitType.FIRE_DRAGON;
+  }
+
+  /** GDD §7.3 — Prophetic Vision: Elyrion tribe can see ruins through fog. */
+  get hasPropheticVision(): boolean {
+    return this.type === UnitType.POLYTAUR;
+  }
+
+  /** GDD §7.3 — Egg: immobile, matures into Baby Dragon at city. */
+  get isEgg(): boolean {
+    return this.type === UnitType.EGG;
   }
 
   /** GDD §8 — Vision range for fog-of-war. Scout and Giant get 3, all others 2. */

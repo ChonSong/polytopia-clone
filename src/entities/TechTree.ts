@@ -34,6 +34,10 @@ export enum TechId {
   MYCELIUM     = 'MYCELIUM',
   HYDROLOGY    = 'HYDROLOGY',
   VENOM        = 'VENOM',
+  // GDD §7.3 — Elyrion tribe techs
+  ECOLOGY      = 'ECOLOGY',
+  DRACONIC     = 'DRACONIC',
+  PROPHECY     = 'PROPHECY',
 }
 
 export const TECH_SERIES: Record<string, TechId[]> = {
@@ -48,9 +52,11 @@ export const TECH_SERIES: Record<string, TechId[]> = {
   frostwork:    [TechId.FROSTWORK, TechId.SLEDDING, TechId.POLAR_WARFARE, TechId.POLARISM],
   // GDD §7.2 — Cymanti tribe tech series
   fungiculture: [TechId.FUNGICULTURE, TechId.MYCELIUM, TechId.HYDROLOGY, TechId.VENOM],
+  // GDD §7.3 — Elyrion tribe tech series
+  ecology:      [TechId.ECOLOGY, TechId.DRACONIC, TechId.PROPHECY],
 };
 
-export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture', 'frostwork', 'fungiculture'] as const;
+export const TECH_SERIES_ORDER = ['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture', 'frostwork', 'fungiculture', 'ecology'] as const;
 export type TechSeries = typeof TECH_SERIES_ORDER[number];
 
 export interface TechDef {
@@ -299,6 +305,34 @@ export const TECH_DEFS: Record<TechId, TechDef> = {
     unlocksUnits: [UnitType.DOOMUX],
     prerequisites: [TechId.MYCELIUM],
   },
+  // GDD §7.3 — Elyrion tribe techs
+  [TechId.ECOLOGY]: {
+    id: TechId.ECOLOGY,
+    name: 'Ecology',
+    description: 'Sanctuary building • See animals through fog',
+    tier: 1,
+    series: 'ecology',
+    unlocksUnits: [],
+    prerequisites: [],
+  },
+  [TechId.DRACONIC]: {
+    id: TechId.DRACONIC,
+    name: 'Draconic',
+    description: 'Dragon maturation • Egg → Baby Dragon → Fire Dragon',
+    tier: 2,
+    series: 'ecology',
+    unlocksUnits: [UnitType.EGG],
+    prerequisites: [TechId.ECOLOGY],
+  },
+  [TechId.PROPHECY]: {
+    id: TechId.PROPHECY,
+    name: 'Prophecy',
+    description: 'Prophetic Vision — see ruins through fog',
+    tier: 2,
+    series: 'ecology',
+    unlocksUnits: [UnitType.POLYTAUR],
+    prerequisites: [TechId.ECOLOGY],
+  },
 };
 
 /** Starting techs per tribe. */
@@ -311,6 +345,8 @@ export const TRIBE_STARTING_TECHS: Record<string, TechId[]> = {
   'polaris':  [TechId.FROSTWORK],
   // GDD §7.2 — Cymanti tribe
   'cymanti':  [TechId.FUNGICULTURE],
+  // GDD §7.3 — Elyrion tribe
+  'elyrion':  [TechId.ECOLOGY],
 };
 
 /** Available (non-premium) unit types and which tech gates them. */
@@ -339,4 +375,9 @@ export const UNIT_TECH_GATES: Partial<Record<UnitType, TechId>> = {
   [UnitType.CENTIPEDE]:  TechId.HYDROLOGY,
   [UnitType.HEXAPODS]:   TechId.MYCELIUM,
   [UnitType.DOOMUX]:     TechId.VENOM,
+  // GDD §7.3 — Elyrion tribe unit gates
+  [UnitType.EGG]:        TechId.DRACONIC,
+  [UnitType.BABY_DRAGON]: TechId.DRACONIC,
+  [UnitType.FIRE_DRAGON]: TechId.DRACONIC,
+  [UnitType.POLYTAUR]:   TechId.PROPHECY,
 };

@@ -74,7 +74,8 @@ export class SelectScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       const startTech = cfg.id === 'xin-xi' || cfg.id === 'oumaji' ? 'Riding' :
-        cfg.id === 'bardur' ? 'Hunting' : cfg.id === 'polaris' ? 'Frostwork' : 'Fishing';
+        cfg.id === 'bardur' ? 'Hunting' : cfg.id === 'polaris' ? 'Frostwork' :
+        cfg.id === 'cymanti' ? 'Fungiculture' : cfg.id === 'elyrion' ? 'Ecology' : 'Fishing';
       this.add.text(cx + cardW / 2, 200, `Start: ${startTech}`, {
         fontSize: '12px', color: '#aaa', fontFamily: 'monospace',
       }).setOrigin(0.5);

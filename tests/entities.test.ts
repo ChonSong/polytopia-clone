@@ -4,7 +4,7 @@ import { Biome, TileData } from '../src/hex/Tile';
 import { City, BIOME_YIELDS } from '../src/entities/City';
 import { Unit, UnitType, UNIT_COSTS, UNIT_BASE_STATS, MAX_HEALTH } from '../src/entities/Unit';
 import { BUILDING_DEFS, BuildingType } from '../src/entities/Building';
-import { TechId, TRIBE_STARTING_TECHS, UNIT_TECH_GATES } from '../src/entities/TechTree';
+import { TechId, TRIBE_STARTING_TECHS, UNIT_TECH_GATES, TECH_DEFS, TECH_SERIES } from '../src/entities/TechTree';
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
 import { CombatSystem } from '../src/entities/CombatSystem';
@@ -1756,5 +1756,115 @@ describe('Cymanti tribe', () => {
     // With venom, defBonus = 1.0 × 0.7 = 0.7
     // This should result in higher damage
     expect(damageWithVenom).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GDD §7.3 — Elyrion Tribe
+// ---------------------------------------------------------------------------
+describe('GDD §7.3 — Elyrion Tribe', () => {
+  it('Elyrion tribe config exists', () => {
+    const elyrion = TRIBE_CONFIGS.find(t => t.id === 'elyrion');
+    expect(elyrion).toBeDefined();
+    expect(elyrion!.name).toBe('Elyrion');
+  });
+
+  it('Elyrion starts with Ecology tech', () => {
+    const elyrion = new Tribe({ id: 'elyrion', name: 'Elyrion', color: 0x27ae60 });
+    expect(elyrion.hasTech(TechId.ECOLOGY)).toBe(true);
+  });
+
+  it('Egg unit type exists with correct stats', () => {
+    const egg = new Unit(coord(0, 0), UnitType.EGG, 'elyrion');
+    expect(egg.attack).toBe(0);
+    expect(egg.defense).toBe(2);
+    expect(egg.movementRange).toBe(0);
+    expect(egg.health).toBe(3);
+    expect(egg.isEgg).toBe(true);
+  });
+
+  it('Baby Dragon unit type exists with correct stats', () => {
+    const baby = new Unit(coord(0, 0), UnitType.BABY_DRAGON, 'elyrion');
+    expect(baby.attack).toBe(2);
+    expect(baby.defense).toBe(1);
+    expect(baby.movementRange).toBe(2);
+    expect(baby.ranged).toBe(true);
+    expect(baby.health).toBe(8);
+    expect(baby.hasFlight).toBe(true);
+  });
+
+  it('Fire Dragon unit type exists with correct stats', () => {
+    const fire = new Unit(coord(0, 0), UnitType.FIRE_DRAGON, 'elyrion');
+    expect(fire.attack).toBe(4);
+    expect(fire.defense).toBe(2);
+    expect(fire.movementRange).toBe(2);
+    expect(fire.ranged).toBe(true);
+    expect(fire.health).toBe(15);
+    expect(fire.hasFlight).toBe(true);
+    expect(fire.hasSplashAoE).toBe(true);
+  });
+
+  it('Polytaur unit type exists with correct stats', () => {
+    const polytaur = new Unit(coord(0, 0), UnitType.POLYTAUR, 'elyrion');
+    expect(polytaur.attack).toBe(3);
+    expect(polytaur.defense).toBe(1);
+    expect(polytaur.movementRange).toBe(1);
+    expect(polytaur.health).toBe(10);
+    expect(polytaur.hasPropheticVision).toBe(true);
+  });
+
+  it('Egg is gated by Draconic tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.EGG]).toBe(TechId.DRACONIC);
+  });
+
+  it('Polytaur is gated by Prophecy tech', () => {
+    expect(UNIT_TECH_GATES[UnitType.POLYTAUR]).toBe(TechId.PROPHECY);
+  });
+
+  it('Elyrion tribe can train Egg after researching Draconic', () => {
+    const elyrion = new Tribe({ id: 'elyrion', name: 'Elyrion', color: 0x27ae60 });
+    elyrion.researchTech(TechId.DRACONIC);
+    const trainable = elyrion.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.EGG);
+  });
+
+  it('Elyrion tribe can train Polytaur after researching Prophecy', () => {
+    const elyrion = new Tribe({ id: 'elyrion', name: 'Elyrion', color: 0x27ae60 });
+    elyrion.researchTech(TechId.PROPHECY);
+    const trainable = elyrion.getTrainableUnitTypes();
+    expect(trainable).toContain(UnitType.POLYTAUR);
+  });
+
+  it('Sanctuary building type exists', () => {
+    expect(BuildingType.SANCTUARY).toBe('SANCTUARY');
+    expect(BUILDING_DEFS[BuildingType.SANCTUARY].name).toBe('Sanctuary');
+    expect(BUILDING_DEFS[BuildingType.SANCTUARY].cost).toBe(5);
+  });
+
+  it('Ecology tech exists in tech tree', () => {
+    expect(TECH_DEFS[TechId.ECOLOGY]).toBeDefined();
+    expect(TECH_DEFS[TechId.ECOLOGY].name).toBe('Ecology');
+    expect(TECH_DEFS[TechId.ECOLOGY].tier).toBe(1);
+  });
+
+  it('Draconic tech exists in tech tree', () => {
+    expect(TECH_DEFS[TechId.DRACONIC]).toBeDefined();
+    expect(TECH_DEFS[TechId.DRACONIC].name).toBe('Draconic');
+    expect(TECH_DEFS[TechId.DRACONIC].tier).toBe(2);
+    expect(TECH_DEFS[TechId.DRACONIC].unlocksUnits).toContain(UnitType.EGG);
+  });
+
+  it('Prophecy tech exists in tech tree', () => {
+    expect(TECH_DEFS[TechId.PROPHECY]).toBeDefined();
+    expect(TECH_DEFS[TechId.PROPHECY].name).toBe('Prophecy');
+    expect(TECH_DEFS[TechId.PROPHECY].tier).toBe(2);
+    expect(TECH_DEFS[TechId.PROPHECY].unlocksUnits).toContain(UnitType.POLYTAUR);
+  });
+
+  it('ecology series contains all 3 Elyrion techs', () => {
+    const series = TECH_SERIES['ecology'];
+    expect(series).toContain(TechId.ECOLOGY);
+    expect(series).toContain(TechId.DRACONIC);
+    expect(series).toContain(TechId.PROPHECY);
   });
 });

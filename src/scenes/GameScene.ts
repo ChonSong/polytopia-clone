@@ -23,6 +23,8 @@ const COLORS: Record<string, number> = {
   'bardur': 0x5a8f3c,
   'oumaji': 0xc0392b,
   'polaris': 0x87ceeb,
+  'cymanti': 0x9b59b6,
+  'elyrion': 0x27ae60,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -48,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   private healBtn: Phaser.GameObjects.Text | null = null;
   private submergeBtn: Phaser.GameObjects.Text | null = null;
   private emergeBtn: Phaser.GameObjects.Text | null = null;
+  private enchantBtn: Phaser.GameObjects.Text | null = null;
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
   private skipPhase = false;
@@ -217,6 +220,20 @@ export class GameScene extends Phaser.Scene {
     this.emergeBtn.on('pointerover', () => this.emergeBtn!.setStyle({ backgroundColor: '#355' }));
     this.emergeBtn.on('pointerout', () => this.emergeBtn!.setStyle({ backgroundColor: '#233' }));
     this.emergeBtn.setVisible(false);
+
+    // GDD §7.3 — Enchantment button (Elyrion) — camera-fixed
+    const enchantBtn = this.add.text(560, 10, '[ ENCHANT ]', {
+      fontSize: '14px', color: '#f8f', fontFamily: 'monospace',
+      backgroundColor: '#232', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    enchantBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed) {
+        this.performEnchantment(this.selectedUnit);
+      }
+    });
+    enchantBtn.on('pointerover', () => enchantBtn.setStyle({ backgroundColor: '#444' }));
+    enchantBtn.on('pointerout', () => enchantBtn.setStyle({ backgroundColor: '#232' }));
+    enchantBtn.setVisible(false);
 
     // End Turn (camera-fixed)
     const btn = this.add.text(660, 10, '[ END TURN ]', {
@@ -481,6 +498,9 @@ export class GameScene extends Phaser.Scene {
 
     // GDD §7.1 — Polaris freeze mechanic: Mooni auto-freezes adjacent tiles, Gaami mass-freeze
     this.applyPolarisFreeze(cur);
+
+    // GDD §7.3 — Elyrion: Sanctuary income (+1⭐/turn per adjacent animal) + animal spawning
+    this.applyElyrionSanctuary(cur);
 
     // GDD §2.5 — Capture villages: units that START their turn on a village tile capture it
     this.captureVillages(cur);
@@ -792,6 +812,43 @@ export class GameScene extends Phaser.Scene {
             } else if (biome !== Biome.ICE && biome !== Biome.TUNDRA) {
               tile.biome = Biome.TUNDRA;
             }
+          }
+        }
+      }
+    }
+  }
+
+  /** GDD §7.3 — Elyrion: Sanctuary income (+1⭐/turn per adjacent animal)
+   *  and spawn new animal every 3 turns near Sanctuary. */
+  private applyElyrionSanctuary(tribe: Tribe): void {
+    if (tribe.id !== 'elyrion') return;
+    let sanctuaryCount = 0;
+    for (const city of tribe.cities) {
+      if (city.buildings.includes(BuildingType.SANCTUARY)) {
+        sanctuaryCount++;
+        // Count adjacent animal tiles
+        let animalCount = 0;
+        for (const dir of HexCoord.DIRECTIONS) {
+          const adj = new HexCoord(city.position.q + dir.q, city.position.r + dir.r);
+          const tile = this.tiles.get(adj.toString());
+          if (tile && tile.resource === Resource.ANIMALS) animalCount++;
+        }
+        if (animalCount > 0) {
+          tribe.stars += animalCount;
+          this.setStatus(`${tribe.name} Sanctuary: +${animalCount}⭐ (${animalCount} adjacent animals)`);
+        }
+
+        // Spawn new animal every 3 turns
+        if (this.state.turn % 3 === 0) {
+          const emptyAdj = HexCoord.DIRECTIONS
+            .map(d => new HexCoord(city.position.q + d.q, city.position.r + d.r))
+            .find(adj => {
+              const tile = this.tiles.get(adj.toString());
+              return tile && tile.biome === Biome.FOREST && !tile.resource;
+            });
+          if (emptyAdj) {
+            const tile = this.tiles.get(emptyAdj.toString())!;
+            tile.resource = Resource.ANIMALS;
           }
         }
       }
@@ -1363,6 +1420,40 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
+    // --- GDD §7.3 DRAGON MATURATION (Elyrion) ---
+    if (this.humanTribe.id === 'elyrion' && this.humanTribe.hasTech(TechId.DRACONIC)) {
+      const adjacentEggs = this.humanTribe.getAliveUnits().filter(u =>
+        u.position.distanceTo(city.position) <= 1 && u.type === UnitType.EGG && !u.hasActed,
+      );
+      for (const egg of adjacentEggs) {
+        items.push('MATURE EGG → BABY DRAGON (0⭐)');
+        handlers.push(() => {
+          const hp = egg.health;
+          this.humanTribe.removeUnit(egg.id);
+          const baby = new Unit(egg.position, UnitType.BABY_DRAGON, this.humanTribe.id, hp);
+          baby.hasActed = true;
+          this.humanTribe.addUnit(baby);
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        });
+      }
+      const adjacentBabies = this.humanTribe.getAliveUnits().filter(u =>
+        u.position.distanceTo(city.position) <= 1 && u.type === UnitType.BABY_DRAGON && !u.hasActed,
+      );
+      for (const baby of adjacentBabies) {
+        items.push('MATURE BABY DRAGON → FIRE DRAGON (0⭐)');
+        handlers.push(() => {
+          const hp = baby.health;
+          this.humanTribe.removeUnit(baby.id);
+          const fire = new Unit(baby.position, UnitType.FIRE_DRAGON, this.humanTribe.id, hp);
+          fire.hasActed = true;
+          this.humanTribe.addUnit(fire);
+          this.hideCityMenu();
+          this.renderAll(); this.updateUI();
+        });
+      }
+    }
+
     // --- BUILDINGS ---
     const adjacentResources: Resource[] = [];
     for (const n of city.position.neighbors()) {
@@ -1372,6 +1463,8 @@ export class GameScene extends Phaser.Scene {
     const buildableTypes = Object.values(BuildingType).filter(bt => {
       // GDD §7.1 — Ice Bank is Polaris-only
       if (bt === BuildingType.ICE_BANK && this.humanTribe.id !== 'polaris') return false;
+      // GDD §7.3 — Sanctuary is Elyrion-only
+      if (bt === BuildingType.SANCTUARY && this.humanTribe.id !== 'elyrion') return false;
       return city.canBuild(bt, adjacentResources) && this.humanTribe.stars >= BUILDING_DEFS[bt].cost;
     });
     if (buildableTypes.length > 0) {
@@ -1639,6 +1732,26 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // GDD §7.3 — Prophetic Vision: Elyrion can see unrevealed ruins through fog (rainbow flames)
+    if (this.state.canSeeRuinsThroughFog(humanTribeId)) {
+      for (const [key, tile] of this.tiles) {
+        if (!tile.ruin || tile.ruinDiscovered) continue;
+        const [q, r] = key.split(',').map(Number);
+        const c = new HexCoord(q, r);
+        const isVisible = this.state.isTileVisibleToTribe(c, humanTribeId);
+        if (!isVisible) {
+          const pos = c.toPixel(HEX_SIZE);
+          // Rainbow flame indicator (cycling colors)
+          const colors = [0xff0000, 0xff8800, 0xffff00, 0x00ff00, 0x0088ff, 0x8800ff];
+          const color = colors[Math.floor(this.time.now / 200) % colors.length];
+          this.fogGraphics.fillStyle(color, 0.6);
+          this.fogGraphics.fillCircle(pos.x, pos.y - 2, 4);
+          this.fogGraphics.fillStyle(0xffffff, 0.8);
+          this.fogGraphics.fillCircle(pos.x, pos.y - 2, 2);
+        }
+      }
+    }
+
     // Range indicator
     if (this.selectedUnit && !this.selectedUnit.hasActed) {
       const p = this.selectedUnit.position.toPixel(HEX_SIZE);
@@ -1761,6 +1874,15 @@ export class GameScene extends Phaser.Scene {
     if (this.emergeBtn) {
       this.emergeBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged);
     }
+    // Enchantment button: show when a Polytaur is selected and hasn't acted
+    if (this.enchantBtn) {
+      const showEnchant = !!this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed;
+      this.enchantBtn.setVisible(showEnchant);
+      if (showEnchant) {
+        const canAfford = this.humanTribe.stars >= 3;
+        this.enchantBtn.setStyle({ color: canAfford ? '#f8f' : '#888' });
+      }
+    }
   }
 
   private setStatus(m: string): void { this.phaseText.setText(m); }
@@ -1828,6 +1950,48 @@ export class GameScene extends Phaser.Scene {
 
     mindBender.hasActed = true;
     this.setStatus(`Healed ${healed} adjacent friendly unit(s) for +4 HP.`);
+    this.selectedUnit = null;
+    this.selectedHex = null;
+    this.renderAll();
+    this.updateUI();
+  }
+
+  /** GDD §7.3 — Enchantment: Polytaur converts an adjacent wild animal into Polytaur form.
+   *  Costs 3⭐. The animal tile becomes empty and a Polytaur unit appears. */
+  private performEnchantment(polytaur: Unit): void {
+    const cur = this.state.getCurrentTribe();
+    if (cur.id !== polytaur.owner) return;
+    if (cur.stars < 3) {
+      this.setStatus('Not enough stars for Enchantment (need 3⭐).');
+      return;
+    }
+
+    // Find adjacent animal tile
+    let targetTile: HexCoord | null = null;
+    for (const dir of HexCoord.DIRECTIONS) {
+      const adj = new HexCoord(polytaur.position.q + dir.q, polytaur.position.r + dir.r);
+      const tile = this.tiles.get(adj.toString());
+      if (tile && tile.resource === Resource.ANIMALS) {
+        targetTile = adj;
+        break;
+      }
+    }
+
+    if (!targetTile) {
+      this.setStatus('No adjacent wild animal to enchant.');
+      return;
+    }
+
+    // Remove the animal resource and spawn Polytaur
+    const tile = this.tiles.get(targetTile.toString())!;
+    tile.resource = undefined;
+    cur.stars -= 3;
+    const newPolytaur = new Unit(targetTile, UnitType.POLYTAUR, cur.id);
+    newPolytaur.hasActed = true;
+    cur.addUnit(newPolytaur);
+
+    polytaur.hasActed = true;
+    this.setStatus('Enchanted wild animal into Polytaur! (3⭐)');
     this.selectedUnit = null;
     this.selectedHex = null;
     this.renderAll();

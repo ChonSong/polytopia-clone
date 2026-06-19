@@ -129,4 +129,11 @@ export class GameState {
   isTileExploredByTribe(coord: HexCoord, tribeId: string): boolean {
     return this.tribeVisibility.get(tribeId)?.has(coord.toString()) === true;
   }
+
+  /** GDD §7.3 — Check if a unit can see ruins through fog (Prophetic Vision). */
+  canSeeRuinsThroughFog(tribeId: string): boolean {
+    const tribe = this.tribes.find(t => t.id === tribeId);
+    if (!tribe) return false;
+    return tribe.units.some(u => u.hasPropheticVision && u.isAlive);
+  }
 }

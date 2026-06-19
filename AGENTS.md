@@ -24,6 +24,24 @@ Status: **active** — see GDD.md for the full spec.
 - When GDD.md changes, update AGENTS.md task descriptions to match
 - Pre-existing TS errors from tsconfig "lib" target are ignored
 
+### 🔴 Permanent Runtime-Play Directive
+**The coach MUST play the game in a browser, like a human.** All gameplay
+verification — tribe selection, map generation, city interaction, combat, tech
+research, AI behaviour — MUST be validated by actually running the Phaser
+canvas at `http://localhost:3001` (or `hex.codeovertcp.com`) and clicking
+through the UI at real canvas pixel positions.
+
+- **ALL** test interactions go through `page.locator('canvas').click()`
+  at properly converted game → canvas coordinates.
+- **NEVER** call game state functions (`handleClick`, `endTurn`, `scene.start`)
+  from Playwright `page.evaluate` — that bypasses the UI and does not count
+  as "playing."
+- **Only READ** operations use `page.evaluate`: verify tribe name after
+  selection, verify city menu opened, verify turn number advanced.
+- This applies to the Coach (during review cycles) and to E2E tests (which
+  are the Coach's automated play verification).
+- A review that did not play the game in a browser is not a valid review.
+
 ## Non-Blocking Review Process
 
 ### How this works

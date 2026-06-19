@@ -17,6 +17,8 @@ export enum BuildingType {
   MYCELIUM_NETWORK = 'MYCELIUM_NETWORK',
   /** GDD §7.2 — Algae Bridge: Cymanti water crossing without Port. */
   ALGAE_BRIDGE = 'ALGAE_BRIDGE',
+  /** GDD §7.3 — Sanctuary: Elyrion building, +1⭐/turn per adjacent animal. */
+  SANCTUARY = 'SANCTUARY',
 }
 
 export interface BuildingDef {
@@ -111,5 +113,13 @@ export const BUILDING_DEFS: Record<BuildingType, BuildingDef> = {
     requiresResource: Resource.FISH,
     popBonus: 0,
     starsBonus: 0, // Allows water crossing without Port
+  },
+  [BuildingType.SANCTUARY]: {
+    type: BuildingType.SANCTUARY,
+    name: 'Sanctuary',
+    cost: 5,
+    requiresResource: Resource.ANIMALS,
+    popBonus: 0,
+    starsBonus: 0, // +1⭐/turn per adjacent animal — computed dynamically
   },
 };

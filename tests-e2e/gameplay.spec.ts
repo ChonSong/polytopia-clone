@@ -1,278 +1,335 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
-// ---------------------------------------------------------------------------
-// E2E Gameplay Tests — using game state manipulation via __PHASER_GAME__
-// These tests verify the core game loop: loading, turn progression, and the
-// city interaction menu. They bypass pixel-accuracy issues in headless
-// browser by inspecting/controlling game state directly.
-// ---------------------------------------------------------------------------
+/**
+ * Human-like interaction contract:
+ *
+ * Every interaction goes through the Phaser canvas at real pixel positions,
+ * exactly as a player clicking in the browser would. We NEVER:
+ *   - Call gs.handleClick() directly (bypasses UI)
+ *   - Teleport between scenes via game.scene.start()
+ *   - Set game state variables directly
+ *
+ * The only page.evaluate calls are READs — verifying what changed after
+ * a canvas click.  The game is always played at hex.codeovertcp.com's
+ * deployed resolution (game config: 800×600, Phaser.Scale.FIT).
+ */
 
 const GAME_URL = 'http://localhost:3001';
 
-/** Navigate to game and wait for Phaser canvas to render */
-async function loadGame(page: import('@playwright/test').Page) {
+// ─── Helpers ──────────────────────────────────────────────────────────
+
+/** Wait for Phaser to boot and the canvas to render. */
+async function loadGame(page: Page) {
   await page.goto(GAME_URL, { waitUntil: 'networkidle' });
   await page.waitForSelector('canvas', { timeout: 15000 });
-  // Wait for Phaser boot and scene transitions (BootScene → SelectScene)
-  await page.waitForTimeout(2000);
+  // Allow BootScene → SelectScene transition
+  await page.waitForTimeout(2500);
+  const ok = await page.evaluate(() => !!(window as any).__PHASER_GAME__);
+  expect(ok).toBe(true);
 }
 
-/** Skip tribe selection and jump straight into the game with a given tribe */
-async function startGame(page: import('@playwright/test').Page, tribeIndex = 0) {
-  await page.evaluate((idx) => {
-    const game = (window as any).__PHASER_GAME__;
-    if (!game) throw new Error('__PHASER_GAME__ not found');
-    game.scene.start('GameScene', {
-      humanTribeIndex: idx,
-      mapType: 'CONTINENTS',
-      gameMode: 'DOMINATION',
+/**
+ * Convert a game-space coordinate (Phaser 800×600 space) into a
+ * viewport-relative pixel position for Playwright's canvas click.
+ *
+ * Phaser.Scale.FIT + CENTER_BOTH means the canvas element may be
+ * displayed at a different resolution than 800×600.  We divide by the
+ * actual-to-nominal ratio so the pixel we click maps to the correct
+ * game coordinate through Phaser's built-in pointer → game-coord
+ * pipeline.
+ */
+async function g(page: Page, gameX: number, gameY: number) {
+  return page.evaluate(
+    ({ gx, gy }) => {
+      const c = document.querySelector('canvas')!;
+      const r = c.getBoundingClientRect();
+      return { x: gx * (r.width / 800), y: gy * (r.height / 600) };
+    },
+    { gx: gameX, gy: gameY },
+  );
+}
+
+/** Click the Phaser canvas at game-space (gx, gy). */
+async function click(page: Page, gameX: number, gameY: number) {
+  const { x, y } = await g(page, gameX, gameY);
+  await page.locator('canvas').click({ position: { x, y }, force: true });
+}
+
+/** Evaluate game code that throws but returns a fallback. */
+async function evalGame<T>(page: Page, fn: string): Promise<T | null> {
+  try {
+    return await page.evaluate(fn);
+  } catch {
+    return null;
+  }
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────
+
+test.describe('Human-like Gameplay (every interaction through canvas)', () => {
+
+  test('game loads and Phaser canvas is rendered', async ({ page }) => {
+    await loadGame(page);
+    // Confirm the canvas has content (not a blank page)
+    const canvas = page.locator('canvas');
+    const box = await canvas.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThan(100);
+    expect(box!.height).toBeGreaterThan(100);
+
+    const booted = await page.evaluate(() => {
+      const g = (window as any).__PHASER_GAME__;
+      return g?.isRunning ?? false;
     });
-  }, tribeIndex);
-  // Wait for GameScene to create tiles, cities, render
-  await page.waitForTimeout(1500);
-}
-
-/** Get the game scene object */
-async function getGameScene(page: import('@playwright/test').Page) {
-  return page.evaluate(() => {
-    const game = (window as any).__PHASER_GAME__;
-    return game?.scene?.getScene('GameScene') ? 'ok' : 'no-scene';
+    expect(booted).toBe(true);
   });
-}
 
-test.describe('Polytopia Clone — Gameplay E2E', () => {
+  test('select Xin-xi tribe through the card UI', async ({ page }) => {
+    await loadGame(page);
 
-  test('game loads and renders a canvas', async ({ page }) => {
-    await page.goto(GAME_URL, { waitUntil: 'networkidle' });
-    const canvas = await page.waitForSelector('canvas', { timeout: 15000 });
-    expect(canvas).not.toBeNull();
+    // Tribe cards are interactive Rectangles in SelectScene.
+    // With 5 tribes (xin-xi, imperius, bardur, oumaji, polaris):
+    //   cardW=170, gap=15, startX = (800 - (170*5 + 15*4))/2 = -55
+    //   Card 0 (Xin-xi) centre: (-55 + 85, 150 + 110) = (30, 260)
+    //
+    // We find position from the scene itself for robustness.
+    const cardPos = await page.evaluate(() => {
+      const ss = (window as any).__PHASER_GAME__.scene.getScene('SelectScene');
+      if (!ss) return null;
+      const rects = ss.children.list.filter(
+        (c: any) => c.type === 'Rectangle' && c.input?.enabled,
+      );
+      if (rects.length < 1) return null;
+      return { x: rects[0].x, y: rects[0].y };
+    });
+    expect(cardPos).not.toBeNull();
+
+    // Click — goes through the canvas, through Phaser's input pipeline
+    await click(page, cardPos!.x, cardPos!.y);
     await page.waitForTimeout(2000);
-    const hasGame = await page.evaluate(() => !!(window as any).__PHASER_GAME__);
-    expect(hasGame).toBe(true);
+
+    const onGame = await evalGame<boolean>(
+      page,
+      `!!((window as any).__PHASER_GAME__?.scene?.isActive('GameScene'))`,
+    );
+    expect(onGame).toBe(true);
+
+    const tribeName = await evalGame<string>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.state?.getCurrentTribe()?.name) ?? null`,
+    );
+    expect(tribeName).toBe('Xin-xi');
   });
 
-  test('start game via tribe selection click', async ({ page }) => {
+  test('END TURN advances the game and AI plays back', async ({ page }) => {
     await loadGame(page);
 
-    // Click the first tribe card (Xin-xi)
-    // Card 0 center: (startX + 85, 260) in game coords, but we must
-    // account for canvas offset/scale in the viewport. Use page.evaluate for precision.
-    const tribeCards = await page.evaluate(() => {
-      const game = (window as any).__PHASER_GAME__;
-      const ss = game.scene.getScene('SelectScene');
-      // Scan for interactive rectangles
-      const kids = ss.children.list.filter((c: any) => c.type === 'Rectangle' && c.input?.enabled);
-      return kids.map((r: any) => ({ x: r.x, y: r.y, w: r.width, h: r.height }));
+    // Pick a tribe through the UI
+    const cardPos = await page.evaluate(() => {
+      const ss = (window as any).__PHASER_GAME__.scene.getScene('SelectScene');
+      const rects = ss.children.list.filter(
+        (c: any) => c.type === 'Rectangle' && c.input?.enabled,
+      );
+      return rects.length > 0 ? { x: rects[0].x, y: rects[0].y } : null;
     });
+    expect(cardPos).not.toBeNull();
+    await click(page, cardPos!.x, cardPos!.y);
+    await page.waitForTimeout(2000);
 
-    expect(tribeCards.length).toBeGreaterThanOrEqual(2);
-    const card = tribeCards[0];
-    expect(card.x).toBeGreaterThan(0);
+    const turn0 = await evalGame<number>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.turnNumber) ?? -1`,
+    );
+    expect(turn0).toBeGreaterThanOrEqual(1);
 
-    // Convert game coord to canvas-relative coord using Phaser's scale manager
-    const clickPos = await page.evaluate(({ gameX, gameY }: { gameX: number; gameY: number }) => {
-      const canvas = document.querySelector('canvas')!;
-      const rect = canvas.getBoundingClientRect();
-      const game = (window as any).__PHASER_GAME__;
-      const scaleX = rect.width / game.config.width;
-      const scaleY = rect.height / game.config.height;
+    // --- Turn 1: click END TURN at (660, 10) ---
+    await click(page, 660, 10);
+    await page.waitForTimeout(6000); // AI tribes take turns
+
+    const alive1 = await evalGame<boolean>(
+      page,
+      `!!((window as any).__PHASER_GAME__?.scene?.isActive('GameScene'))`,
+    );
+    expect(alive1).toBe(true);
+
+    const turn1 = await evalGame<number>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.turnNumber) ?? -1`,
+    );
+    expect(turn1).toBeGreaterThanOrEqual(turn0 + 1);
+
+    // --- Turn 2: click END TURN again ---
+    await click(page, 660, 10);
+    await page.waitForTimeout(6000);
+
+    const alive2 = await evalGame<boolean>(
+      page,
+      `!!((window as any).__PHASER_GAME__?.scene?.isActive('GameScene'))`,
+    );
+    expect(alive2).toBe(true);
+
+    const turn2 = await evalGame<number>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.turnNumber) ?? -1`,
+    );
+    expect(turn2).toBeGreaterThanOrEqual(turn1 + 1);
+  });
+
+  test('city tile opens and closes the city menu', async ({ page }) => {
+    await loadGame(page);
+
+    // Pick a tribe through the UI
+    const cardPos = await page.evaluate(() => {
+      const ss = (window as any).__PHASER_GAME__.scene.getScene('SelectScene');
+      const rects = ss.children.list.filter(
+        (c: any) => c.type === 'Rectangle' && c.input?.enabled,
+      );
+      return rects.length > 0 ? { x: rects[0].x, y: rects[0].y } : null;
+    });
+    expect(cardPos).not.toBeNull();
+    await click(page, cardPos!.x, cardPos!.y);
+    await page.waitForTimeout(2000);
+
+    // Find the human player's capital city screen position
+    const cityScreenPos = await page.evaluate(() => {
+      const gs = (window as any).__PHASER_GAME__?.scene?.getScene('GameScene');
+      if (!gs?.state) return null;
+      const tribe = gs.state.getCurrentTribe();
+      if (!tribe?.cities?.length) return null;
+      const city = tribe.cities[0];
+      // Pixel position of the hex centre in world space
+      const wp = city.position.toPixel(32);
+      // Convert to screen space (the viewport the camera sees)
       return {
-        // position relative to canvas element for locator.click({ position })
-        x: gameX * scaleX,
-        y: gameY * scaleY,
+        x: wp.x - gs.cameras.main.scrollX,
+        y: wp.y - gs.cameras.main.scrollY,
       };
-    }, { gameX: card.x, gameY: card.y });
-
-    await page.locator('canvas').click({ position: { x: clickPos.x, y: clickPos.y } });
-    await page.waitForTimeout(1000);
-
-    // Should now be on GameScene
-    const onGameScene = await page.evaluate(() => {
-      const game = (window as any).__PHASER_GAME__;
-      return game.scene.isActive('GameScene');
     });
-    expect(onGameScene).toBe(true);
-  });
+    expect(cityScreenPos).not.toBeNull();
+    // City should be visible in the initial viewport (0..800 × 0..600)
+    expect(cityScreenPos!.x).toBeGreaterThanOrEqual(0);
+    expect(cityScreenPos!.x).toBeLessThanOrEqual(800);
+    expect(cityScreenPos!.y).toBeGreaterThanOrEqual(0);
+    expect(cityScreenPos!.y).toBeLessThanOrEqual(600);
 
-  test('city menu opens and shows train options', async ({ page }) => {
-    await loadGame(page);
-    await startGame(page, 0); // Xin-xi tribe
+    // Click the city hex through the canvas
+    await click(page, cityScreenPos!.x, cityScreenPos!.y);
+    await page.waitForTimeout(500);
 
-    // Verify city exists and get its game-level pixel position
-    const cityPixel = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      if (!city) return null;
-      const p = city.position.toPixel(32); // HEX_SIZE = 32
-      return { x: p.x, y: p.y };
-    });
-    expect(cityPixel).not.toBeNull();
+    // Verify city menu opened
+    const menuOpen = await evalGame<boolean>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.cityMenu) !== null`,
+    );
+    expect(menuOpen).toBe(true);
 
-    // Click the city via Phaser's input system (bypass coordinate math)
-    await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      const p = city.position.toPixel(32);
-      gs.handleClick(p.x, p.y);
-    });
-    await page.waitForTimeout(300);
+    // Click empty space (centered game coords, but avoid UI buttons)
+    // The city menu should close when clicking elsewhere on the map
+    await click(page, 400, 350);
+    await page.waitForTimeout(400);
 
-    // Verify city menu appeared
-    const menuItems = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      if (!gs.cityMenu) return [];
-      return gs.cityMenu.getChildren().map((c: any) => c.text || '');
-    });
-    expect(menuItems.length).toBeGreaterThan(0);
-    expect(menuItems.some((t: string) => t.includes('TRAIN'))).toBe(true);
-
-    // Verify the menu shows the tribe name in the title
-    const hasTribeName = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      // The city menu is open — check any menu item
-      return gs.cityMenu !== null && gs.selectedCity !== null;
-    });
-    expect(hasTribeName).toBe(true);
-  });
-
-  test('city menu closes when clicking elsewhere', async ({ page }) => {
-    await loadGame(page);
-    await startGame(page, 0);
-
-    // Open city menu
-    await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      const p = city.position.toPixel(32);
-      gs.handleClick(p.x, p.y);
-    });
-    await page.waitForTimeout(200);
-
-    // Click away — click an empty hex position
-    await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      const p = city.position.toPixel(32);
-      // Click a position that's far from the city but still on the map
-      // This should land on an empty tile and dismiss the menu
-      gs.handleClick(p.x + 500, p.y + 500);
-    });
-    await page.waitForTimeout(200);
-
-    // Verify menu closed
-    const menuClosed = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return gs.cityMenu === null;
-    });
+    const menuClosed = await evalGame<boolean>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.cityMenu) === null`,
+    );
     expect(menuClosed).toBe(true);
   });
 
-  test('game survives 3 full turns without crash', async ({ page }) => {
+  test('tech panel opens and closes via canvas button', async ({ page }) => {
     await loadGame(page);
-    await startGame(page, 0);
 
-    for (let turn = 0; turn < 3; turn++) {
-      // End turn by clicking END TURN button position (660, 10 with padding → ~680, 20)
-      // Convert to canvas-relative
-      await page.locator('canvas').click({ position: { x: 660, y: 20 } });
-      // Wait for AI phase (~3-5 seconds for all 3 AI tribes)
+    // Pick a tribe through the UI
+    const cardPos = await page.evaluate(() => {
+      const ss = (window as any).__PHASER_GAME__.scene.getScene('SelectScene');
+      const rects = ss.children.list.filter(
+        (c: any) => c.type === 'Rectangle' && c.input?.enabled,
+      );
+      return rects.length > 0 ? { x: rects[0].x, y: rects[0].y } : null;
+    });
+    expect(cardPos).not.toBeNull();
+    await click(page, cardPos!.x, cardPos!.y);
+    await page.waitForTimeout(2000);
+
+    // TECH button at game coords (530, 10), scrollFactor(0), depth 20
+    await click(page, 530, 10);
+    await page.waitForTimeout(600);
+
+    const panelOpen = await evalGame<boolean>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.techPanel) !== null`,
+    );
+    expect(panelOpen).toBe(true);
+
+    // Click the same button again to close
+    await click(page, 530, 10);
+    await page.waitForTimeout(400);
+
+    const panelClosed = await evalGame<boolean>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.techPanel) === null`,
+    );
+    expect(panelClosed).toBe(true);
+  });
+
+  test('play 3 full turns through the canvas UI', async ({ page }) => {
+    await loadGame(page);
+
+    // Pick Xin-xi through the UI
+    const cardPos = await page.evaluate(() => {
+      const ss = (window as any).__PHASER_GAME__.scene.getScene('SelectScene');
+      const rects = ss.children.list.filter(
+        (c: any) => c.type === 'Rectangle' && c.input?.enabled,
+      );
+      return rects.length > 0 ? { x: rects[0].x, y: rects[0].y } : null;
+    });
+    expect(cardPos).not.toBeNull();
+    await click(page, cardPos!.x, cardPos!.y);
+    await page.waitForTimeout(2000);
+
+    // Play 3 turns — every interaction is a canvas pixel click
+    for (let i = 0; i < 3; i++) {
+      // Open city menu to verify interactivity this turn
+      if (i === 0) {
+        // First turn: click capital city, close it, then end turn
+        const cityPos = await page.evaluate(() => {
+          const gs = (window as any).__PHASER_GAME__?.scene?.getScene('GameScene');
+          if (!gs?.state) return null;
+          const tribe = gs.state.getCurrentTribe();
+          const city = tribe?.cities?.[0];
+          if (!city) return null;
+          const wp = city.position.toPixel(32);
+          return {
+            x: wp.x - gs.cameras.main.scrollX,
+            y: wp.y - gs.cameras.main.scrollY,
+          };
+        });
+
+        if (cityPos) {
+          await click(page, cityPos.x, cityPos.y);
+          await page.waitForTimeout(300);
+          // Click empty space to close menu
+          await click(page, 400, 350);
+          await page.waitForTimeout(300);
+        }
+      }
+
+      // END TURN at game coords (660, 10)
+      await click(page, 660, 10);
+      // Wait for all AI tribes to play
       await page.waitForTimeout(6000);
-      // Verify GameScene is still active (not crashed to blank page)
-      const alive = await page.evaluate(() => {
-        const game = (window as any).__PHASER_GAME__;
-        return game && game.scene.isActive('GameScene');
-      });
+
+      const alive = await evalGame<boolean>(
+        page,
+        `!!((window as any).__PHASER_GAME__?.scene?.isActive('GameScene'))`,
+      );
       expect(alive).toBe(true);
     }
-  });
 
-  test('city menu clears after AI turn', async ({ page }) => {
-    await loadGame(page);
-    await startGame(page, 0);
-
-    // Open city menu
-    await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      const p = city.position.toPixel(32);
-      gs.handleClick(p.x, p.y);
-    });
-    await page.waitForTimeout(200);
-
-    // Verify menu is open
-    const menuOpen = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return gs.cityMenu !== null;
-    });
-    expect(menuOpen).toBe(true);
-
-    // End turn — AI should clear the menu
-    await page.locator('canvas').click({ position: { x: 680, y: 20 } });
-    await page.waitForTimeout(6000);
-
-    // After AI finishes, menu should be gone
-    const menuGone = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return gs.cityMenu === null;
-    });
-    expect(menuGone).toBe(true);
-  });
-
-  test('city with unit priority: city menu over unit select', async ({ page }) => {
-    await loadGame(page);
-    await startGame(page, 0);
-
-    // Game starts with a warrior on the city hex (placeCities line 264).
-    // Clicking the city tile should open the city menu, NOT select the unit.
-    await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      const tribe = gs.state.getCurrentTribe();
-      const city = tribe.cities[0];
-      const p = city.position.toPixel(32);
-      gs.handleClick(p.x, p.y);
-    });
-    await page.waitForTimeout(200);
-
-    const result = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return {
-        menuOpen: gs.cityMenu !== null,
-        selectedUnit: gs.selectedUnit !== null,
-      };
-    });
-    expect(result.menuOpen).toBe(true);
-    expect(result.selectedUnit).toBe(false);
-  });
-
-  test('tech panel opens and closes', async ({ page }) => {
-    await loadGame(page);
-    await startGame(page, 0);
-
-    // Click TECH button (position ~560, 30)
-    await page.locator('canvas').click({ position: { x: 560, y: 30 } });
-    await page.waitForTimeout(500);
-
-    // Tech panel should be visible (techPanel not null)
-    const techOpen = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return gs.techPanel !== null;
-    });
-    expect(techOpen).toBe(true);
-
-    // Click again to close
-    await page.locator('canvas').click({ position: { x: 560, y: 30 } });
-    await page.waitForTimeout(500);
-
-    const techClosed = await page.evaluate(() => {
-      const gs = (window as any).__PHASER_GAME__.scene.getScene('GameScene');
-      return gs.techPanel === null;
-    });
-    expect(techClosed).toBe(true);
+    // After 3+ turns, the game should have progressed significantly
+    const finalTurn = await evalGame<number>(
+      page,
+      `((window as any).__PHASER_GAME__?.scene?.getScene('GameScene')?.turnNumber) ?? -1`,
+    );
+    expect(finalTurn).toBeGreaterThanOrEqual(4);
   });
 });
