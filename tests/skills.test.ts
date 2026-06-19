@@ -164,4 +164,83 @@ describe('Unit Skills — GDD §3.3', () => {
       expect(CombatSystem.canAttack(rider, enemy, tiles)).toBe(true);
     });
   });
+
+  describe('Stiff — GDD §3.3', () => {
+    it('Catapult has Stiff skill', () => {
+      const catapult = makeUnit(UnitType.CATAPULT, 'A', 0, 0);
+      expect(catapult.hasStiff).toBe(true);
+    });
+
+    it('Giant has Stiff skill', () => {
+      const giant = makeUnit(UnitType.GIANT, 'A', 0, 0);
+      expect(giant.hasStiff).toBe(true);
+    });
+
+    it('Bomber has Stiff skill', () => {
+      const bomber = makeUnit(UnitType.BOMBER, 'A', 0, 0);
+      expect(bomber.hasStiff).toBe(true);
+    });
+
+    it('Raft has Stiff skill', () => {
+      const raft = makeUnit(UnitType.RAFT, 'A', 0, 0);
+      expect(raft.hasStiff).toBe(true);
+    });
+
+    it('non-Stiff units do not have Stiff', () => {
+      const warrior = makeUnit(UnitType.WARRIOR, 'A', 0, 0);
+      const rider = makeUnit(UnitType.RIDER, 'A', 0, 0);
+      const knight = makeUnit(UnitType.KNIGHT, 'A', 0, 0);
+      expect(warrior.hasStiff).toBe(false);
+      expect(rider.hasStiff).toBe(false);
+      expect(knight.hasStiff).toBe(false);
+    });
+
+    it('attacking a Stiff unit deals no retaliation damage', () => {
+      const warrior = makeUnit(UnitType.WARRIOR, 'A', 0, 0);
+      const catapult = makeUnit(UnitType.CATAPULT, 'B', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+      const result = CombatSystem.executeAttack(warrior, catapult, tiles);
+      // Stiff defender: attacker takes 0 retaliation damage
+      expect(result.attackerDamage).toBe(0);
+      // But defender still takes normal damage
+      expect(result.defenderDamage).toBeGreaterThan(0);
+    });
+
+    it('attacking a non-Stiff unit deals normal retaliation', () => {
+      const warrior = makeUnit(UnitType.WARRIOR, 'A', 0, 0);
+      const defender = makeUnit(UnitType.DEFENDER, 'B', 1, 0);
+      const tiles = tileMap([
+        ['0,0', {}],
+        ['1,0', {}],
+      ]);
+      const result = CombatSystem.executeAttack(warrior, defender, tiles);
+      // Non-Stiff: attacker takes retaliation damage
+      expect(result.attackerDamage).toBeGreaterThan(0);
+      expect(result.defenderDamage).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Splash — GDD §3.3', () => {
+    it('Bomber has Splash skill', () => {
+      const bomber = makeUnit(UnitType.BOMBER, 'A', 0, 0);
+      expect(bomber.hasSplash).toBe(true);
+    });
+
+    it('non-Bomber units do not have Splash', () => {
+      const warrior = makeUnit(UnitType.WARRIOR, 'A', 0, 0);
+      const catapult = makeUnit(UnitType.CATAPULT, 'A', 0, 0);
+      expect(warrior.hasSplash).toBe(false);
+      expect(catapult.hasSplash).toBe(false);
+    });
+
+    it('calculateSplashDamage returns floor of half primary damage', () => {
+      expect(CombatSystem.calculateSplashDamage(10)).toBe(5);
+      expect(CombatSystem.calculateSplashDamage(7)).toBe(3);
+      expect(CombatSystem.calculateSplashDamage(1)).toBe(0);
+      expect(CombatSystem.calculateSplashDamage(0)).toBe(0);
+    });
+  });
 });

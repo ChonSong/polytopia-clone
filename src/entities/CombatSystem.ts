@@ -171,6 +171,7 @@ export class CombatSystem {
    * Returns the calculated damages without mutating the units.
    *
    * GDD §4.2 — Archer attacks apply poison (1 damage/turn for 3 turns).
+   * GDD §3.3 — Stiff: attacker takes no retaliation damage from Stiff defenders.
    */
   static executeAttack(
     attacker: Unit,
@@ -188,10 +189,13 @@ export class CombatSystem {
     const defenderDamage = CombatSystem.calculateDamage(attacker, defender, defenderTile, dist);
 
     // Counter-attack: defender strikes back if in melee range or if defender is also ranged
+    // GDD §3.3 — Stiff: attacker takes no retaliation damage from Stiff defenders
     let attackerDamage = 0;
     if (defender.isAlive) {
       if (dist === 1 || defender.ranged) {
-        attackerDamage = CombatSystem.calculateDamage(defender, attacker, attackerTile, dist);
+        if (!defender.hasStiff) {
+          attackerDamage = CombatSystem.calculateDamage(defender, attacker, attackerTile, dist);
+        }
       }
     }
 
@@ -230,6 +234,14 @@ export class CombatSystem {
   }
 
   /**
+   * GDD §3.3 — Splash damage for Bomber.
+   * Returns splash damage (floor of primary damage / 2) to apply to each adjacent enemy.
+   */
+  static calculateSplashDamage(primaryDamage: number): number {
+    return Math.floor(primaryDamage / 2);
+  }
+
+  /**
    * Check if a ranged attack has line of sight.
    * No MOUNTAIN tiles may exist between attacker and defender.
    */
@@ -257,5 +269,13 @@ export class CombatSystem {
     }
 
     return true;
+  }
+
+  /**
+   * GDD §3.3 — Splash damage for Bomber.
+   * Returns splash damage (floor of primary damage / 2) to apply to each adjacent enemy.
+   */
+  static calculateSplashDamage(primaryDamage: number): number {
+    return Math.floor(primaryDamage / 2);
   }
 }

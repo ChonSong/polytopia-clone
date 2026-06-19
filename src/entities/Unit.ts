@@ -210,6 +210,21 @@ export class Unit {
     return this.type === UnitType.KNIGHT;
   }
 
+  /** GDD §3.3 — Stiff: unit cannot move after attacking AND attacker takes no retaliation damage. */
+  get hasStiff(): boolean {
+    return (
+      this.type === UnitType.CATAPULT ||
+      this.type === UnitType.GIANT ||
+      this.type === UnitType.BOMBER ||
+      this.type === UnitType.RAFT
+    );
+  }
+
+  /** GDD §3.3 — Splash: Bomber deals half damage (rounded down) to all adjacent enemies after primary attack. */
+  get hasSplash(): boolean {
+    return this.type === UnitType.BOMBER;
+  }
+
   /** GDD §3.1 — Hide: Cloak can submerge to become invisible to non-adjacent enemies. */
   get hasHide(): boolean {
     return this.type === UnitType.CLOAK;

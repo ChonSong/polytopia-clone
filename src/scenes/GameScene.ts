@@ -538,6 +538,21 @@ export class GameScene extends Phaser.Scene {
           unit.takeDamage(r.attackerDamage);
           target.takeDamage(r.defenderDamage);
 
+          // GDD §3.3 — Splash: Bomber deals half damage to all adjacent enemies
+          if (unit.hasSplash && r.defenderDamage > 0) {
+            const splashDmg = CombatSystem.calculateSplashDamage(r.defenderDamage);
+            for (const adj of target.position.neighbors()) {
+              const adjUnit = this.findUnit(adj);
+              if (adjUnit && adjUnit.owner !== unit.owner && adjUnit.isAlive && adjUnit.id !== target.id) {
+                adjUnit.takeDamage(splashDmg);
+                if (!adjUnit.isAlive) {
+                  const adjOwner = this.findTribeForUnit(adjUnit.id);
+                  if (adjOwner) adjOwner.removeUnit(adjUnit.id);
+                }
+              }
+            }
+          }
+
           // GDD §3.3 — Escape: defender (Rider) retreats 1 tile when hit in melee
           if (target.hasEscape && target.isAlive) {
             const retreatDir = this.findRetreatDirection(target, unit);
@@ -565,6 +580,10 @@ export class GameScene extends Phaser.Scene {
             }
           }
           if (r.attackerKilled) tribe.removeUnit(unit.id);
+          // GDD §3.3 — Stiff: unit cannot move after attacking
+          if (unit.hasStiff) {
+            unit.hasActed = true;
+          }
         } else if (unit && p.targetType === 'city') {
           const city = this.findCity(targetPos);
           if (city) {
@@ -829,6 +848,21 @@ export class GameScene extends Phaser.Scene {
           this.selectedUnit.takeDamage(r.attackerDamage);
           cu.takeDamage(r.defenderDamage);
 
+          // GDD §3.3 — Splash: Bomber deals half damage to all adjacent enemies
+          if (this.selectedUnit.hasSplash && r.defenderDamage > 0) {
+            const splashDmg = CombatSystem.calculateSplashDamage(r.defenderDamage);
+            for (const adj of cu.position.neighbors()) {
+              const adjUnit = this.findUnit(adj);
+              if (adjUnit && adjUnit.owner !== this.selectedUnit.owner && adjUnit.isAlive && adjUnit.id !== cu.id) {
+                adjUnit.takeDamage(splashDmg);
+                if (!adjUnit.isAlive) {
+                  const adjOwner = this.findTribeForUnit(adjUnit.id);
+                  if (adjOwner) adjOwner.removeUnit(adjUnit.id);
+                }
+              }
+            }
+          }
+
           // GDD §3.3 — Escape: defender (Rider) retreats 1 tile when hit in melee
           if (cu.hasEscape && cu.isAlive) {
             const retreatDir = this.findRetreatDirection(cu, this.selectedUnit);
@@ -854,6 +888,11 @@ export class GameScene extends Phaser.Scene {
           if (r.attackerKilled) {
             this.humanTribe.removeUnit(this.selectedUnit.id);
             this.selectedUnit = null;
+          } else if (this.selectedUnit.hasStiff) {
+            // GDD §3.3 — Stiff: unit cannot move after attacking
+            this.selectedUnit.hasActed = true;
+            this.selectedUnit = null;
+            this.selectedHex = null;
           } else if (r.defenderKilled && this.selectedUnit.hasPersist) {
             // GDD §3.3 — Persist: Knight refreshes action on kill
             this.selectedUnit.hasAttacked = false;
