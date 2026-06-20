@@ -36,7 +36,11 @@ export interface TileData {
   road?: boolean;
   /** GDD §5.7 — Bridge built on this tile (aquatic). Halves movement cost on water. */
   bridge?: boolean;
+  /** GDD §5.2 — Building placed on this tile (Lumber Hut, Mine, Farm, etc.). */
+  building?: BuildingType;
 }
+
+import { BuildingType } from '../entities/Building';
 
 export const BiomeColors: Record<Biome, number> = {
   [Biome.GRASS]: 0x5a8f3c,

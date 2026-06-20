@@ -1367,7 +1367,8 @@ export class GameScene extends Phaser.Scene {
       items.push(label);
       if (affordable) {
         handlers.push(() => {
-          this.humanTribe.addUnit(new Unit(city.position, ut.type, this.humanTribe.id));
+          const spawnPos = this.findSpawnPosition(city);
+          this.humanTribe.addUnit(new Unit(spawnPos, ut.type, this.humanTribe.id));
           this.humanTribe.stars -= cost;
           this.hideCityMenu();
           this.renderAll(); this.updateUI();
@@ -1408,7 +1409,8 @@ export class GameScene extends Phaser.Scene {
       items.push('SUMMON GIANT (0⭐)  40HP 5⚔ 4🛡');
       handlers.push(() => {
         city.giantSpawned = true;
-        this.humanTribe.addUnit(new Unit(city.position, UnitType.GIANT, this.humanTribe.id));
+        const spawnPos = this.findSpawnPosition(city);
+        this.humanTribe.addUnit(new Unit(spawnPos, UnitType.GIANT, this.humanTribe.id));
         this.hideCityMenu();
         this.renderAll(); this.updateUI();
       });
@@ -1419,7 +1421,8 @@ export class GameScene extends Phaser.Scene {
       items.push('SUMMON GAAMI (0⭐)  30HP 5⚔ 3🛡 Mass Freeze');
       handlers.push(() => {
         city.giantSpawned = true;
-        this.humanTribe.addUnit(new Unit(city.position, UnitType.GAAMI, this.humanTribe.id));
+        const spawnPos = this.findSpawnPosition(city);
+        this.humanTribe.addUnit(new Unit(spawnPos, UnitType.GAAMI, this.humanTribe.id));
         this.hideCityMenu();
         this.renderAll(); this.updateUI();
       });
@@ -1459,29 +1462,44 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // --- BUILDINGS ---
-    const adjacentResources: Resource[] = [];
+    // --- BUILDINGS ON ADJACENT TILES (GDD §5.2) ---
+    const buildingMenuItems: { label: string; tileCoord: HexCoord; bt: BuildingType }[] = [];
     for (const n of city.position.neighbors()) {
       const t = this.tiles.get(n.toString());
-      if (t?.resource) adjacentResources.push(t.resource);
-    }
-    const buildableTypes = Object.values(BuildingType).filter(bt => {
-      // GDD §7.1 — Ice Bank is Polaris-only
-      if (bt === BuildingType.ICE_BANK && this.humanTribe.id !== 'polaris') return false;
-      // GDD §7.3 — Sanctuary is Elyrion-only
-      if (bt === BuildingType.SANCTUARY && this.humanTribe.id !== 'elyrion') return false;
-      return city.canBuild(bt, adjacentResources) && this.humanTribe.stars >= BUILDING_DEFS[bt].cost;
-    });
-    if (buildableTypes.length > 0) {
-      items.push('── BUILDINGS ──');
-      handlers.push(() => {}); // separator — no-op
-      for (const bt of buildableTypes) {
+      if (!t || !t.resource || t.building) continue;
+      for (const bt of Object.values(BuildingType)) {
         const def = BUILDING_DEFS[bt];
-        items.push(`${def.name} (${def.cost}⭐) +${def.popBonus}pop` + (def.starsBonus > 0 ? ` +${def.starsBonus}⭐/t` : ''));
+        // Roads/bridges handled in trade routes section below
+        if (bt === BuildingType.ROAD || bt === BuildingType.BRIDGE) continue;
+        // Tribe-specific restrictions
+        if (bt === BuildingType.ICE_BANK && this.humanTribe.id !== 'polaris') continue;
+        if (bt === BuildingType.SANCTUARY && this.humanTribe.id !== 'elyrion') continue;
+        if (bt === BuildingType.FUNGI_FARM && this.humanTribe.id !== 'cymanti') continue;
+        if (bt === BuildingType.MYCELIUM_NETWORK && this.humanTribe.id !== 'cymanti') continue;
+        if (bt === BuildingType.ALGAE_BRIDGE && this.humanTribe.id !== 'cymanti') continue;
+        // Must match the tile's resource, not yet built, and affordable
+        if (def.requiresResource !== t.resource) continue;
+        if (city.buildings.includes(bt)) continue;
+        if (this.humanTribe.stars < def.cost) continue;
+        buildingMenuItems.push({
+          label: `${def.name} on ${t.resource} (${n.q},${n.r}) — ${def.cost}⭐ +${def.popBonus}pop${def.starsBonus > 0 ? ` +${def.starsBonus}⭐/t` : ''}`,
+          tileCoord: n,
+          bt,
+        });
+      }
+    }
+    if (buildingMenuItems.length > 0) {
+      items.push('── BUILDINGS ON ADJACENT TILES ──');
+      handlers.push(() => {}); // separator
+      for (const bi of buildingMenuItems) {
+        items.push(bi.label);
         handlers.push(() => {
-          city.buildings.push(bt);
-          city.population += def.popBonus;
-          this.humanTribe.stars -= def.cost;
+          const tile = this.tiles.get(bi.tileCoord.toString());
+          if (tile) tile.building = bi.bt;
+          city.buildings.push(bi.bt);
+          const bdef = BUILDING_DEFS[bi.bt];
+          city.population += bdef.popBonus;
+          this.humanTribe.stars -= bdef.cost;
           this.hideCityMenu();
           this.renderAll(); this.updateUI();
         });
@@ -1646,6 +1664,20 @@ export class GameScene extends Phaser.Scene {
     this.selectedCity = null;
   }
 
+  /** Find the best adjacent tile to spawn a unit from a city. Returns the city position as fallback. */
+  private findSpawnPosition(city: City): HexCoord {
+    for (const n of city.position.neighbors()) {
+      const tile = this.tiles.get(n.toString());
+      if (!tile || tile.biome === Biome.WATER) continue;
+      const cc = this.findCity(n);
+      if (cc) continue;
+      const occupant = this.findUnit(n);
+      if (occupant) continue;
+      return n;
+    }
+    return city.position;
+  }
+
   private findUnit(c: HexCoord): Unit | null {
     for (const t of this.tribes) {
       for (const u of t.getAliveUnits()) {
@@ -1718,6 +1750,25 @@ export class GameScene extends Phaser.Scene {
       if (tile.bridge) {
         this.entityGraphics.lineStyle(2, 0x708090, 0.9);
         this.entityGraphics.lineBetween(pos.x - 5, pos.y + 4, pos.x + 5, pos.y + 4);
+      }
+      // GDD §5.2 — Building icon on the tile (small filled square)
+      if (tile.building) {
+        const buildingColors: Record<string, number> = {
+          [BuildingType.LUMBER_HUT]: 0x8B4513,
+          [BuildingType.MINE]: 0x708090,
+          [BuildingType.FARM]: 0xdaa520,
+          [BuildingType.PORT]: 0x3b7dbd,
+          [BuildingType.ICE_BANK]: 0xb0e0e6,
+          [BuildingType.FUNGI_FARM]: 0x9b59b6,
+          [BuildingType.MYCELIUM_NETWORK]: 0x7d3c98,
+          [BuildingType.ALGAE_BRIDGE]: 0x2ecc71,
+          [BuildingType.SANCTUARY]: 0x27ae60,
+        };
+        const bcolor = buildingColors[tile.building] ?? 0x888;
+        this.entityGraphics.fillStyle(bcolor, 0.9);
+        this.entityGraphics.fillRect(pos.x - 3, pos.y + 3, 6, 6);
+        this.entityGraphics.lineStyle(1, 0x000, 0.5);
+        this.entityGraphics.strokeRect(pos.x - 3, pos.y + 3, 6, 6);
       }
     }
 
