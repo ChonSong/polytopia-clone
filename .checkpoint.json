@@ -47,7 +47,8 @@
     {"task": "gdd-10.2-cymanti-tribe", "sha": "9e9c2c0", "date": "2026-06-19", "summary": "Complete Cymanti tribe: Centipede/Hexapods/Doomux units, Fungiculture/Mycelium/Hydrology/Venom techs, Fungi Farm/Mycelium Network/Algae Bridge buildings, Venom ×0.7 defense penalty, 15 new tests (415 total)", "coach": "approved"},
     {"task": "gdd-10.3-elyrion-tribe", "sha": "a4b9f13", "date": "2026-06-19", "summary": "Complete Elyrion tribe: Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay, 15 new tests (430 total)", "coach": "human"},
     {"task": "update-gdd-gaps-section", "sha": "25857c3", "date": "2026-06-20", "summary": "Audit GDD §9 gaps section against codebase — update 30+ incorrect [ ] markers to [x] for implemented features (Stiff, Splash, Cloak, Mind Bender, Battle preview, Fog retaliation, Naval, Border, Explorer, Trade routes, Map gen, Tech tree, Tribes). Only remaining [ ] is scoring extensions (deferred per GDD §1).", "coach": "approved"},
-    {"task": "fix-7-tribe-positions", "sha": "HEAD", "date": "2026-06-20", "summary": "Fix GameScene.create crash: TRIBE_CONFIGS grew to 7 tribes but placeCities only allocated 4 starting positions, causing p.toString() on undefined. Added 3 more positions for Polaris/Cymanti/Elyrion. 430 tests still passing.", "coach": "auto"}
+    {"task": "fix-7-tribe-positions", "sha": "HEAD", "date": "2026-06-20", "summary": "Fix GameScene.create crash: TRIBE_CONFIGS grew to 7 tribes but placeCities only allocated 4 starting positions, causing p.toString() on undefined. Added 3 more positions for Polaris/Cymanti/Elyrion. 430 tests still passing.", "coach": "auto"},
+    {"task": "gdd-5.5-building-placement-on-resource-tiles", "sha": "fd7e02b", "date": "2026-06-20", "summary": "Buildings placed on specific resource tiles matching requiresResource. Units spawn on adjacent non-water unoccupied tiles via findSpawnPosition(). Building icons rendered on tiles. 430 tests pass.", "coach": "approved"}
   ],
   "health": "430_pass_0_error_0_fail",
   "last_sha": "a4b9f13",
@@ -57,9 +58,9 @@
     {"item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)", "type": "missing_feature", "priority": 3, "evidence": "GDD §3.5 — not in code"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "168710ada6b98e8f6534c35f4610a9ab501253f4",
-    "last_reviewed_at": "2026-06-20T10:07:00Z",
+    "last_reviewed_sha": "fd7e02bc9f360dc7073fb6ce9aa0a76db739c67a",
+    "last_reviewed_at": "2026-06-20T11:08:00Z",
     "verdict": "approved",
-    "notes": "Reviewed 3 unreviewed commits (678a22a, 25857c3, 168710a). 168710a fixes GameScene.create crash: 7 tribes but only 4 starting positions. Added 3 positions for Polaris/Cymanti/Elyrion. 430 tests pass. E2E tests improved with page.mouse.click and dynamic card picking. Live site 200. All approved."
+    "notes": "Reviewed fd7e02b — GDD §5.5 building placement on resource tiles + unit spawn on adjacent tiles. Buildings now match requiresResource to tile resource. findSpawnPosition() finds non-water unoccupied adjacent tile. Building icons rendered on tiles. 430 tests pass. Live site 200. Approved."
   }
 }
