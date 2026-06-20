@@ -289,7 +289,11 @@ export class GameScene extends Phaser.Scene {
       const p = pos[i];
       const cfg = TRIBE_CONFIGS[i];
       this.tribes[i].addCity(new City(p, cfg.name, cfg.id));
-      this.tribes[i].addUnit(new Unit(p, UnitType.WARRIOR, cfg.id));
+      // GDD §5.1 — Place starting warrior on adjacent empty tile, not on city tile,
+      // so clicking the city opens the menu instead of selecting the unit
+      const city = this.tribes[i].cities[0];
+      const spawn = this.findSpawnPosition(city);
+      this.tribes[i].addUnit(new Unit(spawn, UnitType.WARRIOR, cfg.id));
       // Mark the city tile for defense bonus calculations
       const tile = this.tiles.get(p.toString());
       if (tile) tile.city = true;
