@@ -57,9 +57,9 @@
     {"item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)", "type": "missing_feature", "priority": 3, "evidence": "GDD §3.5 — not in code"}
   ],
   "coach_review": {
-    "last_reviewed_sha": "a4b9f13",
-    "last_reviewed_at": "2026-06-19T23:55:00Z",
+    "last_reviewed_sha": "168710ada6b98e8f6534c35f4610a9ab501253f4",
+    "last_reviewed_at": "2026-06-20T10:07:00Z",
     "verdict": "approved",
-    "notes": "Approved gdd-10.3-elyrion-tribe. All 430 tests pass. Project is feature-complete for GDD scope."
+    "notes": "Reviewed 3 unreviewed commits (678a22a, 25857c3, 168710a). 168710a fixes GameScene.create crash: 7 tribes but only 4 starting positions. Added 3 positions for Polaris/Cymanti/Elyrion. 430 tests pass. E2E tests improved with page.mouse.click and dynamic card picking. Live site 200. All approved."
   }
 }
