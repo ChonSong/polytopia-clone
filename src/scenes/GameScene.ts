@@ -50,6 +50,7 @@ export class GameScene extends Phaser.Scene {
   private healBtn: Phaser.GameObjects.Text | null = null;
   private submergeBtn: Phaser.GameObjects.Text | null = null;
   private emergeBtn: Phaser.GameObjects.Text | null = null;
+  private infiltrateBtn: Phaser.GameObjects.Text | null = null;
   private enchantBtn: Phaser.GameObjects.Text | null = null;
   private isAiRunning = false;
   private currentPhase = 0; // index into PHASE_ORDER
@@ -220,6 +221,20 @@ export class GameScene extends Phaser.Scene {
     this.emergeBtn.on('pointerover', () => this.emergeBtn!.setStyle({ backgroundColor: '#355' }));
     this.emergeBtn.on('pointerout', () => this.emergeBtn!.setStyle({ backgroundColor: '#233' }));
     this.emergeBtn.setVisible(false);
+
+    // GDD §3.5 — Infiltrate button (Cloak) — camera-fixed
+    this.infiltrateBtn = this.add.text(440, 100, '[ INFILTRATE ]', {
+      fontSize: '14px', color: '#f88', fontFamily: 'monospace',
+      backgroundColor: '#332', padding: { x: 6, y: 4 }
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.infiltrateBtn.on('pointerdown', () => {
+      if (!this.isAiRunning && this.selectedUnit && this.selectedUnit.hasInfiltrate && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged && this.selectedUnit.primedForInfiltrate) {
+        this.performInfiltrate(this.selectedUnit);
+      }
+    });
+    this.infiltrateBtn.on('pointerover', () => this.infiltrateBtn!.setStyle({ backgroundColor: '#533' }));
+    this.infiltrateBtn.on('pointerout', () => this.infiltrateBtn!.setStyle({ backgroundColor: '#332' }));
+    this.infiltrateBtn.setVisible(false);
 
     // GDD §7.3 — Enchantment button (Elyrion) — camera-fixed
     const enchantBtn = this.add.text(560, 10, '[ ENCHANT ]', {
@@ -504,6 +519,15 @@ export class GameScene extends Phaser.Scene {
         }
       }
     }
+
+    // GDD §3.5 — Process pending Dagger spawns before priming
+    const spawned = this.state.processDaggerSpawns(cur.id);
+    if (spawned.length > 0) {
+      this.setStatus(`⚔ ${spawned.length} Dagger(s) spawned inside infiltrated cities!`);
+    }
+
+    // GDD §3.5 — Prime Cloaks that have been submerged adjacent to an enemy city
+    this.state.primeCloaksForInfiltrate(cur.id);
 
     // GDD §7.1 — Polaris freeze mechanic: Mooni auto-freezes adjacent tiles, Gaami mass-freeze
     this.applyPolarisFreeze(cur);
@@ -1951,6 +1975,10 @@ export class GameScene extends Phaser.Scene {
     if (this.emergeBtn) {
       this.emergeBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged);
     }
+    // Infiltrate button: show when a Cloak is selected, hasn't acted, submerged, and primed
+    if (this.infiltrateBtn) {
+      this.infiltrateBtn.setVisible(!!this.selectedUnit && this.selectedUnit.hasInfiltrate && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged && this.selectedUnit.primedForInfiltrate);
+    }
     // Enchantment button: show when a Polytaur is selected and hasn't acted
     if (this.enchantBtn) {
       const showEnchant = !!this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed;
@@ -2027,6 +2055,25 @@ export class GameScene extends Phaser.Scene {
 
     mindBender.hasActed = true;
     this.setStatus(`Healed ${healed} adjacent friendly unit(s) for +4 HP.`);
+    this.selectedUnit = null;
+    this.selectedHex = null;
+    this.renderAll();
+    this.updateUI();
+  }
+
+  /**
+   * GDD §3.5 — Infiltrate: Cloak infiltrates an adjacent enemy city.
+   * The Cloak is consumed, and a Dagger spawns inside the city on the next turn.
+   */
+  private performInfiltrate(cloak: Unit): void {
+    const cur = this.state.getCurrentTribe();
+    if (cur.id !== cloak.owner) return;
+    const city = this.state.performInfiltrate(cloak);
+    if (!city) {
+      this.setStatus('No adjacent enemy city to infiltrate.');
+      return;
+    }
+    this.setStatus(`Infiltrated ${city.name}! Dagger will spawn next turn.`);
     this.selectedUnit = null;
     this.selectedHex = null;
     this.renderAll();

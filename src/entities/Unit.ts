@@ -18,6 +18,8 @@ export enum UnitType {
   // GDD §3.1 — Special units
   CLOAK    = 'CLOAK',
   MIND_BENDER = 'MIND_BENDER',
+  // GDD §3.5 — Infiltrate Dagger
+  DAGGER   = 'DAGGER',
   // GDD §7.1 — Polaris tribe units
   MOONI      = 'MOONI',
   BATTLE_SLED = 'BATTLE_SLED',
@@ -60,6 +62,8 @@ export const UNIT_COSTS: Record<UnitType, number> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     8,
   [UnitType.MIND_BENDER]: 5,
+  // GDD §3.5 — Infiltrate Dagger (not trainable, spawned by Infiltrate)
+  [UnitType.DAGGER]:    0,
   // GDD §7.1 — Polaris tribe unit costs
   [UnitType.MOONI]:      3,
   [UnitType.BATTLE_SLED]: 8,
@@ -94,6 +98,8 @@ export const UNIT_MAX_HEALTH: Record<UnitType, number> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:     5,
   [UnitType.MIND_BENDER]: 10,
+  // GDD §3.5 — Infiltrate Dagger
+  [UnitType.DAGGER]:    3,
   // GDD §7.1 — Polaris tribe unit health
   [UnitType.MOONI]:      8,
   [UnitType.BATTLE_SLED]: 12,
@@ -128,6 +134,8 @@ export const UNIT_BASE_STATS: Record<UnitType, UnitStats> = {
   // GDD §3.1 — Special units
   [UnitType.CLOAK]:    { attack: 0, defense: 0.5, movementRange: 2, canAttackAfterMove: true, ranged: false },
   [UnitType.MIND_BENDER]: { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
+  // GDD §3.5 — Infiltrate Dagger
+  [UnitType.DAGGER]:   { attack: 2, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
   // GDD §7.1 — Polaris tribe unit stats
   [UnitType.MOONI]:      { attack: 0, defense: 1, movementRange: 1, canAttackAfterMove: true, ranged: false },
   [UnitType.BATTLE_SLED]: { attack: 3, defense: 2, movementRange: 3, canAttackAfterMove: true, ranged: false },
@@ -193,6 +201,11 @@ export class Unit {
    * GDD §3.1 — Cloak submerge state. When true, unit is hidden from non-adjacent enemies.
    */
   public isSubmerged: boolean;
+  /**
+   * GDD §3.5 — Whether this Cloak has been submerged adjacent to an enemy city
+   * for at least one full turn, making Infiltrate available.
+   */
+  public primedForInfiltrate: boolean;
 
   constructor(
     public position: HexCoord,
@@ -212,6 +225,7 @@ export class Unit {
     this.maxHPBonus = 0;
     this.poisonTurns = 0;
     this.isSubmerged = false;
+    this.primedForInfiltrate = false;
   }
 
   get stats(): UnitStats {
@@ -279,6 +293,11 @@ export class Unit {
 
   /** GDD §3.1 — Hide: Cloak can submerge to become invisible to non-adjacent enemies. */
   get hasHide(): boolean {
+    return this.type === UnitType.CLOAK;
+  }
+
+  /** GDD §3.5 — Infiltrate: Cloak that has been submerged adjacent to an enemy city for 1 turn can infiltrate. */
+  get hasInfiltrate(): boolean {
     return this.type === UnitType.CLOAK;
   }
 

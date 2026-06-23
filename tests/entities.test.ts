@@ -1868,3 +1868,179 @@ describe('GDD §7.3 — Elyrion Tribe', () => {
     expect(series).toContain(TechId.PROPHECY);
   });
 });
+
+// ---------------------------------------------------------------------------
+// GDD §3.5 — Cloak Infiltration / Dagger
+// ---------------------------------------------------------------------------
+describe('Dagger unit', () => {
+  it('exists with correct stats', () => {
+    const dagger = new Unit(coord(0, 0), UnitType.DAGGER, 'test');
+    expect(dagger.type).toBe(UnitType.DAGGER);
+    expect(dagger.attack).toBe(2);
+    expect(dagger.defense).toBe(1);
+    expect(dagger.movementRange).toBe(1);
+    expect(dagger.ranged).toBe(false);
+    expect(dagger.canAttackAfterMove).toBe(true);
+  });
+
+  it('has 3 HP', () => {
+    const dagger = new Unit(coord(0, 0), UnitType.DAGGER, 'test');
+    expect(dagger.health).toBe(3);
+    expect(dagger.maxHealth).toBe(3);
+  });
+
+  it('costs 0 stars (not trainable, spawned by Infiltrate)', () => {
+    expect(UNIT_COSTS[UnitType.DAGGER]).toBe(0);
+  });
+
+  it('is not a naval unit', () => {
+    const dagger = new Unit(coord(0, 0), UnitType.DAGGER, 'test');
+    expect(dagger.isNaval).toBe(false);
+  });
+
+  it('starts with primedForInfiltrate = false', () => {
+    const dagger = new Unit(coord(0, 0), UnitType.DAGGER, 'test');
+    expect(dagger.primedForInfiltrate).toBe(false);
+  });
+});
+
+describe('Cloak Infiltrate mechanics', () => {
+  it('Cloak has Infiltrate skill', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.hasInfiltrate).toBe(true);
+  });
+
+  it('starts with primedForInfiltrate = false', () => {
+    const cloak = new Unit(coord(0, 0), UnitType.CLOAK, 'test');
+    expect(cloak.primedForInfiltrate).toBe(false);
+  });
+
+  it('primeCloaksForInfiltrate does not prime without Diplomacy tech', () => {
+    const tribeA = createTestTribe();
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    // Cloak submerged adjacent to enemy city
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = true;
+    tribeA.units.push(cloak);
+    // tribeA does NOT have Diplomacy
+
+    state.primeCloaksForInfiltrate(tribeA.id);
+    expect(cloak.primedForInfiltrate).toBe(false);
+  });
+
+  it('primeCloaksForInfiltrate primes submerged Cloak adjacent to enemy city with Diplomacy', () => {
+    const tribeA = createTestTribe();
+    tribeA.researchTech(TechId.DIPLOMACY);
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    // Cloak submerged adjacent to enemy city
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = true;
+    tribeA.units.push(cloak);
+
+    state.primeCloaksForInfiltrate(tribeA.id);
+    expect(cloak.primedForInfiltrate).toBe(true);
+  });
+
+  it('primeCloaksForInfiltrate does NOT prime non-submerged Cloak', () => {
+    const tribeA = createTestTribe();
+    tribeA.researchTech(TechId.DIPLOMACY);
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = false; // not submerged
+    tribeA.units.push(cloak);
+
+    state.primeCloaksForInfiltrate(tribeA.id);
+    expect(cloak.primedForInfiltrate).toBe(false);
+  });
+
+  it('primeCloaksForInfiltrate does NOT prime Cloak not adjacent to enemy city', () => {
+    const tribeA = createTestTribe();
+    tribeA.researchTech(TechId.DIPLOMACY);
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(5, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = true;
+    tribeA.units.push(cloak);
+
+    state.primeCloaksForInfiltrate(tribeA.id);
+    expect(cloak.primedForInfiltrate).toBe(false);
+  });
+
+  it('performInfiltrate consumes Cloak and schedules Dagger spawn', () => {
+    const tribeA = createTestTribe();
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = true;
+    cloak.primedForInfiltrate = true;
+    tribeA.units.push(cloak);
+
+    const result = state.performInfiltrate(cloak);
+    expect(result).not.toBeNull();
+    expect(result!.id).toBe(city.id);
+    // Cloak should be removed
+    expect(tribeA.units.length).toBe(0);
+    // Dagger spawn scheduled
+    expect(state.pendingDaggerSpawns.has(city.id)).toBe(true);
+    expect(state.pendingDaggerSpawns.get(city.id)).toBe(tribeA.id);
+  });
+
+  it('performInfiltrate returns null when Cloak is not primed', () => {
+    const tribeA = createTestTribe();
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    const cloak = new Unit(coord(1, 0), UnitType.CLOAK, tribeA.id);
+    cloak.isSubmerged = true;
+    cloak.primedForInfiltrate = false; // not primed!
+    tribeA.units.push(cloak);
+
+    const result = state.performInfiltrate(cloak);
+    expect(result).toBeNull();
+    // Cloak not removed
+    expect(tribeA.units.length).toBe(1);
+    expect(state.pendingDaggerSpawns.size).toBe(0);
+  });
+
+  it('processDaggerSpawns creates a Dagger in the infiltrated city', () => {
+    const tribeA = createTestTribe();
+    const tribeB = createTestTribe({ id: 'tribeB', name: 'TribeB', color: 0xff0000 });
+    const state = new GameState([tribeA, tribeB]);
+    const city = new City(coord(2, 0), 'EnemyCity', tribeB.id);
+    tribeB.cities.push(city);
+
+    // Schedule a Dagger spawn
+    state.pendingDaggerSpawns.set(city.id, tribeA.id);
+
+    const spawned = state.processDaggerSpawns(tribeA.id);
+    expect(spawned.length).toBe(1);
+    expect(spawned[0].type).toBe(UnitType.DAGGER);
+    expect(spawned[0].owner).toBe(tribeA.id);
+    expect(spawned[0].hasActed).toBe(false); // can attack immediately
+    expect(spawned[0].position.toString()).toBe(city.position.toString());
+    // Dagger should be in tribeA's units
+    expect(tribeA.units).toContain(spawned[0]);
+    // Pending spawn should be cleared
+    expect(state.pendingDaggerSpawns.size).toBe(0);
+  });
+});

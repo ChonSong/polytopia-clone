@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-city-menu-stays-on-screen-after-scroll",
+  "current_task": "gdd-3.5-cloak-infiltration-dagger",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -338,10 +338,17 @@
       "date": "2026-06-24",
       "summary": "Fix tech panel text overlap: filter tribe-specific series for non-matching tribes (7 series for base, 8 for tribal), split into 2 rows when >5 series so each column is ≥120px (was 60px). Panel height adapts dynamically. 430 tests pass.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-city-menu-stays-on-screen-after-scroll",
+      "sha": "37d54d2",
+      "date": "2026-06-24",
+      "summary": "Fix city menu scroll drift: add setScrollFactor(0) to text objects in showCityMenu() so the menu stays at its computed screen position instead of drifting when camera scrolls. 430 tests pass.",
+      "coach": "pending"
     }
   ],
   "health": "430_pass_0_error_0_fail",
-  "last_sha": "c10adae",
+  "last_sha": "37d54d2",
   "blocker": null,
   "spec_gaps": [
     {
@@ -355,12 +362,6 @@
       "type": "missing_feature",
       "priority": 3,
       "evidence": "GDD §3.5 — not in code"
-    },
-    {
-      "item": "City menu detaches from city on camera scroll",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "showCityMenu() text objects lack setScrollFactor(0)"
     }
   ],
   "coach_review": {
