@@ -2058,9 +2058,9 @@ describe('GDD §5.7 Grand Bazaar score in calcScore', () => {
     const score = computeTribeScore(tribe);
     // Xin-xi starts with 1 tech (RIDING) → +50 techScore
     // cityScore: 2 × 100 = 200
-    // levelScore: (1 × 20) + (2 × 20) = 60
+    // levelScore: ((1-1) × 50) + ((2-1) × 50) = 50
     // grandBazaarScore: 2 × 400 = 800
-    expect(score).toBe(200 + 50 + 60 + 800);
+    expect(score).toBe(200 + 50 + 50 + 800);
   });
 
   it('city without Grand Bazaar contributes 0 grandBazaar score', () => {
@@ -2072,7 +2072,67 @@ describe('GDD §5.7 Grand Bazaar score in calcScore', () => {
     const score = computeTribeScore(tribe);
     // Xin-xi starts with 1 tech (RIDING) → +50 techScore
     // cityScore: 1 × 100 = 100
-    // levelScore: 1 × 20 = 20
-    expect(score).toBe(100 + 50 + 20);
+    // levelScore: (1-1) × 50 = 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+});
+
+describe('GDD §1.2 level score formula', () => {
+  it('L1 city contributes 0 level score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    tribe.cities.push(city);
+    const score = computeTribeScore(tribe);
+    // levelScore: (1-1) × 50 = 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+
+  it('L2 city contributes 50 level score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 2, 1);
+    tribe.cities.push(city);
+    const score = computeTribeScore(tribe);
+    // levelScore: (2-1) × 50 = 50
+    expect(score).toBe(100 + 50 + 50);
+  });
+
+  it('L3 city contributes 100 level score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
+    tribe.cities.push(city);
+    const score = computeTribeScore(tribe);
+    // levelScore: (3-1) × 50 = 100
+    expect(score).toBe(100 + 50 + 100);
+  });
+
+  it('L4 city contributes 150 level score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 4, 1);
+    tribe.cities.push(city);
+    const score = computeTribeScore(tribe);
+    // levelScore: (4-1) × 50 = 150
+    expect(score).toBe(100 + 50 + 150);
+  });
+
+  it('L5 city contributes 200 level score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 5, 1);
+    tribe.cities.push(city);
+    const score = computeTribeScore(tribe);
+    // levelScore: (5-1) × 50 = 200
+    expect(score).toBe(100 + 50 + 200);
+  });
+
+  it('multiple cities at different levels sum correctly', () => {
+    const tribe = createTestTribe();
+    tribe.cities.push(
+      new City(coord(0, 0), 'L1', tribe.id, 1, 1),
+      new City(coord(1, 0), 'L3', tribe.id, 3, 1),
+      new City(coord(2, 0), 'L5', tribe.id, 5, 1),
+    );
+    const score = computeTribeScore(tribe);
+    // levelScore: 0 + 100 + 200 = 300
+    // cityScore: 3 × 100 = 300
+    expect(score).toBe(300 + 50 + 300);
   });
 });

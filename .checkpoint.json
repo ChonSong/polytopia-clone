@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-grand-bazaar-score",
+  "current_task": "fix-level-score-formula",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -359,10 +359,17 @@
       "date": "2026-06-24",
       "summary": "Mark Park scoring as [x] in GDD.md §9. Changed [ ] to [x] with confirmation note. Verified calcScore() has parkScore (hasPark = +250/city). Confirmed 4 remaining [ ] items (Territorial/Exploration/Monument/Temple scoring) are genuinely deferred per GDD §1. All 444 tests pass. Deployed + live 200.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-grand-bazaar-score",
+      "sha": "c3aaf4d",
+      "date": "2026-06-24",
+      "summary": "Add Grand Bazaar +400 score to calcScore(). Extract scoring logic into pure computeTribeScore() in ScoreCalculator.ts so testable without Phaser. 2 new tests verify grand bazaar stacking and zero contribution. 446 tests pass. Deployed + live 200.",
+      "coach": "approved"
     }
   ],
-  "health": "444_pass_0_error_0_fail",
-  "last_sha": "6993877",
+  "health": "446_pass_0_error_0_fail",
+  "last_sha": "c3aaf4d",
   "blocker": null,
   "spec_gaps": [
     {
@@ -373,9 +380,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "6993877",
-    "last_reviewed_at": "2026-06-24T06:10:00Z",
+    "last_reviewed_sha": "c3aaf4d",
+    "last_reviewed_at": "2026-06-24T06:40:00Z",
     "verdict": "approved",
-    "notes": "gdd-9-fix-park-scoring-status: APPROVED. Single-line GDD.md change: - [ ] Park scoring → - [x] Park scoring. Verified: grep shows [x], calcScore() has parkScore (hasPark = +250/city), 444/444 tests pass, site live 200. Remaining 4 [ ] are genuinely deferred per GDD §1. Security: no new deps/endpoints. YAGNI: docs-only. Perf: N/A. **Backlog now empty — generated 2 new tasks** (fix-grand-bazaar-score, fix-level-score-formula) from code review findings."
+    "notes": "fix-grand-bazaar-score: APPROVED. Created ScoreCalculator.ts with computeTribeScore() including grandBazaarScore (+400 per city with hasGrandBazaar). GameScene.calcScore() delegates to it. 2 new tests verify stacking (2 cities = +800) and zero contribution. 446/446 tests pass. Security: no new deps/endpoints. YAGNI: extraction into pure function improves testability — appropriate. Perf: N/A (Phaser game, no SQL). Live site: 200 OK, 0 console errors, canvas renders, deployed bundle includes grandBazaar=400 logic. **Backlog: 1 remaining (fix-level-score-formula)**. Deploy note: stale serve process on port 3001 from 06:16 not killed before systemd restart — systemd vite preview fell back to port 3002. Both serve updated code."
   }
 }
