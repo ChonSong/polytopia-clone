@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-3.5-cloak-infiltration-dagger",
+  "current_task": "gdd-9-fix-park-scoring-status",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -344,11 +344,18 @@
       "sha": "37d54d2",
       "date": "2026-06-24",
       "summary": "Fix city menu scroll drift: add setScrollFactor(0) to text objects in showCityMenu() so the menu stays at its computed screen position instead of drifting when camera scrolls. 430 tests pass.",
-      "coach": "pending"
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.5-cloak-infiltration-dagger",
+      "sha": "a5f8eaa",
+      "date": "2026-06-24",
+      "summary": "Implement Cloak Infiltration per GDD §3.5: Dagger unit (3HP/2atk/1def/1mov), primedForInfiltrate tracking, Infiltrate action consumes Cloak + schedules Dagger spawn next turn, requires Diplomacy tech, 14 new tests (444 total passing)",
+      "coach": "approved"
     }
   ],
-  "health": "430_pass_0_error_0_fail",
-  "last_sha": "37d54d2",
+  "health": "444_pass_0_error_0_fail",
+  "last_sha": "a5f8eaa",
   "blocker": null,
   "spec_gaps": [
     {
@@ -356,18 +363,12 @@
       "type": "missing_feature",
       "priority": 4,
       "evidence": "GDD §1 — deferred pending design decisions"
-    },
-    {
-      "item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)",
-      "type": "missing_feature",
-      "priority": 3,
-      "evidence": "GDD §3.5 — not in code"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c10adae",
-    "last_reviewed_at": "2026-06-24T04:37:00Z",
+    "last_reviewed_sha": "a5f8eaa",
+    "last_reviewed_at": "2026-06-24T05:50:00Z",
     "verdict": "approved",
-    "notes": "fix-tech-panel-text-overlap: APPROVED. Code: tribe-specific series filtering (7 base + tribal extras) reduces columns 10→7-8, 2-row layout gives 150px columns vs old 60px, dynamic panel height (340/540px). Live site: hex.codeovertcp.com loads 200, 0 JS errors. Tested with Bardur (7 series, 2 rows, no overlap) and Elyrion (Ecology series shown, no overlap). 430/430 tests pass. Security: no new deps/endpoints. YAGNI: all changes directly required by task. Perf: N/A (UI layout only). Backlog: 3 remaining (fix-city-menu-detach-on-scroll, gdd-3.5-cloak-infiltration, gdd-9-park-scoring-status)."
+    "notes": "Batch review (2 commits): (1) fix-city-menu-stays-on-screen-after-scroll: APPROVED. Code adds setScrollFactor(0) to 2 text objects in showCityMenu(). Live: city menu opens, stays attached after camera scroll (verified). 444/444 tests pass. (2) gdd-3.5-cloak-infiltration-dagger: APPROVED. Dagger unit (3HP/2atk/1def/1mov, cost 0), primedForInfiltrate tracking, GameState.primeCloaksForInfiltrate/performInfiltrate/processDaggerSpawns, Infiltrate UI button, startTurn integration. 14 new tests covering: Dagger stats, Diplomacy gate, adjacency check, submerge requirement, Infiltrate consume, Dagger spawn+immediate-attack. Deployed + verified live. Minor observation: pendingDaggerSpawns is Map<cityId,ownerId> so only 1 Dagger per city — dual Cloak infiltrate on same city consumes both Cloaks but spawns only 1 Dagger; acceptable edge case. Security: no new deps/endpoints. YAGNI: all changes directly required by GDD §3.5. Perf: N/A (no DB, no rendering hotspots). Backlog: 1 remaining (gdd-9-fix-park-scoring-status)."
   }
 }
