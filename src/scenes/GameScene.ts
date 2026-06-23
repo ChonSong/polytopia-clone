@@ -1242,10 +1242,29 @@ export class GameScene extends Phaser.Scene {
     const numCities = cur.cities.filter(c => !c.captured).length;
     const techGroup = this.add.group();
 
+    // Filter series based on current tribe — exclude tribe-specific series that don't match
+    const BASE_SERIES = new Set(['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture']);
+    const TRIBE_EXTRA: Record<string, string[]> = {
+      polaris: ['frostwork'],
+      cymanti: ['fungiculture'],
+      elyrion: ['ecology'],
+    };
+    const extra = TRIBE_EXTRA[cur.id] ?? [];
+    const seriesKeys = TECH_SERIES_ORDER.filter(s => BASE_SERIES.has(s) || extra.includes(s));
+
+    // Layout: split into 2 rows when >5 series so each column is ≥120px
+    const total = seriesKeys.length;
+    const twoRows = total > 5;
+    const colsPerRow = twoRows ? Math.ceil(total / 2) : total;
+    const colW = Math.min(220, Math.floor(600 / colsPerRow));
+    const startX = Math.max(80, Math.floor((720 - colsPerRow * colW) / 2));
+    const rowGap = 230;
+    const panelH = twoRows ? 540 : 340;
+
     // Background panel
     const bg = this.add.graphics().setScrollFactor(0).setDepth(28);
     bg.fillStyle(0x111, 0.92);
-    bg.fillRoundedRect(60, 40, 680, 520, 8);
+    bg.fillRoundedRect(60, 40, 680, panelH, 8);
     techGroup.add(bg);
 
     const style = { fontSize: '14px', color: '#eee', fontFamily: 'monospace' };
@@ -1258,26 +1277,23 @@ export class GameScene extends Phaser.Scene {
     const title = this.add.text(300, 48, '— RESEARCH —', titleStyle).setScrollFactor(0).setDepth(29);
     techGroup.add(title);
 
-    // Series columns — dynamically sized
-    const seriesKeys = TECH_SERIES_ORDER;
-    const colW = Math.min(220, Math.floor(600 / seriesKeys.length));
-    const startX = Math.max(80, Math.floor((720 - seriesKeys.length * colW) / 2));
+    // Render series — each at its row/column position
     seriesKeys.forEach((series, si) => {
-      const seriesTechs = TECH_DEFS;
-      const tierIds: TechId[] = (() => {
-        const ids: TechId[] = [];
-        for (const def of Object.values(seriesTechs)) {
-          if (def.series === series) ids.push(def.id);
-        }
-        // Sort by tier ascending
-        ids.sort((a, b) => seriesTechs[a].tier - seriesTechs[b].tier);
-        return ids;
-      })();
+      const rowIdx = twoRows ? Math.floor(si / colsPerRow) : 0;
+      const colIdx = si % colsPerRow;
+      const yBase = rowIdx * rowGap;
 
       // Series header
-      const header = this.add.text(startX + si * colW, 80, series.toUpperCase(), headerStyle)
+      const header = this.add.text(startX + colIdx * colW, 80 + yBase, series.toUpperCase(), headerStyle)
         .setScrollFactor(0).setDepth(29);
       techGroup.add(header);
+
+      // Gather techs in this series, sorted by tier
+      const tierIds: TechId[] = [];
+      for (const def of Object.values(TECH_DEFS)) {
+        if (def.series === series) tierIds.push(def.id);
+      }
+      tierIds.sort((a, b) => TECH_DEFS[a].tier - TECH_DEFS[b].tier);
 
       // Tiers
       tierIds.forEach((techId, tierIdx) => {
@@ -1286,19 +1302,19 @@ export class GameScene extends Phaser.Scene {
         const prereqs = def.prerequisites.every(p => cur.hasTech(p));
         const canResearch = !owned && prereqs;
 
-        const y = 108 + tierIdx * 50;
+        const y = 108 + yBase + tierIdx * 50;
         const cost = techCost(def.tier, numCities);
 
         const textStyle = owned ? ownedStyle : (canResearch ? style : disabledStyle);
         const label = owned
           ? `✓ ${def.name}`
           : `${def.name} (${cost}⭐)`;
-        const txt = this.add.text(startX + si * colW, y, label, textStyle)
+        const txt = this.add.text(startX + colIdx * colW, y, label, textStyle)
           .setScrollFactor(0).setDepth(29);
         techGroup.add(txt);
 
         // Description
-        const desc = this.add.text(startX + si * colW, y + 18, def.description, {
+        const desc = this.add.text(startX + colIdx * colW, y + 18, def.description, {
           fontSize: '11px', color: owned ? '#484' : '#888', fontFamily: 'monospace'
         }).setScrollFactor(0).setDepth(29);
         techGroup.add(desc);
@@ -1320,7 +1336,8 @@ export class GameScene extends Phaser.Scene {
     });
 
     // Close hint
-    const hint = this.add.text(300, 540, '[ click TECH or elsewhere to close ]', {
+    const hintPosY = panelH - 20;
+    const hint = this.add.text(300, hintPosY, '[ click TECH or elsewhere to close ]', {
       fontSize: '12px', color: '#888', fontFamily: 'monospace'
     }).setScrollFactor(0).setDepth(29);
     techGroup.add(hint);
