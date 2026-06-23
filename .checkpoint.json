@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "add-vite-bundle-code-splitting",
+  "current_task": "add-sound-toggle-ui",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -380,10 +380,17 @@
       "date": "2026-06-24",
       "summary": "Fix Playwright testDir collision: changed from ./tests (vitest dir) to ./tests-e2e (actual e2e tests). Existing smoke test in game.test.ts verifies canvas renders. 452 vitest tests pass. Config-only change — no deploy needed.",
       "coach": "approved"
+    },
+    {
+      "task": "add-vite-bundle-code-splitting",
+      "sha": "8d6fa42",
+      "date": "2026-06-24",
+      "summary": "Split Phaser into separate vendor chunk via manualChunks, raised chunkSizeWarningLimit to 2000KB. Build: 2 chunks (phaser-*.js 1.4MB + index-*.js 80KB), no warning. 452 tests pass. Live HTTP 200.",
+      "coach": "pending"
     }
   ],
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "f8cfec6",
+  "last_sha": "8d6fa42",
   "blocker": null,
   "spec_gaps": [
     {

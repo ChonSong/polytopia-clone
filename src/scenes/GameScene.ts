@@ -59,6 +59,7 @@ export class GameScene extends Phaser.Scene {
   private cityMenu: Phaser.GameObjects.Group | null = null;
   private selectedCity: City | null = null;
   private techPanel: Phaser.GameObjects.Group | null = null;
+  private muteBtn!: Phaser.GameObjects.Text;
 
   private tribeText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
@@ -272,6 +273,20 @@ export class GameScene extends Phaser.Scene {
     });
     techBtn.on('pointerover', () => techBtn.setStyle({ backgroundColor: '#336' }));
     techBtn.on('pointerout', () => techBtn.setStyle({ backgroundColor: '#224' }));
+
+    // Sound toggle (camera-fixed) — top-right HUD
+    const savedMute = typeof localStorage !== 'undefined' && localStorage.getItem('polytopia_mute') === 'true';
+    this.sound.mute = savedMute;
+    this.muteBtn = this.add.text(740, 10, savedMute ? '🔇' : '🔊', {
+      fontSize: '22px',
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.muteBtn.on('pointerdown', () => {
+      this.sound.mute = !this.sound.mute;
+      this.muteBtn.setText(this.sound.mute ? '🔇' : '🔊');
+      try { localStorage.setItem('polytopia_mute', String(this.sound.mute)); } catch { /* localStorage unavailable */ }
+    });
+    this.muteBtn.on('pointerover', () => this.muteBtn.setAlpha(0.8));
+    this.muteBtn.on('pointerout', () => this.muteBtn.setAlpha(1));
 
     this.renderAll();
     this.updateUI();
