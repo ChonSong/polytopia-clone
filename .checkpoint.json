@@ -3,65 +3,356 @@
   "repo": "/home/sc/repos/polytopia-clone",
   "current_task": "fix-deploy-stale-process-cleanup",
   "completed": [
-    {"task": "p1-unit-stats", "sha": "feea065", "date": "2026-06-15", "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses", "coach": "approved"},
-    {"task": "p2-tech-tree", "sha": "4d06405", "date": "2026-06-15", "summary": "Tech tree UI, unit gating, AI research, 150 tests", "coach": "approved"},
-    {"task": "p3-map-economy", "sha": "15e5c26", "date": "2026-06-15", "summary": "Resource tiles, buildings (Lumber Hut/Mine/Farm/Port), food/population growth", "coach": "approved"},
-    {"task": "p4-giants", "sha": "ae56724", "date": "2026-06-15", "summary": "Giant super unit at city level 5, 40HP/5atk/4def", "coach": "approved"},
-    {"task": "p5-full-game", "sha": "ae56724", "date": "2026-06-15", "summary": "Tribe selection, map types, perfection mode, 152 tests", "coach": "approved"},
-    {"task": "gdd-4.6-healing", "sha": "bd2a8d1", "date": "2026-06-15", "summary": "Healing system: units that skip their turn heal +4 HP in friendly territory, +2 in neutral/enemy", "coach": "approved"},
-    {"task": "gdd-4.5-melee-advance", "sha": "5bc4462", "date": "2026-06-15", "summary": "Melee advance: only melee units advance into defender's tile on kill", "coach": "approved"},
-    {"task": "gdd-5.3-city-upgrade-choices", "sha": "7bd97fe", "date": "2026-06-15", "summary": "Binary upgrade choice system: Workshop/Explorer, City Wall/Resources, Population Growth/Border Growth, Park/Super Unit", "coach": "approved"},
-    {"task": "gdd-5.4-buildings-real-costs", "sha": "fe93c68", "date": "2026-06-15", "summary": "Verify building costs/effects match GDD §5.5 — all match (Lumber Hut 3⭐, Mine 5⭐, Farm 5⭐, Port 7⭐), added verification tests", "coach": "approved"},
-    {"task": "gdd-3.2-naval-chain", "sha": "8937c38", "date": "2026-06-16", "summary": "Full naval chain: RAFT/SCOUT/RAMMER/BOMBER unit types, water movement, Port embark/disembark, naval upgrades, AI naval pathfinding, 188 tests", "coach": "approved"},
-    {"task": "gdd-2.5-villages", "sha": "baac32f", "date": "2026-06-16", "summary": "Neutral villages: spawn at game start with proximity rules, capture by ending turn on them, becomes level-1 city, AI village targeting, 196 tests", "coach": "approved"},
-    {"task": "gdd-7-ai-heal", "sha": "6e39de0", "date": "2026-06-16", "summary": "AI heal decision — damaged units (<50% HP) within 2 tiles of friendly city skip turn to heal instead of moving toward enemies", "coach": "approved"},
-    {"task": "gdd-7-ai-tech-priority", "sha": "82ed80e", "date": "2026-06-16", "summary": "AI tech priority: research unit-unlocking techs first when stars > 10, sorted by unlocked unit attack power; 4 new tests, all 204 passing", "coach": "approved"},
-    {"task": "gdd-9.1-starting-stars", "sha": "b5d683a", "date": "2026-06-16", "summary": "Verify starting stars: human 15⭐, AI 10⭐, base 5⭐/t + city production; 5 new tests, all 209 passing", "coach": "approved"},
-    {"task": "gdd-3.4-unit-skills-escape-persist", "sha": "1074668", "date": "2026-06-16", "summary": "Implement Escape (Rider retreats 1 tile when hit) and Persist (Knight refreshes action on kill) skills; 12 new tests; 221 total passing", "coach": "approved"},
-    {"task": "gdd-4.2-city-wall-defense", "sha": "e13518e", "date": "2026-06-16", "summary": "Fortify gating for terrain/city defense bonuses, ×4.0 city wall bonus for fortified units, visual shield indicators, 228 tests passing", "coach": "approved"},
-    {"task": "sync-gdd-implementation-status", "sha": "d08c23c", "date": "2026-06-16", "summary": "Update GDD.md implementation status markers: 10 features corrected from ❌ to ✅ including naval, healing, upgrades, villages, skills, fortify, gaps summary", "coach": "approved"},
-    {"task": "gdd-4.6-healing-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Refine healing: add Wait button and keyboard shortcut for unit skip-turn healing — +4 friendly, +2 other, capped at maxHP, fortify per GDD §4.2", "coach": "approved"},
-    {"task": "gdd-4.5-melee-advance-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Melee advance already implemented at lines 475-478 and 748-751 — verified in code review", "coach": "approved"},
-    {"task": "gdd-5.4-buildings-real-costs-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Building costs already correct in BUILDING_DEFS — Lumber Hut 3⭐, Port 7⭐, Mine 5⭐, Farm 5⭐", "coach": "approved"},
-    {"task": "gdd-9.1-starting-stars-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Starting stars already set: humanTribe.stars = 15 at line 76, AI gets 10⭐ base", "coach": "approved"},
-    {"task": "gdd-3.4-unit-skills-escape-persist-refined", "sha": "6464ea4", "date": "2026-06-17", "summary": "Escape (lines 464-469, 737-742) and Persist (lines 479-482) already implemented", "coach": "approved"},
-    {"task": "gdd-2.2-per-type-map-gen", "sha": "7c58083", "date": "2026-06-19", "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing", "coach": "approved"},
-    {"task": "gdd-5.2-border-expansion", "sha": "cf5a0bc", "date": "2026-06-19", "summary": "City border expansion: territory radius = city level (L1=1…L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing", "coach": "approved"},
-    {"task": "gdd-4.4-veteran-system", "sha": "3622fb8", "date": "2026-06-19", "summary": "Veteran system: kill tracking, +5 max HP, full heal, naval+Giant exclusion, 10 new tests, 251 total passing", "coach": "approved"},
-    {"task": "gdd-2.4-ancient-ruins", "sha": "5c8426d", "date": "2026-06-19", "summary": "Ancient ruins: size-scaled placement (4-23), ≥2 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing", "coach": "approved"},
-    {"task": "gdd-5.8-siege-mechanics", "sha": "b354898", "date": "2026-06-19", "summary": "Siege mechanics: City.isBesieged, 0 stars when besieged, UI lock, red border indicator, 7 new tests, 269 total passing", "coach": "approved"},
-    {"task": "gdd-4.2-poison-status", "sha": "871d030", "date": "2026-06-19", "summary": "Poison status: poisonTurns field on Unit, applyPoison() resets to 3, processPoison() 1dmg/turn, Archer attacks apply poison, GameScene.startTurn processes poison, 9 new tests, 278 total passing", "coach": "approved"},
-    {"task": "gdd-8-fog-of-war", "sha": "43560e4", "date": "2026-06-19", "summary": "Fog-of-war: per-tribe visibility via tribeVisibility Map, vision reveal from units (2 tiles, 3 for Scout/Giant) + cities, black fog on unrevealed, dimmed on explored, enemy unit culling, 10 new tests, 288 total passing", "coach": "approved"},
-    {"task": "gdd-6.3-mind-bender-unit", "sha": "f9b0e92", "date": "2026-06-19", "summary": "Mind Bender unit: MIND_BENDER type (0atk/1def/10HP/1mov/5⭐), PHILOSOPHY tech, Convert adjacent enemy to your tribe, Heal 4HP to adjacent friendlies, cannot convert naval+Giant, 15 new tests, 310 total passing", "coach": "approved"},
-    {"task": "gdd-3.1-cloak-unit", "sha": "c91ba38", "date": "2026-06-19", "summary": "Cloak submerge/emerge: GameState methods, CombatSystem attack blocking, UI buttons, 7 new tests, 317 total passing", "coach": "approved"},
-    {"task": "gdd-3.3-stiff-splash-skills", "sha": "3c34c40", "date": "2026-06-19", "summary": "Stiff (Catapult/Giant/Bomber/Raft): no move after attack, no retaliation. Splash (Bomber): half damage to adjacent enemies. 12 new tests, 327 total passing", "coach": "approved"},
-    {"task": "gdd-4.7-battle-preview", "sha": "06e4e30", "date": "2026-06-19", "summary": "Battle preview on hover: predicted attack/counter-attack damage in info bar, 💀 on guaranteed kill, ⚠️ on lethal counter-attack, 6 new tests, 333 total passing", "coach": "approved"},
-    {"task": "gdd-8.4-ai-low-hp-targeting", "sha": "9564cad", "date": "2026-06-19", "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing", "coach": "approved"},
-    {"task": "gdd-5.6-explorer-pathfinding", "sha": "8e1c2c5", "date": "2026-06-19", "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing", "coach": "approved"},
-    {"task": "gdd-5.7-trade-routes", "sha": "8b55eba", "date": "2026-06-19", "summary": "Trade routes, city connections, Grand Bazaar: roads (3⭐), bridges (5⭐), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing", "coach": "approved"},
-    {"task": "gdd-2.4-resource-proximity", "sha": "18ebdce", "date": "2026-06-19", "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing", "coach": "approved"},
-    {"task": "gdd-3.2-scout-disembark-vision", "sha": "0c7ea89", "date": "2026-06-19", "summary": "Scout 5×5 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (≈5×5 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing", "coach": "approved"},
-    {"task": "gdd-4.3-fog-retaliation-suppress", "sha": "261a38e", "date": "2026-06-19", "summary": "Fog retaliation suppression: attacker not visible to defender's tribe → no counter-attack. Optional GameState param in executeAttack. 4 new tests, 375 total passing", "coach": "approved"},
-    {"task": "gdd-6.2-extended-tech-tree", "sha": "0deff0b", "date": "2026-06-19", "summary": "Extended tech tree: 6 new techs (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), fixed Swordsman→Smithery, Rammer→Aquaculture, Defender→Strategy gates, dynamic tech tree UI, 384 total tests passing", "coach": "approved"},
-    {"task": "gdd-10.1-polaris-tribe", "sha": "48244e6", "date": "2026-06-19", "summary": "Complete Polaris tribe: Gaami super unit (gated by Polar Warfare, spawns at L5), Ice Bank Polaris-only, GAAMI added to trainable units, 4 new tests (400 total)", "coach": "approved"},
-    {"task": "gdd-10.2-cymanti-tribe", "sha": "9e9c2c0", "date": "2026-06-19", "summary": "Complete Cymanti tribe: Centipede/Hexapods/Doomux units, Fungiculture/Mycelium/Hydrology/Venom techs, Fungi Farm/Mycelium Network/Algae Bridge buildings, Venom ×0.7 defense penalty, 15 new tests (415 total)", "coach": "approved"},
-    {"task": "gdd-10.3-elyrion-tribe", "sha": "a4b9f13", "date": "2026-06-19", "summary": "Complete Elyrion tribe: Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay, 15 new tests (430 total)", "coach": "approved"},
-    {"task": "update-gdd-gaps-section", "sha": "25857c3", "date": "2026-06-20", "summary": "Audit GDD §9 gaps section against codebase — update 30+ incorrect [ ] markers to [x] for implemented features (Stiff, Splash, Cloak, Mind Bender, Battle preview, Fog retaliation, Naval, Border, Explorer, Trade routes, Map gen, Tech tree, Tribes). Only remaining [ ] is scoring extensions (deferred per GDD §1).", "coach": "approved"},
-    {"task": "fix-7-tribe-positions", "sha": "HEAD", "date": "2026-06-20", "summary": "Fix GameScene.create crash: TRIBE_CONFIGS grew to 7 tribes but placeCities only allocated 4 starting positions, causing p.toString() on undefined. Added 3 more positions for Polaris/Cymanti/Elyrion. 430 tests still passing.", "coach": "auto"},
-    {"task": "gdd-5.5-building-placement-on-resource-tiles", "sha": "fd7e02b", "date": "2026-06-20", "summary": "Buildings placed on specific resource tiles matching requiresResource. Units spawn on adjacent non-water unoccupied tiles via findSpawnPosition(). Building icons rendered on tiles. 430 tests pass.", "coach": "approved"}
+    {
+      "task": "p1-unit-stats",
+      "sha": "feea065",
+      "date": "2026-06-15",
+      "summary": "Real Polytopia unit stats, costs, per-type HP, Swordsman/Knight, city level bonuses",
+      "coach": "approved"
+    },
+    {
+      "task": "p2-tech-tree",
+      "sha": "4d06405",
+      "date": "2026-06-15",
+      "summary": "Tech tree UI, unit gating, AI research, 150 tests",
+      "coach": "approved"
+    },
+    {
+      "task": "p3-map-economy",
+      "sha": "15e5c26",
+      "date": "2026-06-15",
+      "summary": "Resource tiles, buildings (Lumber Hut/Mine/Farm/Port), food/population growth",
+      "coach": "approved"
+    },
+    {
+      "task": "p4-giants",
+      "sha": "ae56724",
+      "date": "2026-06-15",
+      "summary": "Giant super unit at city level 5, 40HP/5atk/4def",
+      "coach": "approved"
+    },
+    {
+      "task": "p5-full-game",
+      "sha": "ae56724",
+      "date": "2026-06-15",
+      "summary": "Tribe selection, map types, perfection mode, 152 tests",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.6-healing",
+      "sha": "bd2a8d1",
+      "date": "2026-06-15",
+      "summary": "Healing system: units that skip their turn heal +4 HP in friendly territory, +2 in neutral/enemy",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.5-melee-advance",
+      "sha": "5bc4462",
+      "date": "2026-06-15",
+      "summary": "Melee advance: only melee units advance into defender's tile on kill",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.3-city-upgrade-choices",
+      "sha": "7bd97fe",
+      "date": "2026-06-15",
+      "summary": "Binary upgrade choice system: Workshop/Explorer, City Wall/Resources, Population Growth/Border Growth, Park/Super Unit",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.4-buildings-real-costs",
+      "sha": "fe93c68",
+      "date": "2026-06-15",
+      "summary": "Verify building costs/effects match GDD \u00a75.5 \u2014 all match (Lumber Hut 3\u2b50, Mine 5\u2b50, Farm 5\u2b50, Port 7\u2b50), added verification tests",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.2-naval-chain",
+      "sha": "8937c38",
+      "date": "2026-06-16",
+      "summary": "Full naval chain: RAFT/SCOUT/RAMMER/BOMBER unit types, water movement, Port embark/disembark, naval upgrades, AI naval pathfinding, 188 tests",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-2.5-villages",
+      "sha": "baac32f",
+      "date": "2026-06-16",
+      "summary": "Neutral villages: spawn at game start with proximity rules, capture by ending turn on them, becomes level-1 city, AI village targeting, 196 tests",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-7-ai-heal",
+      "sha": "6e39de0",
+      "date": "2026-06-16",
+      "summary": "AI heal decision \u2014 damaged units (<50% HP) within 2 tiles of friendly city skip turn to heal instead of moving toward enemies",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-7-ai-tech-priority",
+      "sha": "82ed80e",
+      "date": "2026-06-16",
+      "summary": "AI tech priority: research unit-unlocking techs first when stars > 10, sorted by unlocked unit attack power; 4 new tests, all 204 passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-9.1-starting-stars",
+      "sha": "b5d683a",
+      "date": "2026-06-16",
+      "summary": "Verify starting stars: human 15\u2b50, AI 10\u2b50, base 5\u2b50/t + city production; 5 new tests, all 209 passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.4-unit-skills-escape-persist",
+      "sha": "1074668",
+      "date": "2026-06-16",
+      "summary": "Implement Escape (Rider retreats 1 tile when hit) and Persist (Knight refreshes action on kill) skills; 12 new tests; 221 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.2-city-wall-defense",
+      "sha": "e13518e",
+      "date": "2026-06-16",
+      "summary": "Fortify gating for terrain/city defense bonuses, \u00d74.0 city wall bonus for fortified units, visual shield indicators, 228 tests passing",
+      "coach": "approved"
+    },
+    {
+      "task": "sync-gdd-implementation-status",
+      "sha": "d08c23c",
+      "date": "2026-06-16",
+      "summary": "Update GDD.md implementation status markers: 10 features corrected from \u274c to \u2705 including naval, healing, upgrades, villages, skills, fortify, gaps summary",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.6-healing-refined",
+      "sha": "6464ea4",
+      "date": "2026-06-17",
+      "summary": "Refine healing: add Wait button and keyboard shortcut for unit skip-turn healing \u2014 +4 friendly, +2 other, capped at maxHP, fortify per GDD \u00a74.2",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.5-melee-advance-refined",
+      "sha": "6464ea4",
+      "date": "2026-06-17",
+      "summary": "Melee advance already implemented at lines 475-478 and 748-751 \u2014 verified in code review",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.4-buildings-real-costs-refined",
+      "sha": "6464ea4",
+      "date": "2026-06-17",
+      "summary": "Building costs already correct in BUILDING_DEFS \u2014 Lumber Hut 3\u2b50, Port 7\u2b50, Mine 5\u2b50, Farm 5\u2b50",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-9.1-starting-stars-refined",
+      "sha": "6464ea4",
+      "date": "2026-06-17",
+      "summary": "Starting stars already set: humanTribe.stars = 15 at line 76, AI gets 10\u2b50 base",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.4-unit-skills-escape-persist-refined",
+      "sha": "6464ea4",
+      "date": "2026-06-17",
+      "summary": "Escape (lines 464-469, 737-742) and Persist (lines 479-482) already implemented",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-2.2-per-type-map-gen",
+      "sha": "7c58083",
+      "date": "2026-06-19",
+      "summary": "Per-type map generation: 6 distinct algorithms (Continents/Lakes/Dryland/Archipelago/Waterworld/Pangea), Waterworld+Pangea added to enum, GameScene passes mapType through, 8 new tests, 236 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.2-border-expansion",
+      "sha": "cf5a0bc",
+      "date": "2026-06-19",
+      "summary": "City border expansion: territory radius = city level (L1=1\u2026L5=5), expanded resource collection from all tiles in radius, visual blue boundary highlights on territory edge tiles, 5 new tests, 241 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.4-veteran-system",
+      "sha": "3622fb8",
+      "date": "2026-06-19",
+      "summary": "Veteran system: kill tracking, +5 max HP, full heal, naval+Giant exclusion, 10 new tests, 251 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-2.4-ancient-ruins",
+      "sha": "5c8426d",
+      "date": "2026-06-19",
+      "summary": "Ancient ruins: size-scaled placement (4-23), \u22652 spacing from villages/cities/water, 3 reward types (veteran/free tech/stars), naval+Giant exclusion, 11 tests, 262 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.8-siege-mechanics",
+      "sha": "b354898",
+      "date": "2026-06-19",
+      "summary": "Siege mechanics: City.isBesieged, 0 stars when besieged, UI lock, red border indicator, 7 new tests, 269 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.2-poison-status",
+      "sha": "871d030",
+      "date": "2026-06-19",
+      "summary": "Poison status: poisonTurns field on Unit, applyPoison() resets to 3, processPoison() 1dmg/turn, Archer attacks apply poison, GameScene.startTurn processes poison, 9 new tests, 278 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-8-fog-of-war",
+      "sha": "43560e4",
+      "date": "2026-06-19",
+      "summary": "Fog-of-war: per-tribe visibility via tribeVisibility Map, vision reveal from units (2 tiles, 3 for Scout/Giant) + cities, black fog on unrevealed, dimmed on explored, enemy unit culling, 10 new tests, 288 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-6.3-mind-bender-unit",
+      "sha": "f9b0e92",
+      "date": "2026-06-19",
+      "summary": "Mind Bender unit: MIND_BENDER type (0atk/1def/10HP/1mov/5\u2b50), PHILOSOPHY tech, Convert adjacent enemy to your tribe, Heal 4HP to adjacent friendlies, cannot convert naval+Giant, 15 new tests, 310 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.1-cloak-unit",
+      "sha": "c91ba38",
+      "date": "2026-06-19",
+      "summary": "Cloak submerge/emerge: GameState methods, CombatSystem attack blocking, UI buttons, 7 new tests, 317 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.3-stiff-splash-skills",
+      "sha": "3c34c40",
+      "date": "2026-06-19",
+      "summary": "Stiff (Catapult/Giant/Bomber/Raft): no move after attack, no retaliation. Splash (Bomber): half damage to adjacent enemies. 12 new tests, 327 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.7-battle-preview",
+      "sha": "06e4e30",
+      "date": "2026-06-19",
+      "summary": "Battle preview on hover: predicted attack/counter-attack damage in info bar, \ud83d\udc80 on guaranteed kill, \u26a0\ufe0f on lethal counter-attack, 6 new tests, 333 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-8.4-ai-low-hp-targeting",
+      "sha": "9564cad",
+      "date": "2026-06-19",
+      "summary": "AI attack priority: sort adjacent enemies by ascending HP, descending attack for ties. Knight Persist chain respects sort order. 4 new tests, 337 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.6-explorer-pathfinding",
+      "sha": "8e1c2c5",
+      "date": "2026-06-19",
+      "summary": "Autonomous Explorer pathfinding: BFS fog-reveal scoring (110 optimal, 173 suboptimal), distance penalty, anti-backtracking, 15-step cap. Spawns SCOUT at L2 Explorer choice. 7 new tests, 344 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-5.7-trade-routes",
+      "sha": "8b55eba",
+      "date": "2026-06-19",
+      "summary": "Trade routes, city connections, Grand Bazaar: roads (3\u2b50), bridges (5\u2b50), BFS connection detection, +1 pop per connection, Grand Bazaar at 5+ connections (+3 pop, +400 score), 16 new tests, 366 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-2.4-resource-proximity",
+      "sha": "18ebdce",
+      "date": "2026-06-19",
+      "summary": "Resource proximity constraint: enforceResourceProximity() strips resources >2 tiles from any city/village, 3 new tests, 369 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-3.2-scout-disembark-vision",
+      "sha": "0c7ea89",
+      "date": "2026-06-19",
+      "summary": "Scout 5\u00d75 vision reveal on disembark: when SCOUT moves from water to land, reveal hex range 2 (\u22485\u00d75 area) via state.revealVision(). Only SCOUT triggers, not Raft/Rammer/Bomber. 3 new tests, 372 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-4.3-fog-retaliation-suppress",
+      "sha": "261a38e",
+      "date": "2026-06-19",
+      "summary": "Fog retaliation suppression: attacker not visible to defender's tribe \u2192 no counter-attack. Optional GameState param in executeAttack. 4 new tests, 375 total passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-6.2-extended-tech-tree",
+      "sha": "0deff0b",
+      "date": "2026-06-19",
+      "summary": "Extended tech tree: 6 new techs (Climbing/Organization/Farming/Smithery/Aquaculture/Strategy), fixed Swordsman\u2192Smithery, Rammer\u2192Aquaculture, Defender\u2192Strategy gates, dynamic tech tree UI, 384 total tests passing",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-10.1-polaris-tribe",
+      "sha": "48244e6",
+      "date": "2026-06-19",
+      "summary": "Complete Polaris tribe: Gaami super unit (gated by Polar Warfare, spawns at L5), Ice Bank Polaris-only, GAAMI added to trainable units, 4 new tests (400 total)",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-10.2-cymanti-tribe",
+      "sha": "9e9c2c0",
+      "date": "2026-06-19",
+      "summary": "Complete Cymanti tribe: Centipede/Hexapods/Doomux units, Fungiculture/Mycelium/Hydrology/Venom techs, Fungi Farm/Mycelium Network/Algae Bridge buildings, Venom \u00d70.7 defense penalty, 15 new tests (415 total)",
+      "coach": "approved"
+    },
+    {
+      "task": "gdd-10.3-elyrion-tribe",
+      "sha": "a4b9f13",
+      "date": "2026-06-19",
+      "summary": "Complete Elyrion tribe: Egg/Baby Dragon/Fire Dragon/Polytaur units, Ecology/Draconic/Prophecy techs, Sanctuary building, Enchantment action, Dragon maturation chain, Prophetic Vision ruins overlay, 15 new tests (430 total)",
+      "coach": "approved"
+    },
+    {
+      "task": "update-gdd-gaps-section",
+      "sha": "25857c3",
+      "date": "2026-06-20",
+      "summary": "Audit GDD \u00a79 gaps section against codebase \u2014 update 30+ incorrect [ ] markers to [x] for implemented features (Stiff, Splash, Cloak, Mind Bender, Battle preview, Fog retaliation, Naval, Border, Explorer, Trade routes, Map gen, Tech tree, Tribes). Only remaining [ ] is scoring extensions (deferred per GDD \u00a71).",
+      "coach": "approved"
+    },
+    {
+      "task": "fix-7-tribe-positions",
+      "sha": "HEAD",
+      "date": "2026-06-20",
+      "summary": "Fix GameScene.create crash: TRIBE_CONFIGS grew to 7 tribes but placeCities only allocated 4 starting positions, causing p.toString() on undefined. Added 3 more positions for Polaris/Cymanti/Elyrion. 430 tests still passing.",
+      "coach": "auto"
+    },
+    {
+      "task": "gdd-5.5-building-placement-on-resource-tiles",
+      "sha": "fd7e02b",
+      "date": "2026-06-20",
+      "summary": "Buildings placed on specific resource tiles matching requiresResource. Units spawn on adjacent non-water unoccupied tiles via findSpawnPosition(). Building icons rendered on tiles. 430 tests pass.",
+      "coach": "approved"
+    }
   ],
   "health": "430_pass_0_error_0_fail",
   "last_sha": "b08737d",
   "blocker": null,
   "spec_gaps": [
-    {"item": "Scoring extensions (territorial, exploration, monuments, temples)", "type": "missing_feature", "priority": 4, "evidence": "GDD §1 — deferred pending design decisions"},
-    {"item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)", "type": "missing_feature", "priority": 3, "evidence": "GDD §3.5 — not in code"},
-    {"item": "Duplicate server processes on port 3001 (stale serve dist + systemd vite preview)", "type": "infra_gap", "priority": 2, "evidence": "ss -tlnp shows serve dist (pid 1348272) on port 3001, but systemd service also running vite preview (pid 6478). Manual serve steals port from systemd service."}
+    {
+      "item": "Scoring extensions (territorial, exploration, monuments, temples)",
+      "type": "missing_feature",
+      "priority": 4,
+      "evidence": "GDD \u00a71 \u2014 deferred pending design decisions"
+    },
+    {
+      "item": "Cloak Infiltration/Dagger spawning (Diplomacy tech)",
+      "type": "missing_feature",
+      "priority": 3,
+      "evidence": "GDD \u00a73.5 \u2014 not in code"
+    },
+    {
+      "item": "Duplicate server processes on port 3001 (stale serve dist + systemd vite preview)",
+      "type": "infra_gap",
+      "priority": 2,
+      "evidence": "ss -tlnp shows serve dist (pid 1348272) on port 3001, but systemd service also running vite preview (pid 6478). Manual serve steals port from systemd service."
+    }
   ],
   "coach_review": {
-    "last_reviewed_sha": "b08737de559028f16b8d3bced34a6fbb37b57658",
-    "last_reviewed_at": "2026-06-23T19:10:00Z",
+    "last_reviewed_sha": "1aeee6c2ac641c38de080a56adb5cd4f6d1e04c3",
+    "last_reviewed_at": "2026-06-23T23:35:00Z",
     "verdict": "approved",
-    "notes": "Reviewed polytopia-clone: No new Player commits since last review (HEAD = b08737d matches last_reviewed_sha). 430/430 tests pass, build clean. Live site: Phaser canvas renders (800x600 WebGL). gdd-10.3-elyrion-tribe human entry reviewed — 12 files, 686 insertions, 15 new tests, all passing, already covered by subsequent reviews. Infra finding: duplicate server processes on port 3001 (stale serve dist + systemd). Backlog exhausted — generated 3 new tasks (fix-deploy-stale-process-cleanup, gdd-3.5-cloak-infiltration-dagger, gdd-9-fix-park-scoring-status). Security: no new deps/endpoints. YAGNI clean. Perf: N/A (TS/Phaser client-side only)."
+    "notes": "Regression QA cycle: No new Player commits since last review (HEAD = 1aeee6c = coach checkpoint update only). Live site: 200 OK, Phaser canvas 800x600, 0 JS errors. Infra resolved: single process on port 3001 (systemd service PID 6478), stale serve dist eliminated. 430/430 tests pass. Backlog: 5 tasks remaining (fix-tech-panel-text-overlap, fix-city-menu-stays-on-screen-after-scroll, fix-deploy-stale-process-cleanup, gdd-3.5-cloak-infiltration-dagger, gdd-9-fix-park-scoring-status). Security: no new deps/endpoints. YAGNI: no new code. Perf: N/A (client-side TS/Phaser)."
   }
 }
