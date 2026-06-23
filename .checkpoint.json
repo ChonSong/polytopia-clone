@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "gdd-9-fix-park-scoring-status",
+  "current_task": "fix-grand-bazaar-score",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -352,10 +352,17 @@
       "date": "2026-06-24",
       "summary": "Implement Cloak Infiltration per GDD §3.5: Dagger unit (3HP/2atk/1def/1mov), primedForInfiltrate tracking, Infiltrate action consumes Cloak + schedules Dagger spawn next turn, requires Diplomacy tech, 14 new tests (444 total passing)",
       "coach": "approved"
+    },
+    {
+      "task": "gdd-9-fix-park-scoring-status",
+      "sha": "6993877",
+      "date": "2026-06-24",
+      "summary": "Mark Park scoring as [x] in GDD.md §9. Changed [ ] to [x] with confirmation note. Verified calcScore() has parkScore (hasPark = +250/city). Confirmed 4 remaining [ ] items (Territorial/Exploration/Monument/Temple scoring) are genuinely deferred per GDD §1. All 444 tests pass. Deployed + live 200.",
+      "coach": "approved"
     }
   ],
   "health": "444_pass_0_error_0_fail",
-  "last_sha": "a5f8eaa",
+  "last_sha": "6993877",
   "blocker": null,
   "spec_gaps": [
     {
@@ -366,9 +373,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "a5f8eaa",
-    "last_reviewed_at": "2026-06-24T05:50:00Z",
+    "last_reviewed_sha": "6993877",
+    "last_reviewed_at": "2026-06-24T06:10:00Z",
     "verdict": "approved",
-    "notes": "Batch review (2 commits): (1) fix-city-menu-stays-on-screen-after-scroll: APPROVED. Code adds setScrollFactor(0) to 2 text objects in showCityMenu(). Live: city menu opens, stays attached after camera scroll (verified). 444/444 tests pass. (2) gdd-3.5-cloak-infiltration-dagger: APPROVED. Dagger unit (3HP/2atk/1def/1mov, cost 0), primedForInfiltrate tracking, GameState.primeCloaksForInfiltrate/performInfiltrate/processDaggerSpawns, Infiltrate UI button, startTurn integration. 14 new tests covering: Dagger stats, Diplomacy gate, adjacency check, submerge requirement, Infiltrate consume, Dagger spawn+immediate-attack. Deployed + verified live. Minor observation: pendingDaggerSpawns is Map<cityId,ownerId> so only 1 Dagger per city — dual Cloak infiltrate on same city consumes both Cloaks but spawns only 1 Dagger; acceptable edge case. Security: no new deps/endpoints. YAGNI: all changes directly required by GDD §3.5. Perf: N/A (no DB, no rendering hotspots). Backlog: 1 remaining (gdd-9-fix-park-scoring-status)."
+    "notes": "gdd-9-fix-park-scoring-status: APPROVED. Single-line GDD.md change: - [ ] Park scoring → - [x] Park scoring. Verified: grep shows [x], calcScore() has parkScore (hasPark = +250/city), 444/444 tests pass, site live 200. Remaining 4 [ ] are genuinely deferred per GDD §1. Security: no new deps/endpoints. YAGNI: docs-only. Perf: N/A. **Backlog now empty — generated 2 new tasks** (fix-grand-bazaar-score, fix-level-score-formula) from code review findings."
   }
 }
