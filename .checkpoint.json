@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-e2e-playwright-config-collision",
+  "current_task": "add-vite-bundle-code-splitting",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -373,10 +373,17 @@
       "date": "2026-06-24",
       "summary": "Fix level score formula per GDD §1.2: (c.level-1)*50 → L1=0, L2=50, L3=100, L4=150, L5=200. 6 new tests verify each level. 452 tests pass. Deployed + live 200.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-e2e-playwright-config-collision",
+      "sha": "f8cfec6",
+      "date": "2026-06-24",
+      "summary": "Fix Playwright testDir collision: changed from ./tests (vitest dir) to ./tests-e2e (actual e2e tests). Existing smoke test in game.test.ts verifies canvas renders. 452 vitest tests pass. Config-only change — no deploy needed.",
+      "coach": "approved"
     }
   ],
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "d399846",
+  "last_sha": "f8cfec6",
   "blocker": null,
   "spec_gaps": [
     {
@@ -387,11 +394,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "d399846",
-    "last_reviewed_at": "2026-06-24T07:10:00Z",
+    "last_reviewed_sha": "f8cfec6",
+    "last_reviewed_at": "2026-06-24T07:37:00Z",
     "verdict": "approved",
-    "notes": "fix-level-score-formula: APPROVED. Formula changed from c.level*20 to (c.level-1)*50, matching GDD §1.2. ScoreCalculator.ts: single-line formula change + comment update. 6 new tests verify L1=0, L2=50, L3=100, L4=150, L5=200, plus multi-city sum. 2 existing GB test expected values updated. 452/452 tests pass (coach-verified). Security: no new deps/endpoints. YAGNI: all changes directly required by task — clean. Perf: N/A (Phaser game, no SQL). Live site: 200 OK, 0 console errors, canvas 800×600 renders. **Backlog: 0 remaining** — generated 3 new tasks. Consecutive-APPROVE check: 3 prior APPROVEs — no actionable findings for this commit (clean diff, comprehensive tests), but noted pre-existing Playwright config testDir collision and missing chunk splitting in broader project context.",
-    "last_review": "2026-06-24T07:10:00Z",
+    "notes": "fix-e2e-playwright-config-collision: APPROVED. Changed pw-e2e.config.ts testDir from './tests' to './tests-e2e' — 1 file, 1 line. Security: no new deps/endpoints. YAGNI: only the required config change. Perf: N/A (config only). Tests: 452/452 vitest pass (coach-verified). Playwright test listing shows only 7 e2e tests in tests-e2e/ — no vitest tests leaked. Live site: HTTP 200. **Backlog: 2 remaining** (add-vite-bundle-code-splitting, add-sound-toggle-ui). Consecutive-APPROVE check: 30+ prior APPROVEs — no actionable findings for this trivial config-only commit; the fix is complete and correct.",
+    "last_review": "2026-06-24T07:37:00Z",
     "status": "approved"
   }
 }
