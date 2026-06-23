@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "add-sound-toggle-ui",
+  "current_task": "tbd",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -386,11 +386,18 @@
       "sha": "8d6fa42",
       "date": "2026-06-24",
       "summary": "Split Phaser into separate vendor chunk via manualChunks, raised chunkSizeWarningLimit to 2000KB. Build: 2 chunks (phaser-*.js 1.4MB + index-*.js 80KB), no warning. 452 tests pass. Live HTTP 200.",
-      "coach": "pending"
+      "coach": "approved"
+    },
+    {
+      "task": "add-sound-toggle-ui",
+      "sha": "89517e5",
+      "date": "2026-06-24",
+      "summary": "Add sound toggle button to HUD with localStorage persistence. Mute/unmute (🔊/🔇) at top-right, toggles this.sound.mute, persists in localStorage.",
+      "coach": "approved"
     }
   ],
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "8d6fa42",
+  "last_sha": "89517e5",
   "blocker": null,
   "spec_gaps": [
     {
@@ -398,14 +405,26 @@
       "type": "missing_feature",
       "priority": 4,
       "evidence": "GDD §1 — deferred pending design decisions"
+    },
+    {
+      "item": "Stale serve process blocking port 3001",
+      "type": "infra_gap",
+      "priority": 1,
+      "evidence": "PID 2122063 (serve dist -p 3001) runs unmanaged since 07:17. systemd service falls back to port 3002. Tunnel points to 3001. If stale process crashes, site goes down."
+    },
+    {
+      "item": "Sound toggle overlaps end turn button",
+      "type": "bug",
+      "priority": 2,
+      "evidence": "End turn at (660,10) fontSize 20px spans ~660-780. Mute at (740,10) fontSize 22px spans ~740-762. ~22px overlap."
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "f8cfec6",
-    "last_reviewed_at": "2026-06-24T07:37:00Z",
+    "last_reviewed_sha": "89517e5",
+    "last_reviewed_at": "2026-06-24T08:50:00Z",
     "verdict": "approved",
-    "notes": "fix-e2e-playwright-config-collision: APPROVED. Changed pw-e2e.config.ts testDir from './tests' to './tests-e2e' — 1 file, 1 line. Security: no new deps/endpoints. YAGNI: only the required config change. Perf: N/A (config only). Tests: 452/452 vitest pass (coach-verified). Playwright test listing shows only 7 e2e tests in tests-e2e/ — no vitest tests leaked. Live site: HTTP 200. **Backlog: 2 remaining** (add-vite-bundle-code-splitting, add-sound-toggle-ui). Consecutive-APPROVE check: 30+ prior APPROVEs — no actionable findings for this trivial config-only commit; the fix is complete and correct.",
-    "last_review": "2026-06-24T07:37:00Z",
+    "notes": "add-vite-bundle-code-splitting + add-sound-toggle-ui: APPROVED. Both commits verified. Security: no new deps/endpoints. YAGNI: all changes required by task criteria. Perf: N/A. Tests: 452/452 pass (coach-verified). Build: 2 chunks produced, no chunk-size warning. Live site: HTTP 200, Phaser WebGL+WebAudio renders, 0 JS errors, bundle contains polytopia_mute code. FINDINGS: (1) Stale serve dist process on port 3001 not managed by systemd (PID 2122063). (2) Sound toggle at (740,10) X-overlaps end turn button at (660,10). New backlog tasks: fix-mute-button-overlap, fix-deploy-systemd-execstartpre.",
+    "last_review": "2026-06-24T08:50:00Z",
     "status": "approved"
   }
 }
