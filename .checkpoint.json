@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-tech-panel-text-overlap",
+  "current_task": "fix-city-menu-stays-on-screen-after-scroll",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -313,10 +313,10 @@
     },
     {
       "task": "fix-7-tribe-positions",
-      "sha": "HEAD",
+      "sha": "168710a",
       "date": "2026-06-20",
       "summary": "Fix GameScene.create crash: TRIBE_CONFIGS grew to 7 tribes but placeCities only allocated 4 starting positions, causing p.toString() on undefined. Added 3 more positions for Polaris/Cymanti/Elyrion. 430 tests still passing.",
-      "coach": "auto"
+      "coach": "approved"
     },
     {
       "task": "gdd-5.5-building-placement-on-resource-tiles",
@@ -331,10 +331,17 @@
       "date": "2026-06-24",
       "summary": "Created scripts/deploy.sh: kills stale processes on port 3001 (was serve dist bypassing systemd), builds with npm run build, restarts systemd polytopia-clone service, verifies single process on port + HTTP 200. Idempotent. 430 tests pass.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-tech-panel-text-overlap",
+      "sha": "c10adae",
+      "date": "2026-06-24",
+      "summary": "Fix tech panel text overlap: filter tribe-specific series for non-matching tribes (7 series for base, 8 for tribal), split into 2 rows when >5 series so each column is ≥120px (was 60px). Panel height adapts dynamically. 430 tests pass.",
+      "coach": "approved"
     }
   ],
   "health": "430_pass_0_error_0_fail",
-  "last_sha": "19fdd45",
+  "last_sha": "c10adae",
   "blocker": null,
   "spec_gaps": [
     {
@@ -350,12 +357,6 @@
       "evidence": "GDD §3.5 — not in code"
     },
     {
-      "item": "Tech panel text overlapping (10 columns × 60px)",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "showTechPanel() column width formula Math.min(220, 600/10)=60px causes overflow"
-    },
-    {
       "item": "City menu detaches from city on camera scroll",
       "type": "bug",
       "priority": 2,
@@ -363,9 +364,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "19fdd45",
-    "last_reviewed_at": "2026-06-24T04:11:00Z",
+    "last_reviewed_sha": "c10adae",
+    "last_reviewed_at": "2026-06-24T04:37:00Z",
     "verdict": "approved",
-    "notes": "fix-deploy-stale-process-cleanup: APPROVED. scripts/deploy.sh: 76 lines, set -euo pipefail, stale process kill (TERM → KILL), npm build, systemd restart, service active verification, single process check, HTTP 200 verification. Live: service active, MainPID=1954824, 1 node process on 3001, HTTP 200. 430/430 tests pass. Security: no new deps/endpoints. YAGNI: all changes directly required by task. Perf: N/A (shell script). Backlog: 5 remaining (fix-tech-panel-text-overlap, fix-city-menu-detach-on-scroll, gdd-3.5-cloak-infiltration, gdd-9-park-scoring-status, scoring-extensions)."
+    "notes": "fix-tech-panel-text-overlap: APPROVED. Code: tribe-specific series filtering (7 base + tribal extras) reduces columns 10→7-8, 2-row layout gives 150px columns vs old 60px, dynamic panel height (340/540px). Live site: hex.codeovertcp.com loads 200, 0 JS errors. Tested with Bardur (7 series, 2 rows, no overlap) and Elyrion (Ecology series shown, no overlap). 430/430 tests pass. Security: no new deps/endpoints. YAGNI: all changes directly required by task. Perf: N/A (UI layout only). Backlog: 3 remaining (fix-city-menu-detach-on-scroll, gdd-3.5-cloak-infiltration, gdd-9-park-scoring-status)."
   }
 }

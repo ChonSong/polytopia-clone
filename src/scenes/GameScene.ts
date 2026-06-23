@@ -1661,7 +1661,7 @@ export class GameScene extends Phaser.Scene {
       const isClickable = handlers[i].toString().length > 15; // non-empty handler
       const canAfford = !isSeparator && isClickable;
       const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
-        .setDepth(25).setInteractive({ useHandCursor: canAfford });
+        .setScrollFactor(0).setDepth(25).setInteractive({ useHandCursor: canAfford });
       if (canAfford) {
         lbl.on('pointerdown', handlers[i]);
         lbl.on('pointerover', () => lbl.setStyle({ backgroundColor: '#444' }));
@@ -1673,7 +1673,7 @@ export class GameScene extends Phaser.Scene {
     // "Close" hint
     const hint = this.add.text(sx, sy + items.length * 24 + 4, '[click elsewhere to close]', {
       fontSize: '11px', color: '#888', fontFamily: 'monospace'
-    }).setDepth(25);
+    }).setScrollFactor(0).setDepth(25);
     this.cityMenu.add(hint);
   }
 
