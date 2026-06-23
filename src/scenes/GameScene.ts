@@ -16,6 +16,7 @@ import { BUILDING_DEFS, BuildingType } from '../entities/Building';
 import { Resource } from '../hex/Tile';
 import { runExplorerPathfinding } from '../entities/Explorer';
 import { TradeRouteSystem } from '../entities/TradeRouteSystem';
+import { computeTribeScore } from '../entities/ScoreCalculator';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -916,13 +917,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private calcScore(tribe: Tribe): number {
-    const cityScore = tribe.cities.filter(c => !c.captured).length * 100;
-    const unitScore = tribe.getAliveUnits().length * 10;
-    const techScore = tribe.techs.size * 50;
-    const levelScore = tribe.cities.reduce((sum, c) => sum + c.level * 20, 0);
-    const buildingScore = tribe.cities.reduce((sum, c) => sum + c.buildings.length * 25, 0);
-    const parkScore = tribe.cities.reduce((sum, c) => sum + (c.hasPark ? 250 : 0), 0);
-    return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore;
+    return computeTribeScore(tribe);
   }
 
   /** GDD §8 — Reveal tiles within vision range of all units and cities of a tribe. */

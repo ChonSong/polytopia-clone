@@ -8,6 +8,7 @@ import { TechId, TRIBE_STARTING_TECHS, UNIT_TECH_GATES, TECH_DEFS, TECH_SERIES }
 import { Tribe, TRIBE_CONFIGS, TribeConfig } from '../src/entities/Tribe';
 import { GameState } from '../src/entities/GameState';
 import { CombatSystem } from '../src/entities/CombatSystem';
+import { computeTribeScore } from '../src/entities/ScoreCalculator';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -2042,5 +2043,36 @@ describe('Cloak Infiltrate mechanics', () => {
     expect(tribeA.units).toContain(spawned[0]);
     // Pending spawn should be cleared
     expect(state.pendingDaggerSpawns.size).toBe(0);
+  });
+});
+
+describe('GDD §5.7 Grand Bazaar score in calcScore', () => {
+  it('includes +400 for each city with Grand Bazaar', () => {
+    const tribe = createTestTribe();
+    const city1 = new City(coord(0, 0), 'City1', tribe.id, 1, 1);
+    city1.hasGrandBazaar = true;
+    const city2 = new City(coord(1, 0), 'City2', tribe.id, 2, 1);
+    city2.hasGrandBazaar = true;
+    tribe.cities.push(city1, city2);
+
+    const score = computeTribeScore(tribe);
+    // Xin-xi starts with 1 tech (RIDING) → +50 techScore
+    // cityScore: 2 × 100 = 200
+    // levelScore: (1 × 20) + (2 × 20) = 60
+    // grandBazaarScore: 2 × 400 = 800
+    expect(score).toBe(200 + 50 + 60 + 800);
+  });
+
+  it('city without Grand Bazaar contributes 0 grandBazaar score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.hasGrandBazaar = false;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // Xin-xi starts with 1 tech (RIDING) → +50 techScore
+    // cityScore: 1 × 100 = 100
+    // levelScore: 1 × 20 = 20
+    expect(score).toBe(100 + 50 + 20);
   });
 });
