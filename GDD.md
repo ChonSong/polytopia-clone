@@ -504,4 +504,4 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 - [ ] Exploration (fog dispersal) scoring — GDD §1 notes "not yet in GDD, require further design decisions"
 - [ ] Monument / Grand Bazaar scoring — GDD §1 notes "not yet in GDD, require further design decisions"
 - [ ] Temple scoring — GDD §1 notes "not yet in GDD, require further design decisions"
-- [ ] Park scoring — Already implemented in calcScore() (hasPark = +250), remove from gaps
+- [x] Park scoring — Implemented in calcScore() (hasPark = +250 per city)
