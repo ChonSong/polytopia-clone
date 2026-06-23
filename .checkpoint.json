@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-level-score-formula",
+  "current_task": "fix-e2e-playwright-config-collision",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -366,10 +366,17 @@
       "date": "2026-06-24",
       "summary": "Add Grand Bazaar +400 score to calcScore(). Extract scoring logic into pure computeTribeScore() in ScoreCalculator.ts so testable without Phaser. 2 new tests verify grand bazaar stacking and zero contribution. 446 tests pass. Deployed + live 200.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-level-score-formula",
+      "sha": "d399846",
+      "date": "2026-06-24",
+      "summary": "Fix level score formula per GDD §1.2: (c.level-1)*50 → L1=0, L2=50, L3=100, L4=150, L5=200. 6 new tests verify each level. 452 tests pass. Deployed + live 200.",
+      "coach": "approved"
     }
   ],
-  "health": "446_pass_0_error_0_fail",
-  "last_sha": "c3aaf4d",
+  "health": "452_pass_0_error_0_fail",
+  "last_sha": "d399846",
   "blocker": null,
   "spec_gaps": [
     {
@@ -380,9 +387,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c3aaf4d",
-    "last_reviewed_at": "2026-06-24T06:40:00Z",
+    "last_reviewed_sha": "d399846",
+    "last_reviewed_at": "2026-06-24T07:10:00Z",
     "verdict": "approved",
-    "notes": "fix-grand-bazaar-score: APPROVED. Created ScoreCalculator.ts with computeTribeScore() including grandBazaarScore (+400 per city with hasGrandBazaar). GameScene.calcScore() delegates to it. 2 new tests verify stacking (2 cities = +800) and zero contribution. 446/446 tests pass. Security: no new deps/endpoints. YAGNI: extraction into pure function improves testability — appropriate. Perf: N/A (Phaser game, no SQL). Live site: 200 OK, 0 console errors, canvas renders, deployed bundle includes grandBazaar=400 logic. **Backlog: 1 remaining (fix-level-score-formula)**. Deploy note: stale serve process on port 3001 from 06:16 not killed before systemd restart — systemd vite preview fell back to port 3002. Both serve updated code."
+    "notes": "fix-level-score-formula: APPROVED. Formula changed from c.level*20 to (c.level-1)*50, matching GDD §1.2. ScoreCalculator.ts: single-line formula change + comment update. 6 new tests verify L1=0, L2=50, L3=100, L4=150, L5=200, plus multi-city sum. 2 existing GB test expected values updated. 452/452 tests pass (coach-verified). Security: no new deps/endpoints. YAGNI: all changes directly required by task — clean. Perf: N/A (Phaser game, no SQL). Live site: 200 OK, 0 console errors, canvas 800×600 renders. **Backlog: 0 remaining** — generated 3 new tasks. Consecutive-APPROVE check: 3 prior APPROVEs — no actionable findings for this commit (clean diff, comprehensive tests), but noted pre-existing Playwright config testDir collision and missing chunk splitting in broader project context.",
+    "last_review": "2026-06-24T07:10:00Z",
+    "status": "approved"
   }
 }
