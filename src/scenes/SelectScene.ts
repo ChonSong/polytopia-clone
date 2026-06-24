@@ -97,11 +97,12 @@ export class SelectScene extends Phaser.Scene {
       diffLabels.push(lbl);
     });
 
-    // Tribe cards
+    // Tribe cards — sorted alphabetically by name for easier browsing
     const cardW = 170, gap = 15;
-    const totalCards = TRIBE_CONFIGS.length;
+    const sortedTribes = [...TRIBE_CONFIGS].sort((a, b) => a.name.localeCompare(b.name));
+    const totalCards = sortedTribes.length;
     const startX = (width - (cardW * totalCards + gap * (totalCards - 1))) / 2;
-    TRIBE_CONFIGS.forEach((cfg, i) => {
+    sortedTribes.forEach((cfg, i) => {
       const cx = startX + i * (cardW + gap);
       const bg = this.add.graphics();
       bg.fillStyle(cfg.color, 0.3);
