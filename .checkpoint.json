@@ -394,10 +394,18 @@
       "date": "2026-06-24",
       "summary": "Add sound toggle button to HUD with localStorage persistence. Mute/unmute (🔊/🔇) at top-right, toggles this.sound.mute, persists in localStorage.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-mute-button-overlap",
+      "sha": "c97b590",
+      "date": "2026-06-24",
+      "summary": "Move mute button from (740,10) to (10,10) to eliminate ~22px overlap with end turn button at (660,10). Left side of HUD was empty — clean separation.",
+      "coach": "approved"
     }
   ],
+  "current_task": "fix-deploy-systemd-execstartpre",
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "89517e5",
+  "last_sha": "c97b590",
   "blocker": null,
   "spec_gaps": [
     {
@@ -410,21 +418,22 @@
       "item": "Stale serve process blocking port 3001",
       "type": "infra_gap",
       "priority": 1,
-      "evidence": "PID 2122063 (serve dist -p 3001) runs unmanaged since 07:17. systemd service falls back to port 3002. Tunnel points to 3001. If stale process crashes, site goes down."
+      "evidence": "Resolved by fix-deploy-stale-process-cleanup (19fdd45). Systemd polytopia-clone service now uses vite preview on port 3001 (PID 2312947). deploy.sh kills stale processes before restart. No ExecStartPre yet in systemd service file — fix-deploy-systemd-execstartpre task remains as hardening."
     },
     {
       "item": "Sound toggle overlaps end turn button",
       "type": "bug",
       "priority": 2,
-      "evidence": "End turn at (660,10) fontSize 20px spans ~660-780. Mute at (740,10) fontSize 22px spans ~740-762. ~22px overlap."
+      "evidence": "Muted button moved from (740,10) to (10,10) in c97b590. No overlap.",
+      "status": "fixed"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c4f6c5d",
-    "last_reviewed_at": "2026-06-24T09:40:00Z",
-    "verdict": "stalled",
-    "notes": "Stalled loop — no new Player work since 08:50. 2 remaining AGENTS.md tasks (fix-mute-button-overlap, fix-deploy-systemd-execstartpre). Verifying stale infra issue: PID 2122063 still blocks port 3001, systemd falls back to 3002, tunnel points to 3001 (stale serve process). Live site: HTTP 200 (served by stale process), canvas renders, tribe selection functional, 0 JS errors. Tests: 452/452 pass. Backlog: ⚠️ 2 remaining. Actionable: stale serve PID 2122063 on 3001 still unmanaged — fix-deploy-systemd-execstartpre task exists but unstarted.",
-    "last_review": "2026-06-24T09:40:00Z",
-    "status": "stalled"
+    "last_reviewed_sha": "c97b590",
+    "last_reviewed_at": "2026-06-24T01:15:00Z",
+    "verdict": "approved",
+    "notes": "fix-mute-button-overlap (c97b590): APPROVED. Moved muteBtn from (740,10) to (10,10) — 650px away from end turn button at (660,10). Clean separation, left side was empty. Security: no new deps/endpoints. YAGNI: only required fix, no scope creep. Perf: N/A (frontend coordinate change). Tests: 452/452 pass (coach-verified). Live site: HTTP 200, 0 console errors, canvas renders (tribe selection screen). Spec gap 'sound toggle overlap' marked fixed. Backlog: ⚠️ 1 remaining (fix-deploy-systemd-execstartpre). Infrastructure: stale PID 2122063 is gone; systemd service is now managing vite preview on port 3001 (PID 2312947). Fix-deploy-stale-process-cleanup (19fdd45) resolved the immediate stale process issue. ExecStartPre task remains as hardening.",
+    "last_review": "2026-06-24T01:15:00Z",
+    "status": "approved"
   }
 }
