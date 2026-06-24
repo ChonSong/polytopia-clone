@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "fix-tribe-select-sorting",
   "completed": [
     {
       "task": "fix-hud-tribe-name-truncation",
@@ -23,10 +23,17 @@
       "date": "2026-06-25",
       "summary": "Update GDD.md §3.5 (Cloak Infiltration: ❌ Not in code → [x] Implemented, commit a5f8eaa) and §8.4 (AI low-HP prioritization: ⚠️ no prioritization → [x] Low-HP sort, commit 9564cad). Documentation-only. No stale ❌ or ⚠️ markers remain in substantive sections. Only 4 remaining [ ] items are legitimately deferred scoring extensions (Territorial, Exploration, Monument, Temple) per GDD §1 note. 481 tests pass. Live site 200, 0 console errors.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-persistent-pause-game-overlay",
+      "sha": "2bae1cc",
+      "date": "2026-06-26",
+      "summary": "Add Escape-key pause/resume overlay: semi-transparent 55% opacity backdrop dims canvas, centered 'PAUSED' text, 'Resume (ESC)' button. Pause blocked during AI turn (isAiRunning guard). togglePause() with idempotent pauseGame()/resumeGame(). 11 state-machine tests added. 492 total tests pass. Coach FIX: added !isPaused guards to all 12 input handlers (pointerdown, pointermove, end turn, tech, wait, convert, heal, submerge, emerge, infiltrate, enchant, mute) — player could interact with game elements through the pause overlay.",
+      "coach": "fixed"
     }
   ],
-  "health": "481_pass_0_error_0_fail",
-  "last_sha": "7ad9a63",
+  "health": "492_pass_0_error_0_fail",
+  "last_sha": "2bae1cc",
   "blocker": null,
   "spec_gaps": [
     {
@@ -37,9 +44,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "1a0089e",
-    "last_reviewed_at": "2026-06-26T01:35:00Z",
-    "verdict": "approved",
-    "notes": "CYCLE: 2026-06-26 01:35 UTC. Player commit 1a0089e (GDD sync §3.5, §8.4) re-verified and re-approved after previous coach commit 16f9621 was reverted by 7ad9a63. GDD.md markers all correct. 481/481 tests pass. Live site 200, 0 console errors. Backlog empty (all p1-p3 tasks complete). Only 1 remaining spec_gap: scoring extensions (p4 deferred). Loop would stall — generating 2 new tasks for next cycle: (1) persistent-pause-game-overlay, (2) tribe-selection-sorted-by-rating."
+    "last_reviewed_sha": "2bae1cc",
+    "last_reviewed_at": "2026-06-26T02:50:00Z",
+    "verdict": "fixed",
+    "notes": "CYCLE: 2026-06-26 02:50 UTC. Player commit 2bae1cc (pause overlay) added visual overlay correctly (55% backdrop, PAUSED text, Resume button, 11 tests) but MISSED blocking input events during pause. All 12 input handlers lacked isPaused guards — player could click map, end turn, use abilities through the overlay. Coach added guards to: pointerdown, pointermove, endTurn button, tech button, wait/convert/heal/submerge/emerge/infiltrate/enchant buttons, mute button. 492 tests pass. Live site 200, 0 console errors. Player still has fix-tribe-select-sorting pending — not started."
   }
 }
