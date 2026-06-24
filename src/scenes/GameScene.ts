@@ -157,7 +157,7 @@ export class GameScene extends Phaser.Scene {
     bg.fillStyle(0x000, 0.65);
     bg.fillRoundedRect(4, 4, 320, 72, 6);
 
-    this.tribeText = this.add.text(12, 10, '', { ...s, fontSize: '20px', color: '#ffd' })
+    this.tribeText = this.add.text(38, 10, '', { ...s, fontSize: '20px', color: '#ffd' })
       .setScrollFactor(0).setDepth(20);
     this.phaseText = this.add.text(12, 36, '', s)
       .setScrollFactor(0).setDepth(20);

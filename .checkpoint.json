@@ -436,10 +436,17 @@
       "date": "2026-06-24",
       "summary": "Add 24 speed tests: extracted speedAdjustedCost/SPEED_MULTIPLIERS into SpeedUtils.ts for testability (ScoreCalculator pattern). Tests cover Normal (×1.0), Fast (×0.75, Math.ceil), Blitz (×0.5, min 1⭐) across all cost categories: unit training, buildings, city upgrades, tech research, naval upgrades, enchantment. 481 tests passing.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-city-menu-position-inverted-scroll",
+      "sha": "3c2d32f",
+      "date": "2026-06-25",
+      "summary": "Fix city menu scroll offset inversion: showCityMenu() used '+ scrollX' instead of '- scrollX', causing menu to render off-screen when camera moved (text has setScrollFactor(0)). Also added camera auto-center on starting city — Imperius/Oumaji/Elyrion start positions were off the 800px viewport, blocking unit training. camera.setScroll(cityX-400, cityY-300) on game start. 481 tests pass.",
+      "coach": "approved"
     }
   ],
   "health": "481_pass_0_error_0_fail",
-  "last_sha": "a505805",
+  "last_sha": "3c2d32f",
   "blocker": null,
   "spec_gaps": [
     {
@@ -450,11 +457,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "a505805",
-    "last_reviewed_at": "2026-06-25T03:35:00Z",
-    "verdict": "no-op",
-    "notes": "No new Player commits since last review (still at a505805). Only Coach's own commit c072370 (approval). Backlog: 2 remaining tasks (fix-hud-tribe-name-truncation, gdd-sync-remaining-gaps). Backlog warning remains. Live site hex.codeovertcp.com last verified 200. No action needed this cycle.",
-    "last_review": "2026-06-25T03:35:00Z",
-    "status": "no-op"
+    "last_reviewed_sha": "3c2d32f",
+    "last_reviewed_at": "2026-06-25T17:35:00Z",
+    "verdict": "approved",
+    "notes": "APPROVED fix-city-menu-position-inverted-scroll (3c2d32f). Fixes two bugs: (1) showCityMenu scroll offset was inverted (+scrollX instead of -scrollX), causing menu to render off-screen after camera scroll; (2) camera auto-center on starting city — 3/7 tribes spawned off 800px viewport. 481/481 tests pass. Security: no new deps/endpoints. Scope: YAGNI clean (camera auto-center is related UX fix). Perf: N/A. Remaining: fix-hud-tribe-name-truncation (current_task), gdd-sync-remaining-gaps. Backlog: 2 remaining.",
+    "last_review": "2026-06-25T17:35:00Z",
+    "status": "approved"
   }
 }
