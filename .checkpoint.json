@@ -8,7 +8,7 @@
       "sha": "03aaa7d",
       "date": "2026-06-25",
       "summary": "Fix mute button overlapping tribe text: muteBtn at (10,10) with depth 20 was created after tribeText (12,10), covering characters 'Xi' of 'Xin-xi'. Moved tribeText x to 38, past the ~24px mute button emoji area. All 481 tests pass.",
-      "coach": "pending"
+      "coach": "approved"
     },
     {
       "task": "p1-unit-stats",
@@ -464,11 +464,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "3c2d32f",
-    "last_reviewed_at": "2026-06-25T17:35:00Z",
+    "last_reviewed_sha": "03aaa7d",
+    "last_reviewed_at": "2026-06-25T22:20:00Z",
     "verdict": "approved",
-    "notes": "APPROVED fix-city-menu-position-inverted-scroll (3c2d32f). Fixes two bugs: (1) showCityMenu scroll offset was inverted (+scrollX instead of -scrollX), causing menu to render off-screen after camera scroll; (2) camera auto-center on starting city — 3/7 tribes spawned off 800px viewport. 481/481 tests pass. Security: no new deps/endpoints. Scope: YAGNI clean (camera auto-center is related UX fix). Perf: N/A. Remaining: fix-hud-tribe-name-truncation (current_task), gdd-sync-remaining-gaps. Backlog: 2 remaining.",
-    "last_review": "2026-06-25T17:35:00Z",
+    "notes": "APPROVED fix-hud-tribe-name-truncation (03aaa7d). Root cause: muteBtn at (10,10) fontSize 22px depth 20 created AFTER tribeText at (12,10) same depth — emoji covered 'Xi' of 'Xin-xi', showing 'n-xi'. Fix: shift tribeText x from 12 to 38 (28px gap exceeds ~24px emoji width). 481/481 tests pass. Security: no new deps/endpoints. Scope: YAGNI clean (1-line fix). Perf: N/A. Live site: 0 console errors. Current_task: gdd-sync-remaining-gaps. Backlog: 1 remaining (scoring extensions deferred).",
+    "last_review": "2026-06-25T22:20:00Z",
     "status": "approved"
   }
 }
