@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "fix-inverted-pause-guards",
   "completed": [
     {
       "task": "fix-hud-tribe-name-truncation",
@@ -28,7 +28,7 @@
       "task": "fix-persistent-pause-game-overlay",
       "sha": "2bae1cc",
       "date": "2026-06-26",
-      "summary": "Add Escape-key pause/resume overlay: semi-transparent 55% opacity backdrop dims canvas, centered 'PAUSED' text, 'Resume (ESC)' button. Pause blocked during AI turn (isAiRunning guard). togglePause() with idempotent pauseGame()/resumeGame(). 11 state-machine tests added. 492 total tests pass. Coach FIX: added !isPaused guards to all 12 input handlers (pointerdown, pointermove, end turn, tech, wait, convert, heal, submerge, emerge, infiltrate, enchant, mute) — player could interact with game elements through the pause overlay.",
+      "summary": "Add Escape-key pause/resume overlay: semi-transparent 55% opacity backdrop dims canvas, centered 'PAUSED' text, 'Resume (ESC)' button. Pause blocked during AI turn (isAiRunning guard). togglePause() with idempotent pauseGame()/resumeGame(). 11 state-machine tests added. 492 total tests pass.",
       "coach": "fixed"
     },
     {
@@ -36,11 +36,18 @@
       "sha": "1082882",
       "date": "2026-06-25",
       "summary": "Sort tribe selection screen alphabetically: created sorted copy of TRIBE_CONFIGS using [...TRIBE_CONFIGS].sort((a, b) => a.name.localeCompare(b.name)) before rendering tribe cards. Tribes now display as Bardur, Cymanti, Elyrion, Imperius, Oumaji, Polaris, Xin-xi. Original TRIBE_CONFIGS array is not mutated. All 492 tests pass.",
+      "coach": "approved"
+    },
+    {
+      "task": "fix-inverted-pause-guards",
+      "sha": "c6d213e",
+      "date": "2026-06-24",
+      "summary": "Coach cycle 2026-06-24T17:05 — review found: (1) Coach's own pause guard fix (340c63f) had INVERTED logic in 7 button handlers — 'this.isPaused ||' makes actions fire when PAUSED instead of blocking them. Changed to '!this.isPaused &&' which also fixes 6 TS strict-null type errors. (2) Player's tribe-sort fix (1082882) not deployed — service needed rebuild+restart. (3) Build was broken with 6 TS errors caused by inverted pause guards; now fixed. 492 tests pass, build clean.",
       "coach": "pending"
     }
   ],
-  "health": "492_pass_0_error_0_fail",
-  "last_sha": "1082882",
+  "health": "492_pass_build_clean",
+  "last_sha": "c6d213e",
   "blocker": null,
   "spec_gaps": [
     {
@@ -51,9 +58,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "1082882",
-    "last_reviewed_at": null,
+    "last_reviewed_sha": "c6d213e",
+    "last_reviewed_at": "2026-06-24T17:05:00Z",
     "verdict": "pending",
-    "notes": "Player commit 1082882: sorted tribe selection screen alphabetically. Used spread+sort on TRIBE_CONFIGS with localeCompare. All 492 tests pass. Awaiting coach review."
+    "notes": "Coach cycle 2026-06-24T17:05 — found and fixed 7 inverted pause guards in GameScene.ts (wait, convert, heal, submerge, emerge, infiltrate, enchant). Fix also resolves 6 TypeScript strict-null build errors. Player's tribe-sort fix (1082882) was not deployed (vite preview serves pre-built dist/). Rebuilt and redeploying. Visual comparison subagent dispatched for gto-wizard-clone."
   }
 }
