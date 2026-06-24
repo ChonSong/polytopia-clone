@@ -179,7 +179,7 @@ When a Cloak executes Infiltrate on an enemy city:
 
 **Dagger spawn priority:** (1) central city tile if garrison killed, (2) vacant land tiles with terrain defense bonuses, (3) vacant water tiles (becomes Pirate with Surprise skill).
 
-**Implemented:** ❌ Not in code.
+**Implemented:** [x] Cloak Infiltration — Dagger unit (3HP/2atk/1def/1mov), Infiltrate action consumes Cloak and schedules Dagger spawn next turn, requires Diplomacy tech (commit a5f8eaa).
 
 ---
 
@@ -443,7 +443,7 @@ Each city owned increases all research costs. Creates strategic tension: expand 
 2. Attack adjacent enemy cities.
 3. Prioritize low-HP targets (guaranteed kills, veteran progress, eliminate retaliation).
 
-**Implemented:** ⚠️ Adjacent attack logic present but no low-HP prioritization — attacks first found target.
+**Implemented:** [x] Low-HP priority sorting — AI sorts adjacent enemies by ascending HP, descending attack for ties (commit 9564cad).
 
 ---
 
