@@ -274,10 +274,10 @@ export class GameScene extends Phaser.Scene {
     techBtn.on('pointerover', () => techBtn.setStyle({ backgroundColor: '#336' }));
     techBtn.on('pointerout', () => techBtn.setStyle({ backgroundColor: '#224' }));
 
-    // Sound toggle (camera-fixed) — top-right HUD
+    // Sound toggle (camera-fixed) — top-left HUD (away from end turn button)
     const savedMute = typeof localStorage !== 'undefined' && localStorage.getItem('polytopia_mute') === 'true';
     this.sound.mute = savedMute;
-    this.muteBtn = this.add.text(740, 10, savedMute ? '🔇' : '🔊', {
+    this.muteBtn = this.add.text(10, 10, savedMute ? '🔇' : '🔊', {
       fontSize: '22px',
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.muteBtn.on('pointerdown', () => {

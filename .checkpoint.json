@@ -420,11 +420,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "89517e5",
-    "last_reviewed_at": "2026-06-24T08:50:00Z",
-    "verdict": "approved",
-    "notes": "add-vite-bundle-code-splitting + add-sound-toggle-ui: APPROVED. Both commits verified. Security: no new deps/endpoints. YAGNI: all changes required by task criteria. Perf: N/A. Tests: 452/452 pass (coach-verified). Build: 2 chunks produced, no chunk-size warning. Live site: HTTP 200, Phaser WebGL+WebAudio renders, 0 JS errors, bundle contains polytopia_mute code. FINDINGS: (1) Stale serve dist process on port 3001 not managed by systemd (PID 2122063). (2) Sound toggle at (740,10) X-overlaps end turn button at (660,10). New backlog tasks: fix-mute-button-overlap, fix-deploy-systemd-execstartpre.",
-    "last_review": "2026-06-24T08:50:00Z",
-    "status": "approved"
+    "last_reviewed_sha": "c4f6c5d",
+    "last_reviewed_at": "2026-06-24T09:40:00Z",
+    "verdict": "stalled",
+    "notes": "Stalled loop — no new Player work since 08:50. 2 remaining AGENTS.md tasks (fix-mute-button-overlap, fix-deploy-systemd-execstartpre). Verifying stale infra issue: PID 2122063 still blocks port 3001, systemd falls back to 3002, tunnel points to 3001 (stale serve process). Live site: HTTP 200 (served by stale process), canvas renders, tribe selection functional, 0 JS errors. Tests: 452/452 pass. Backlog: ⚠️ 2 remaining. Actionable: stale serve PID 2122063 on 3001 still unmanaged — fix-deploy-systemd-execstartpre task exists but unstarted.",
+    "last_review": "2026-06-24T09:40:00Z",
+    "status": "stalled"
   }
 }
