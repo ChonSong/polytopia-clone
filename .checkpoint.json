@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "fix-ai-difficulty-levels",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -408,11 +408,17 @@
       "date": "2026-06-24",
       "summary": "Added ExecStartPre=/usr/bin/env sh -c 'lsof -ti:3001 | xargs -r kill -KILL' to polytopia-clone.service. Systemd now kills stale processes on port 3001 before starting vite preview. Verified: ExecStartPre exits 0, service binds :3001 (single node PID), curl returns 200, 452 tests pass, live site 200.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-mobile-game-scaling",
+      "sha": "5252aef",
+      "date": "2026-06-24",
+      "summary": "Fix game canvas scaling: #game CSS changed from fixed 800x600 to width/height 100% with max-width/max-height 800x600, enabling Phaser Scale.FIT to properly resize the canvas on mobile viewports while maintaining 4:3 aspect ratio. Desktop ≥800px shows 800x600 centered unchanged.",
+      "coach": "approved"
     }
   ],
-  "current_task": "fix-mobile-game-scaling",
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "c60b8fb",
+  "last_sha": "5252aef",
   "blocker": null,
   "spec_gaps": [
     {
@@ -420,28 +426,14 @@
       "type": "missing_feature",
       "priority": 4,
       "evidence": "GDD §1 — deferred pending design decisions"
-    },
-    {
-      "item": "Stale serve process blocking port 3001",
-      "type": "infra_gap",
-      "priority": 1,
-      "evidence": "Resolved by fix-deploy-systemd-execstartpre (c60b8fb added ExecStartPre to kill stale PIDs on port 3001 before service start). Both deploy.sh (stale process in deploy script) and systemd ExecStartPre (during systemctl restart) handle this now.",
-      "status": "fixed"
-    },
-    {
-      "item": "Sound toggle overlaps end turn button",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "Muted button moved from (740,10) to (10,10) in c97b590. No overlap.",
-      "status": "fixed"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c60b8fb",
-    "last_reviewed_at": "2026-06-24T12:50:00Z",
+    "last_reviewed_sha": "5252aef",
+    "last_reviewed_at": "2026-06-24T15:45:00Z",
     "verdict": "approved",
-    "notes": "fix-deploy-systemd-execstartpre: APPROVED. Service file confirmed at ~/.config/systemd/user/polytopia-clone.service with ExecStartPre='lsof -ti:3001 | xargs -r kill -KILL'. Service running on port 3001 (PID 2388772). Live hex.codeovertcp.com returns 200. All 452 tests pass. Security: no new deps/endpoints. YAGNI: only required fix. Perf: N/A (infra change). Stalled loop detected (current_task: tbd). Backlog: 1 remaining spec gap (scoring extensions, priority 4, deferred). All AGENTS.md tasks completed — investigating for new tasks.",
-    "last_review": "2026-06-24T12:50:00Z",
+    "notes": "fix-mobile-game-scaling (5252aef): APPROVED. 1-line CSS change (#game width/height 100% + max-* constraints) enables Phaser Scale.FIT scaling. Browser QA: hex.codeovertcp.com loads (title 'Polytopia Clone'), canvas 800x600 scales to 769x577 CSS px (~4:3), 0 console errors. Tribe selection → game start → Turn 1 renders correctly. Security: no new deps/endpoints. YAGNI: single CSS change. Perf: N/A. Tests: 452/452 pass. Backlog: 2 tasks remaining (fix-ai-difficulty-levels, fix-game-speed-control) — healthy.",
+    "last_review": "2026-06-24T15:45:00Z",
     "status": "approved"
   }
 }
