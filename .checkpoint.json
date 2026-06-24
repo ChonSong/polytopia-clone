@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-tribe-select-sorting",
+  "current_task": "tbd",
   "completed": [
     {
       "task": "fix-hud-tribe-name-truncation",
@@ -30,10 +30,17 @@
       "date": "2026-06-26",
       "summary": "Add Escape-key pause/resume overlay: semi-transparent 55% opacity backdrop dims canvas, centered 'PAUSED' text, 'Resume (ESC)' button. Pause blocked during AI turn (isAiRunning guard). togglePause() with idempotent pauseGame()/resumeGame(). 11 state-machine tests added. 492 total tests pass. Coach FIX: added !isPaused guards to all 12 input handlers (pointerdown, pointermove, end turn, tech, wait, convert, heal, submerge, emerge, infiltrate, enchant, mute) — player could interact with game elements through the pause overlay.",
       "coach": "fixed"
+    },
+    {
+      "task": "fix-tribe-select-sorting",
+      "sha": "1082882",
+      "date": "2026-06-25",
+      "summary": "Sort tribe selection screen alphabetically: created sorted copy of TRIBE_CONFIGS using [...TRIBE_CONFIGS].sort((a, b) => a.name.localeCompare(b.name)) before rendering tribe cards. Tribes now display as Bardur, Cymanti, Elyrion, Imperius, Oumaji, Polaris, Xin-xi. Original TRIBE_CONFIGS array is not mutated. All 492 tests pass.",
+      "coach": "pending"
     }
   ],
   "health": "492_pass_0_error_0_fail",
-  "last_sha": "2bae1cc",
+  "last_sha": "1082882",
   "blocker": null,
   "spec_gaps": [
     {
@@ -44,9 +51,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "2bae1cc",
-    "last_reviewed_at": "2026-06-26T02:50:00Z",
-    "verdict": "fixed",
-    "notes": "CYCLE: 2026-06-26 02:50 UTC. Player commit 2bae1cc (pause overlay) added visual overlay correctly (55% backdrop, PAUSED text, Resume button, 11 tests) but MISSED blocking input events during pause. All 12 input handlers lacked isPaused guards — player could click map, end turn, use abilities through the overlay. Coach added guards to: pointerdown, pointermove, endTurn button, tech button, wait/convert/heal/submerge/emerge/infiltrate/enchant buttons, mute button. 492 tests pass. Live site 200, 0 console errors. Player still has fix-tribe-select-sorting pending — not started."
+    "last_reviewed_sha": "1082882",
+    "last_reviewed_at": null,
+    "verdict": "pending",
+    "notes": "Player commit 1082882: sorted tribe selection screen alphabetically. Used spread+sort on TRIBE_CONFIGS with localeCompare. All 492 tests pass. Awaiting coach review."
   }
 }
