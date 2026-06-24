@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-ai-difficulty-levels",
+  "current_task": "fix-game-speed-control",
   "completed": [
     {
       "task": "p1-unit-stats",
@@ -415,10 +415,17 @@
       "date": "2026-06-24",
       "summary": "Fix game canvas scaling: #game CSS changed from fixed 800x600 to width/height 100% with max-width/max-height 800x600, enabling Phaser Scale.FIT to properly resize the canvas on mobile viewports while maintaining 4:3 aspect ratio. Desktop ≥800px shows 800x600 centered unchanged.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-ai-difficulty-levels",
+      "sha": "a7ae442",
+      "date": "2026-06-24",
+      "summary": "Add difficulty levels (Easy/Medium/Hard) to AI behavior: DIFFICULTY_PRESETS with scalable minUnitsForUpgrade, techStarsThreshold, moveSkipChance. SelectScene gains difficulty selector row. Difficulty piped through to BasicAI. 5 new tests, 457 total passing.",
+      "coach": "approved"
     }
   ],
-  "health": "452_pass_0_error_0_fail",
-  "last_sha": "5252aef",
+  "health": "457_pass_0_error_0_fail",
+  "last_sha": "a7ae442",
   "blocker": null,
   "spec_gaps": [
     {
@@ -429,11 +436,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "5252aef",
-    "last_reviewed_at": "2026-06-24T15:45:00Z",
+    "last_reviewed_sha": "a7ae442",
+    "last_reviewed_at": "2026-06-24T17:35:00Z",
     "verdict": "approved",
-    "notes": "fix-mobile-game-scaling (5252aef): APPROVED. 1-line CSS change (#game width/height 100% + max-* constraints) enables Phaser Scale.FIT scaling. Browser QA: hex.codeovertcp.com loads (title 'Polytopia Clone'), canvas 800x600 scales to 769x577 CSS px (~4:3), 0 console errors. Tribe selection → game start → Turn 1 renders correctly. Security: no new deps/endpoints. YAGNI: single CSS change. Perf: N/A. Tests: 452/452 pass. Backlog: 2 tasks remaining (fix-ai-difficulty-levels, fix-game-speed-control) — healthy.",
-    "last_review": "2026-06-24T15:45:00Z",
+    "notes": "feat(ai): add difficulty levels (a7ae442) — APPROVED. 4 files changed, 193 insertions. DIFFICULTY_PRESETS with Easy/Medium/Hard levels. Difficulty selector in SelectScene UI. Piped through to BasicAI. Security: no new deps/endpoints. YAGNI: clean — directly implements the task. Perf: N/A. Tests: 457/457 pass (452 existing + 5 new). Browser QA: Canvas renders on hex.codeovertcp.com, difficulty selector visible (Easy/Medium/Hard buttons), tribe selection UI functional, 0 console errors.",
+    "last_review": "2026-06-24T17:35:00Z",
     "status": "approved"
   }
 }
