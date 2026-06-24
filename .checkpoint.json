@@ -1,8 +1,15 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-hud-tribe-name-truncation",
+  "current_task": "gdd-sync-remaining-gaps",
   "completed": [
+    {
+      "task": "fix-hud-tribe-name-truncation",
+      "sha": "03aaa7d",
+      "date": "2026-06-25",
+      "summary": "Fix mute button overlapping tribe text: muteBtn at (10,10) with depth 20 was created after tribeText (12,10), covering characters 'Xi' of 'Xin-xi'. Moved tribeText x to 38, past the ~24px mute button emoji area. All 481 tests pass.",
+      "coach": "pending"
+    },
     {
       "task": "p1-unit-stats",
       "sha": "feea065",
@@ -446,7 +453,7 @@
     }
   ],
   "health": "481_pass_0_error_0_fail",
-  "last_sha": "3c2d32f",
+  "last_sha": "03aaa7d",
   "blocker": null,
   "spec_gaps": [
     {
