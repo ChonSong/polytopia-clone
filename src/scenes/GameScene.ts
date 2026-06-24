@@ -70,6 +70,13 @@ export class GameScene extends Phaser.Scene {
   private battlePreviewGraphics!: Phaser.GameObjects.Graphics;
   private hoveredEnemy: Unit | null = null;
 
+  // Pause overlay state
+  private isPaused = false;
+  private pauseOverlay: Phaser.GameObjects.Group | null = null;
+  private pauseBg: Phaser.GameObjects.Graphics | null = null;
+  private pauseText: Phaser.GameObjects.Text | null = null;
+  private pauseResumeBtn: Phaser.GameObjects.Text | null = null;
+
   private readonly PHASE_ORDER = [
     TurnPhase.EXPLORE,
     TurnPhase.BUILD,
@@ -320,7 +327,63 @@ export class GameScene extends Phaser.Scene {
           this.updateUI();
         }
       });
+
+      // Keyboard: Escape = Pause/Resume overlay (human turn only)
+      this.input.keyboard.on('keydown-ESC', () => {
+        if (this.isAiRunning) return; // Don't pause during AI processing
+        this.togglePause();
+      });
     }
+  }
+
+  private togglePause(): void {
+    if (this.isPaused) {
+      this.resumeGame();
+    } else {
+      this.pauseGame();
+    }
+  }
+
+  private pauseGame(): void {
+    if (this.isPaused || this.isAiRunning) return;
+    this.isPaused = true;
+
+    // Create overlay group (camera-fixed, high depth)
+    this.pauseOverlay = this.add.group();
+
+    // Semi-transparent backdrop covering the full viewport
+    this.pauseBg = this.add.graphics().setScrollFactor(0).setDepth(100);
+    this.pauseBg.fillStyle(0x000000, 0.55);
+    this.pauseBg.fillRect(0, 0, 800, 600);
+    this.pauseOverlay.add(this.pauseBg);
+
+    // PAUSED title text
+    this.pauseText = this.add.text(400, 240, 'PAUSED', {
+      fontSize: '48px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    this.pauseOverlay.add(this.pauseText);
+
+    // Resume button
+    this.pauseResumeBtn = this.add.text(400, 320, '[ Resume (ESC) ]', {
+      fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
+      backgroundColor: '#333', padding: { x: 12, y: 8 },
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101)
+      .setInteractive({ useHandCursor: true });
+    this.pauseResumeBtn.on('pointerdown', () => this.resumeGame());
+    this.pauseResumeBtn.on('pointerover', () => this.pauseResumeBtn!.setStyle({ backgroundColor: '#555' }));
+    this.pauseResumeBtn.on('pointerout', () => this.pauseResumeBtn!.setStyle({ backgroundColor: '#333' }));
+    this.pauseOverlay.add(this.pauseResumeBtn);
+  }
+
+  private resumeGame(): void {
+    if (!this.isPaused || !this.pauseOverlay) return;
+    this.isPaused = false;
+
+    this.pauseOverlay.destroy(true);
+    this.pauseOverlay = null;
+    this.pauseBg = null;
+    this.pauseText = null;
+    this.pauseResumeBtn = null;
   }
 
   private placeCities(): void {
