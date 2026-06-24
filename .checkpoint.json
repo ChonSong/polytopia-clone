@@ -464,11 +464,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "03aaa7d",
-    "last_reviewed_at": "2026-06-25T22:20:00Z",
+    "last_reviewed_sha": "f6e239a",
+    "last_reviewed_at": "2026-06-25T23:35:00Z",
     "verdict": "approved",
-    "notes": "APPROVED fix-hud-tribe-name-truncation (03aaa7d). Root cause: muteBtn at (10,10) fontSize 22px depth 20 created AFTER tribeText at (12,10) same depth — emoji covered 'Xi' of 'Xin-xi', showing 'n-xi'. Fix: shift tribeText x from 12 to 38 (28px gap exceeds ~24px emoji width). 481/481 tests pass. Security: no new deps/endpoints. Scope: YAGNI clean (1-line fix). Perf: N/A. Live site: 0 console errors. Current_task: gdd-sync-remaining-gaps. Backlog: 1 remaining (scoring extensions deferred).",
-    "last_review": "2026-06-25T22:20:00Z",
+    "notes": "CYCLE: 2026-06-25 23:35 UTC — health check. No new Player commits since last review (03aaa7d). Pending checkpoint changes from prior Coach cycle committed (f6e239a). Visual comparison skipped (no reference screenshots in docs/). Live site verified: HTTP 200, service active, single node on :3001, 481 tests pass. Backlog: 1 remaining (gdd-sync-remaining-gaps — update GDD.md §3.5/§8.4 stale markers). Spec gaps: scoring extensions deferred per GDD §1 (P4). No normalized blockers found. No pitfall-related issues (polytopia-game-qa skill not installed). Current_task: gdd-sync-remaining-gaps.",
+    "last_review": "2026-06-25T23:35:00Z",
     "status": "approved"
   }
 }
