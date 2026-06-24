@@ -179,7 +179,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 8, y: 6 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.waitBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
         // Deselect the unit without marking hasActed = true
         // Unit stays inactive → eligible for end-of-turn healing (+4 friendly, +2 other)
         this.selectedUnit = null;
@@ -198,7 +198,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#323', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.convertBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasConvert && !this.selectedUnit.hasActed) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasConvert && !this.selectedUnit.hasActed) {
         this.performConvert(this.selectedUnit);
       }
     });
@@ -212,7 +212,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.healBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed) {
         this.performHeal(this.selectedUnit);
       }
     });
@@ -226,7 +226,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#223', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.submergeBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && !this.selectedUnit.isSubmerged) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && !this.selectedUnit.isSubmerged) {
         this.state.submergeCloak(this.selectedUnit);
         this.renderAll(); this.updateUI();
       }
@@ -241,7 +241,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#233', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.emergeBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged) {
         this.state.emergeCloak(this.selectedUnit);
         this.renderAll(); this.updateUI();
       }
@@ -256,7 +256,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#332', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.infiltrateBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasInfiltrate && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged && this.selectedUnit.primedForInfiltrate) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasInfiltrate && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged && this.selectedUnit.primedForInfiltrate) {
         this.performInfiltrate(this.selectedUnit);
       }
     });
@@ -270,7 +270,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     enchantBtn.on('pointerdown', () => {
-      if (this.isPaused || !this.isAiRunning && this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed) {
+      if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed) {
         this.performEnchantment(this.selectedUnit);
       }
     });
