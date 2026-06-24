@@ -401,11 +401,18 @@
       "date": "2026-06-24",
       "summary": "Move mute button from (740,10) to (10,10) to eliminate ~22px overlap with end turn button at (660,10). Left side of HUD was empty — clean separation.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-deploy-systemd-execstartpre",
+      "sha": "c60b8fb",
+      "date": "2026-06-24",
+      "summary": "Added ExecStartPre=/usr/bin/env sh -c 'lsof -ti:3001 | xargs -r kill -KILL' to polytopia-clone.service. Systemd now kills stale processes on port 3001 before starting vite preview. Verified: ExecStartPre exits 0, service binds :3001 (single node PID), curl returns 200, 452 tests pass, live site 200.",
+      "coach": "approved"
     }
   ],
-  "current_task": "fix-deploy-systemd-execstartpre",
+  "current_task": "fix-mobile-game-scaling",
   "health": "452_pass_0_error_0_fail",
-  "last_sha": "c97b590",
+  "last_sha": "c60b8fb",
   "blocker": null,
   "spec_gaps": [
     {
@@ -418,7 +425,8 @@
       "item": "Stale serve process blocking port 3001",
       "type": "infra_gap",
       "priority": 1,
-      "evidence": "Resolved by fix-deploy-stale-process-cleanup (19fdd45). Systemd polytopia-clone service now uses vite preview on port 3001 (PID 2312947). deploy.sh kills stale processes before restart. No ExecStartPre yet in systemd service file — fix-deploy-systemd-execstartpre task remains as hardening."
+      "evidence": "Resolved by fix-deploy-systemd-execstartpre (c60b8fb added ExecStartPre to kill stale PIDs on port 3001 before service start). Both deploy.sh (stale process in deploy script) and systemd ExecStartPre (during systemctl restart) handle this now.",
+      "status": "fixed"
     },
     {
       "item": "Sound toggle overlaps end turn button",
@@ -429,11 +437,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c97b590",
-    "last_reviewed_at": "2026-06-24T01:15:00Z",
+    "last_reviewed_sha": "c60b8fb",
+    "last_reviewed_at": "2026-06-24T12:50:00Z",
     "verdict": "approved",
-    "notes": "fix-mute-button-overlap (c97b590): APPROVED. Moved muteBtn from (740,10) to (10,10) — 650px away from end turn button at (660,10). Clean separation, left side was empty. Security: no new deps/endpoints. YAGNI: only required fix, no scope creep. Perf: N/A (frontend coordinate change). Tests: 452/452 pass (coach-verified). Live site: HTTP 200, 0 console errors, canvas renders (tribe selection screen). Spec gap 'sound toggle overlap' marked fixed. Backlog: ⚠️ 1 remaining (fix-deploy-systemd-execstartpre). Infrastructure: stale PID 2122063 is gone; systemd service is now managing vite preview on port 3001 (PID 2312947). Fix-deploy-stale-process-cleanup (19fdd45) resolved the immediate stale process issue. ExecStartPre task remains as hardening.",
-    "last_review": "2026-06-24T01:15:00Z",
+    "notes": "fix-deploy-systemd-execstartpre: APPROVED. Service file confirmed at ~/.config/systemd/user/polytopia-clone.service with ExecStartPre='lsof -ti:3001 | xargs -r kill -KILL'. Service running on port 3001 (PID 2388772). Live hex.codeovertcp.com returns 200. All 452 tests pass. Security: no new deps/endpoints. YAGNI: only required fix. Perf: N/A (infra change). Stalled loop detected (current_task: tbd). Backlog: 1 remaining spec gap (scoring extensions, priority 4, deferred). All AGENTS.md tasks completed — investigating for new tasks.",
+    "last_review": "2026-06-24T12:50:00Z",
     "status": "approved"
   }
 }

@@ -146,3 +146,51 @@
   - Verify `ss -tlnp | grep ":3001"` shows only 1 node process
   - Verify tunnel still serves HTTP 200
   - Run all tests
+
+### Task: fix-mobile-game-scaling
+- **Description**: The game canvas is hardcoded to 800x600 pixels. On mobile browsers, small viewports (<800px wide), or when the browser is resized, the canvas overflows or gets cropped with no responsive scaling. Phaser's Scale Manager supports FIT mode which auto-resizes the canvas while maintaining aspect ratio. Currently the `#game` div has no scale constraints and the Phaser game config doesn't set a Scale Manager mode. Fix: configure Phaser Scale Manager with `mode: Phaser.Scale.FIT` and `autoCenter: Phaser.Scale.CENTER_BOTH`, and ensure the CSS body/game container allows scaling (max-width: 100vw, max-height: 100vh).
+- **Location**: `src/main.ts` (or wherever the Phaser Game config is created), CSS in `index.html`
+- **Success criteria**:
+  - Game canvas scales to fit browser viewport on mobile (<800px wide)
+  - Game maintains 4:3 aspect ratio at all sizes
+  - No visual cropping or overflow on narrow screens
+  - Desktop at ≥800px wide shows game at 800x600 (unchanged)
+  - `npx vitest run` — all existing tests pass
+- **Coach checks**:
+  - Resize browser to <800px wide — verify canvas scales down proportionally
+  - Open on a mobile-sized viewport (375x667) — verify game fits without scrollbars
+  - Verify desktop still shows 800x600 centered
+  - Run all tests
+
+### Task: fix-ai-difficulty-levels
+- **Description**: The tribe selection screen has map type and game mode options but no difficulty selection. All AI tribes use the same behavior parameters (expansion rate, attack frequency, tech priority). Add Easy/Medium/Hard difficulty options to the tribe selection screen that scale AI behavior: Easy = AI expands slowly, attacks rarely, researches defensively; Medium = current behavior (balanced); Hard = AI expands aggressively, attacks frequently, prioritizes military techs. Difficulty selection appears as a third row below Map and Mode.
+- **Location**: `src/scenes/TribeSelectScene.ts` (selection screen), AI decision logic files
+- **Success criteria**:
+  - Tribe selection screen shows "Difficulty: Easy / Medium / Hard" toggle row
+  - Medium matches current AI behavior exactly (no regression)
+  - Easy AI: slower expansion, fewer attacks, lower tech priority
+  - Hard AI: faster expansion, more frequent attacks, military tech priority
+  - 3+ new tests verifying difficulty affects AI decisions
+  - `npx vitest run` — all tests pass
+- **Coach checks**:
+  - Select Easy, start game — verify AI is less aggressive than Medium
+  - Select Hard, start game — verify AI is more aggressive than Medium
+  - Verify Medium matches previous behavior (no regression)
+  - Run all tests
+
+### Task: fix-game-speed-control
+- **Description**: The game has no speed selection. In real Polytopia, game speed affects tech costs and production: Normal (1.0x), Fast (0.75x), Blitz (0.5x). Add a speed selection row to the tribe selection screen (between Mode and Difficulty). When speed is selected, multiply tech research costs and unit/building production costs by the speed multiplier. Speed selection persists for the game session.
+- **Location**: `src/scenes/TribeSelectScene.ts` (UI), `src/objects/TechTree.ts` (tech costs), `src/objects/City.ts` (production costs)
+- **Success criteria**:
+  - Tribe selection screen shows "Speed: Normal / Fast / Blitz" toggle row
+  - Normal speed matches current costs exactly (no regression)
+  - Fast speed reduces tech/production costs to 75%
+  - Blitz speed reduces tech/production costs to 50%
+  - Speed selection is stored and used throughout the game
+  - 3+ new tests verifying speed affects costs
+  - `npx vitest run` — all existing tests pass
+- **Coach checks**:
+  - Start a Blitz game — verify tech research costs are halved
+  - Start a Normal game — verify costs match previous behavior (no regression)
+  - Check that speed persists across turns
+  - Run all tests
