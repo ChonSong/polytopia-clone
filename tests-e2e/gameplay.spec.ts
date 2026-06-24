@@ -277,4 +277,100 @@ test.describe('Human-like Gameplay', () => {
     }
   });
 
+  test('Escape key opens and closes pause overlay', async ({ page }) => {
+    test.setTimeout(30_000);
+    await loadGame(page);
+    const outcome = await selectTribeAndWait(page);
+    if (outcome === 'game_over') {
+      console.log('Game ended during initial AI processing — skipping');
+      return;
+    }
+
+    // Verify not paused initially
+    const pausedBefore = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.isPaused) ?? false`,
+    );
+    expect(pausedBefore).toBe(false);
+
+    // Press Escape to pause
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // Verify game is paused
+    const pausedAfter = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.isPaused) ?? false`,
+    );
+    expect(pausedAfter).toBe(true);
+
+    // Verify overlay exists
+    const overlayExists = await readGame<boolean>(
+      page,
+      `!!(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.pauseOverlay)`,
+    );
+    expect(overlayExists).toBe(true);
+
+    // Verify PAUSED text is visible
+    const pauseTextVisible = await readGame<boolean>(
+      page,
+      `(() => {
+        const gs = window.__PHASER_GAME__?.scene?.getScene('GameScene');
+        if (!gs?.pauseOverlay) return false;
+        const texts = gs.pauseOverlay.children.list.filter(c => c.type === 'Text');
+        return texts.some(t => t.text === 'PAUSED');
+      })()`,
+    );
+    expect(pauseTextVisible).toBe(true);
+
+    // Press Escape again to resume
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // Verify pause is dismissed
+    const pausedFinal = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.isPaused) ?? true`,
+    );
+    expect(pausedFinal).toBe(false);
+
+    // Verify overlay is destroyed
+    const overlayGone = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.pauseOverlay) === null`,
+    );
+    expect(overlayGone).toBe(true);
+  });
+
+  test('Resume button closes pause overlay', async ({ page }) => {
+    test.setTimeout(30_000);
+    await loadGame(page);
+    const outcome = await selectTribeAndWait(page);
+    if (outcome === 'game_over') {
+      console.log('Game ended during initial AI processing — skipping');
+      return;
+    }
+
+    // Pause the game
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    const pausedAfter = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.isPaused) ?? false`,
+    );
+    expect(pausedAfter).toBe(true);
+
+    // Click the Resume button (at center of canvas, y≈320)
+    await page.locator('canvas').click({ position: { x: 400, y: 320 } });
+    await page.waitForTimeout(500);
+
+    // Verify pause is dismissed
+    const pausedFinal = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.isPaused) ?? true`,
+    );
+    expect(pausedFinal).toBe(false);
+  });
+
 });
