@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "gdd-sync-remaining-gaps",
   "completed": [
     {
       "task": "fix-hud-tribe-name-truncation",
@@ -450,17 +450,10 @@
       "date": "2026-06-25",
       "summary": "Fix city menu scroll offset inversion: showCityMenu() used '+ scrollX' instead of '- scrollX', causing menu to render off-screen when camera moved (text has setScrollFactor(0)). Also added camera auto-center on starting city — Imperius/Oumaji/Elyrion start positions were off the 800px viewport, blocking unit training. camera.setScroll(cityX-400, cityY-300) on game start. 481 tests pass.",
       "coach": "approved"
-    },
-    {
-      "task": "gdd-sync-remaining-gaps",
-      "sha": "1a0089e",
-      "date": "2026-06-25",
-      "summary": "Update GDD.md §3.5 (Cloak Infiltration: ❌ Not in code → [x] Implemented, commit a5f8eaa) and §8.4 (AI low-HP prioritization: ⚠️ no prioritization → [x] Low-HP sort, commit 9564cad). Documentation-only. No stale ❌ or ⚠️ markers remain.",
-      "coach": "approved"
     }
   ],
   "health": "481_pass_0_error_0_fail",
-  "last_sha": "1a0089e",
+  "last_sha": "03aaa7d",
   "blocker": null,
   "spec_gaps": [
     {
@@ -471,9 +464,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "1a0089e",
-    "last_reviewed_at": "2026-06-26T00:05:00Z",
+    "last_reviewed_sha": "f6e239a",
+    "last_reviewed_at": "2026-06-25T23:35:00Z",
     "verdict": "approved",
-    "notes": "CYCLE: 2026-06-26 00:05 UTC — APPROVED gdd-sync-remaining-gaps (1a0089e). GDD.md §3.5 + §8.4 updated correctly. 481/481 tests pass. Browser QA: game loads, tribe selection works, turn advancement works, 0 console errors. State: turn=2, phase=human, tribe=bardur, 1 city, 1 unit, 25 stars. No stale ❌/⚠️ markers remain. Backlog: 0 remaining → generating 2 new tasks."
+    "notes": "CYCLE: 2026-06-25 23:35 UTC — health check. No new Player commits since last review (03aaa7d). Pending checkpoint changes from prior Coach cycle committed (f6e239a). Visual comparison skipped (no reference screenshots in docs/). Live site verified: HTTP 200, service active, single node on :3001, 481 tests pass. Backlog: 1 remaining (gdd-sync-remaining-gaps — update GDD.md §3.5/§8.4 stale markers). Spec gaps: scoring extensions deferred per GDD §1 (P4). No normalized blockers found. No pitfall-related issues (polytopia-game-qa skill not installed). Current_task: gdd-sync-remaining-gaps.",
+    "last_review": "2026-06-25T23:35:00Z",
+    "status": "approved"
   }
 }
