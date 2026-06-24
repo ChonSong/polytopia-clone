@@ -118,6 +118,13 @@ export class GameScene extends Phaser.Scene {
 
     // Graphics
     this.hexGraphics = this.add.graphics();
+
+    // Auto-center camera on the human player's starting city
+    const startCity = this.humanTribe.cities[0];
+    if (startCity) {
+      const cp = startCity.position.toPixel(HEX_SIZE);
+      this.cameras.main.setScroll(cp.x - 400, cp.y - 300);
+    }
     this.entityGraphics = this.add.graphics();
     this.rangeGraphics = this.add.graphics().setDepth(5);
     this.fogGraphics = this.add.graphics().setDepth(10);
@@ -1400,8 +1407,11 @@ export class GameScene extends Phaser.Scene {
     this.hideCityMenu();
     this.selectedCity = city;
     const p = coord.toPixel(HEX_SIZE);
-    const sx = p.x + this.cameras.main.scrollX + 40;
-    const sy = p.y + this.cameras.main.scrollY - 20;
+    // Menu position in SCREEN coordinates (text uses setScrollFactor(0)):
+    // worldX - scrollX converts world coords to screen coords; the menu offset
+    // is relative to the city's screen position
+    const sx = p.x - this.cameras.main.scrollX + 40;
+    const sy = p.y - this.cameras.main.scrollY - 20;
 
     const style = { fontSize: '14px', color: '#ffd', fontFamily: 'monospace',
       backgroundColor: '#222', padding: { x: 8, y: 4 } as const };

@@ -451,10 +451,10 @@
   ],
   "coach_review": {
     "last_reviewed_sha": "a505805",
-    "last_reviewed_at": "2026-06-24T19:09:00Z",
-    "verdict": "approved",
-    "notes": "APPROVED add-speed-control-tests (a505805). 24/24 new speed tests pass, 481/481 total. Clean extraction to SpeedUtils.ts following ScoreCalculator pattern. All cost categories covered: unit training, buildings, city upgrades, tech, naval, enchantment. Live site hex.codeovertcp.com returns 200. Normal speed regression-free. Consecutive approve check: last 3 all found improvements; this cycle clean. Current: fix-hud-tribe-name-truncation. Remaining: 2 tasks (fix-hud-tribe-name-truncation, gdd-sync-remaining-gaps). Backlog: 2 remaining — warn.",
-    "last_review": "2026-06-24T19:09:00Z",
-    "status": "approved"
+    "last_reviewed_at": "2026-06-25T03:35:00Z",
+    "verdict": "no-op",
+    "notes": "No new Player commits since last review (still at a505805). Only Coach's own commit c072370 (approval). Backlog: 2 remaining tasks (fix-hud-tribe-name-truncation, gdd-sync-remaining-gaps). Backlog warning remains. Live site hex.codeovertcp.com last verified 200. No action needed this cycle.",
+    "last_review": "2026-06-25T03:35:00Z",
+    "status": "no-op"
   }
 }
