@@ -28,6 +28,12 @@ const COLORS: Record<string, number> = {
   'elyrion': 0x27ae60,
 };
 
+export const SPEED_MULTIPLIERS: Record<string, number> = {
+  normal: 1.0,
+  fast: 0.75,
+  blitz: 0.5,
+};
+
 export class GameScene extends Phaser.Scene {
   private hexGraphics!: Phaser.GameObjects.Graphics;
   private entityGraphics!: Phaser.GameObjects.Graphics;
@@ -40,6 +46,7 @@ export class GameScene extends Phaser.Scene {
   private humanTribeIndex = 0;
   private gameMode = 'DOMINATION';
   private difficulty: DifficultyLevel = 'medium';
+  private speedMultiplier = 1.0;
   private mapType: MapType = 'CONTINENTS';
   private turnLimit = 99;
   private turnManager!: TurnManager;
@@ -80,12 +87,18 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string; difficulty?: string }): void {
+  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string; difficulty?: string; speed?: string }): void {
     this.humanTribeIndex = data.humanTribeIndex ?? 0;
     this.gameMode = data.gameMode ?? 'DOMINATION';
     this.mapType = (data.mapType as MapType) ?? 'CONTINENTS';
     this.difficulty = (data.difficulty as DifficultyLevel) ?? 'medium';
+    this.speedMultiplier = SPEED_MULTIPLIERS[data.speed ?? 'normal'] ?? 1.0;
     this.turnLimit = this.gameMode === 'PERFECTION' ? 30 : 99;
+  }
+
+  /** Apply game speed multiplier to a base cost, always rounding up to ensure costs ≥ 1. */
+  private speedAdjustedCost(baseCost: number): number {
+    return Math.ceil(baseCost * this.speedMultiplier);
   }
 
   create(): void {
@@ -105,7 +118,7 @@ export class GameScene extends Phaser.Scene {
     this.tradeRoutes = new TradeRouteSystem();
     // Create AI for non-human tribes
     for (const t of this.tribes) {
-      if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, DIFFICULTY_PRESETS[this.difficulty]));
+      if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, { ...DIFFICULTY_PRESETS[this.difficulty], speedMultiplier: this.speedMultiplier }));
     }
 
     // Graphics
@@ -610,7 +623,7 @@ export class GameScene extends Phaser.Scene {
     switch (action.type) {
       case 'TRAIN': {
         const unitType = (p.unitType as UnitType) || UnitType.WARRIOR;
-        const cost = UNIT_COSTS[unitType];
+        const cost = this.speedAdjustedCost(UNIT_COSTS[unitType]);
         const city = tribe.cities.find(c => c.id === p.cityId);
         if (city && tribe.stars >= cost) {
           tribe.addUnit(new Unit(city.position, unitType, tribe.id));
@@ -621,7 +634,7 @@ export class GameScene extends Phaser.Scene {
       case 'UPGRADE': {
         const city = tribe.cities.find(c => c.id === p.cityId);
         if (!city) break;
-        const upgradeCost = (p.cost as number) || city.level * 5;
+        const upgradeCost = this.speedAdjustedCost((p.cost as number) || city.level * 5);
         if (city.canGrow() && tribe.stars >= upgradeCost) {
           const choice = (p.choice as 'A' | 'B') || (Math.random() < 0.5 ? 'A' : 'B');
           city.applyLevelUp(choice);
@@ -735,7 +748,7 @@ export class GameScene extends Phaser.Scene {
       }
       case 'RESEARCH': {
         const techId = p.techId as TechId;
-        const cost = (p.cost as number) || 5;
+        const cost = this.speedAdjustedCost((p.cost as number) || 5);
         if (tribe.stars >= cost) {
           tribe.researchTech(techId);
           tribe.stars -= cost;
@@ -1339,7 +1352,7 @@ export class GameScene extends Phaser.Scene {
         const canResearch = !owned && prereqs;
 
         const y = 108 + yBase + tierIdx * 50;
-        const cost = techCost(def.tier, numCities);
+        const cost = this.speedAdjustedCost(techCost(def.tier, numCities));
 
         const textStyle = owned ? ownedStyle : (canResearch ? style : disabledStyle);
         const label = owned
@@ -1418,7 +1431,7 @@ export class GameScene extends Phaser.Scene {
     }));
 
     for (const ut of trainableUnits) {
-      const cost = UNIT_COSTS[ut.type];
+      const cost = this.speedAdjustedCost(UNIT_COSTS[ut.type]);
       const affordable = this.humanTribe.stars >= cost;
       const label = `TRAIN ${ut.label} (${cost}⭐)`;
       items.push(label);
@@ -1437,7 +1450,7 @@ export class GameScene extends Phaser.Scene {
 
     // --- LEVEL UP CHOICES (GDD §5.3) ---
     if (city.canGrow()) {
-      const upgradeCost = city.level * 5;
+      const upgradeCost = this.speedAdjustedCost(city.level * 5);
       const canAfford = this.humanTribe.stars >= upgradeCost;
       const nextLv = city.level + 1;
 
@@ -1537,9 +1550,9 @@ export class GameScene extends Phaser.Scene {
         // Must match the tile's resource, not yet built, and affordable
         if (def.requiresResource !== t.resource) continue;
         if (city.buildings.includes(bt)) continue;
-        if (this.humanTribe.stars < def.cost) continue;
+        if (this.humanTribe.stars < this.speedAdjustedCost(def.cost)) continue;
         buildingMenuItems.push({
-          label: `${def.name} on ${t.resource} (${n.q},${n.r}) — ${def.cost}⭐ +${def.popBonus}pop${def.starsBonus > 0 ? ` +${def.starsBonus}⭐/t` : ''}`,
+          label: `${def.name} on ${t.resource} (${n.q},${n.r}) — ${this.speedAdjustedCost(def.cost)}⭐ +${def.popBonus}pop${def.starsBonus > 0 ? ` +${def.starsBonus}⭐/t` : ''}`,
           tileCoord: n,
           bt,
         });
@@ -1556,7 +1569,7 @@ export class GameScene extends Phaser.Scene {
           city.buildings.push(bi.bt);
           const bdef = BUILDING_DEFS[bi.bt];
           city.population += bdef.popBonus;
-          this.humanTribe.stars -= bdef.cost;
+          this.humanTribe.stars -= this.speedAdjustedCost(bdef.cost);
           this.hideCityMenu();
           this.renderAll(); this.updateUI();
         });
@@ -1574,13 +1587,14 @@ export class GameScene extends Phaser.Scene {
         if (this.tradeRoutes.canBuildRoad(t)) roadTiles.push(n);
         if (this.tradeRoutes.canBuildBridge(t)) bridgeTiles.push(n);
       }
-      if (roadTiles.length > 0 && this.humanTribe.stars >= BUILDING_DEFS[BuildingType.ROAD].cost) {
+      if (roadTiles.length > 0 && this.humanTribe.stars >= this.speedAdjustedCost(BUILDING_DEFS[BuildingType.ROAD].cost)) {
         for (const rt of roadTiles) {
-          items.push(`  ROAD (${BUILDING_DEFS[BuildingType.ROAD].cost}⭐) → (${rt.q},${rt.r})`);
+          const roadCost = this.speedAdjustedCost(BUILDING_DEFS[BuildingType.ROAD].cost);
+          items.push(`  ROAD (${roadCost}⭐) → (${rt.q},${rt.r})`);
           handlers.push(() => {
             const tile = this.tiles.get(rt.toString());
             if (tile) tile.road = true;
-            this.humanTribe.stars -= BUILDING_DEFS[BuildingType.ROAD].cost;
+            this.humanTribe.stars -= roadCost;
             // Re-detect connections
             const allCities = this.tribes.flatMap(t => t.cities);
             this.tradeRoutes.applyConnectionBonuses(allCities, this.tiles);
@@ -1589,13 +1603,14 @@ export class GameScene extends Phaser.Scene {
           });
         }
       }
-      if (bridgeTiles.length > 0 && this.humanTribe.stars >= BUILDING_DEFS[BuildingType.BRIDGE].cost) {
+      if (bridgeTiles.length > 0 && this.humanTribe.stars >= this.speedAdjustedCost(BUILDING_DEFS[BuildingType.BRIDGE].cost)) {
         for (const bt of bridgeTiles) {
-          items.push(`  BRIDGE (${BUILDING_DEFS[BuildingType.BRIDGE].cost}⭐) → (${bt.q},${bt.r})`);
+          const bridgeCost = this.speedAdjustedCost(BUILDING_DEFS[BuildingType.BRIDGE].cost);
+          items.push(`  BRIDGE (${bridgeCost}⭐) → (${bt.q},${bt.r})`);
           handlers.push(() => {
             const tile = this.tiles.get(bt.toString());
             if (tile) tile.bridge = true;
-            this.humanTribe.stars -= BUILDING_DEFS[BuildingType.BRIDGE].cost;
+            this.humanTribe.stars -= bridgeCost;
             // Re-detect connections
             const allCities = this.tribes.flatMap(t => t.cities);
             this.tradeRoutes.applyConnectionBonuses(allCities, this.tiles);
@@ -1646,7 +1661,7 @@ export class GameScene extends Phaser.Scene {
 
       // RAFT → SCOUT (requires Sailing)
       if (raftUpgrade && this.humanTribe.hasTech(TechId.SAILING)) {
-        const scoutCost = UNIT_COSTS[UnitType.SCOUT];
+        const scoutCost = this.speedAdjustedCost(UNIT_COSTS[UnitType.SCOUT]);
         const canAfford = this.humanTribe.stars >= scoutCost;
         items.push(`  → SCOUT (${scoutCost}⭐)  2⚔ 1🛡 3🚶 Ranged`);
         handlers.push(canAfford ? () => {
@@ -1661,7 +1676,7 @@ export class GameScene extends Phaser.Scene {
 
       // RAFT → RAMMER (requires Navigation)
       if (raftUpgrade && this.humanTribe.hasTech(TechId.NAVIGATION)) {
-        const rammerCost = UNIT_COSTS[UnitType.RAMMER];
+        const rammerCost = this.speedAdjustedCost(UNIT_COSTS[UnitType.RAMMER]);
         const canAfford = this.humanTribe.stars >= rammerCost;
         items.push(`  → RAMMER (${rammerCost}⭐)  3⚔ 3🛡 3🚶`);
         handlers.push(canAfford ? () => {
@@ -1676,7 +1691,7 @@ export class GameScene extends Phaser.Scene {
 
       // RAMMER → BOMBER (requires Navigation)
       if (rammerUpgrade && this.humanTribe.hasTech(TechId.NAVIGATION)) {
-        const bomberCost = UNIT_COSTS[UnitType.BOMBER];
+        const bomberCost = this.speedAdjustedCost(UNIT_COSTS[UnitType.BOMBER]);
         const canAfford = this.humanTribe.stars >= bomberCost;
         items.push(`  → BOMBER (${bomberCost}⭐)  3⚔ 2🛡 2🚶 Splash`);
         handlers.push(canAfford ? () => {
@@ -1996,7 +2011,8 @@ export class GameScene extends Phaser.Scene {
       const showEnchant = !!this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed;
       this.enchantBtn.setVisible(showEnchant);
       if (showEnchant) {
-        const canAfford = this.humanTribe.stars >= 3;
+        const enchantCost = this.speedAdjustedCost(3);
+        const canAfford = this.humanTribe.stars >= enchantCost;
         this.enchantBtn.setStyle({ color: canAfford ? '#f8f' : '#888' });
       }
     }
@@ -2097,8 +2113,9 @@ export class GameScene extends Phaser.Scene {
   private performEnchantment(polytaur: Unit): void {
     const cur = this.state.getCurrentTribe();
     if (cur.id !== polytaur.owner) return;
-    if (cur.stars < 3) {
-      this.setStatus('Not enough stars for Enchantment (need 3⭐).');
+    const enchantCost = this.speedAdjustedCost(3);
+    if (cur.stars < enchantCost) {
+      this.setStatus(`Not enough stars for Enchantment (need ${enchantCost}⭐).`);
       return;
     }
 
@@ -2121,7 +2138,7 @@ export class GameScene extends Phaser.Scene {
     // Remove the animal resource and spawn Polytaur
     const tile = this.tiles.get(targetTile.toString())!;
     tile.resource = undefined;
-    cur.stars -= 3;
+    cur.stars -= enchantCost;
     const newPolytaur = new Unit(targetTile, UnitType.POLYTAUR, cur.id);
     newPolytaur.hasActed = true;
     cur.addUnit(newPolytaur);

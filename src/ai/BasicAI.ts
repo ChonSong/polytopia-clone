@@ -205,6 +205,8 @@ export interface AIOptions {
   techStarsThreshold: number;
   /** Chance (0-1) that a healthy unit skips its move for slower expansion (easy mode). */
   moveSkipChance: number;
+  /** Game speed multiplier for cost calculations (1.0 = normal, 0.75 = fast, 0.5 = blitz, default: 1.0). */
+  speedMultiplier?: number;
 }
 
 const DEFAULT_OPTIONS: AIOptions = {
@@ -213,6 +215,7 @@ const DEFAULT_OPTIONS: AIOptions = {
   difficulty: 'medium',
   techStarsThreshold: 10,
   moveSkipChance: 0,
+  speedMultiplier: 1.0,
 };
 
 /**
@@ -230,6 +233,11 @@ export class BasicAI {
   constructor(tribe: Tribe, options: Partial<AIOptions> = {}) {
     this.tribe = tribe;
     this.options = { ...DEFAULT_OPTIONS, ...options };
+  }
+
+  /** Apply speed multiplier to a base cost, rounding up (minimum 1). */
+  private speedAdjustedCost(baseCost: number): number {
+    return Math.ceil(baseCost * (this.options.speedMultiplier ?? 1.0));
   }
 
   /** Get the tribe this AI controls. */
@@ -272,7 +280,7 @@ export class BasicAI {
         const unitTypes = this.tribe.getTrainableUnitTypes();
         // Pick the best affordable unit (favor high attack)
         const best = unitTypes
-          .map(ut => ({ type: ut, cost: UNIT_COSTS[ut] }))
+          .map(ut => ({ type: ut, cost: this.speedAdjustedCost(UNIT_COSTS[ut]) }))
           .filter(u => this.tribe.stars >= u.cost)
           .sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack);
         if (best.length > 0 && city) {
@@ -288,7 +296,7 @@ export class BasicAI {
       // Priority 2: Upgrade the cheapest (lowest-level) city
       const sortedCities = [...this.tribe.cities].sort((a, b) => a.level - b.level);
       for (const city of sortedCities) {
-        const cost = city.level * 5;
+        const cost = this.speedAdjustedCost(city.level * 5);
         if (this.tribe.stars >= cost && city.canGrow()) {
           // Pick a random upgrade choice
           const choice = Math.random() < 0.5 ? 'A' : 'B';
@@ -325,7 +333,7 @@ export class BasicAI {
     const affordable = allTechs
       .filter(t => !this.tribe.hasTech(t.id))
       .filter(t => t.prerequisites.every(p => this.tribe.hasTech(p)))
-      .map(t => ({ techId: t.id, cost: techCost(t.tier, numCities) }))
+      .map(t => ({ techId: t.id, cost: this.speedAdjustedCost(techCost(t.tier, numCities)) }))
       .filter(t => this.tribe.stars >= t.cost);
     if (affordable.length === 0) return null;
 
