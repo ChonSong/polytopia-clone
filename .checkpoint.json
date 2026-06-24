@@ -1,8 +1,15 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "add-e2e-pause-resume-test",
+  "current_task": "add-e2e-tribe-select-sorting-test",
   "completed": [
+    {
+      "task": "add-e2e-pause-resume-test",
+      "sha": "e656853",
+      "date": "2026-06-25",
+      "summary": "Add 2 Playwright E2E tests for pause/resume overlay: (1) Escape key opens overlay, shows PAUSED text, verifies isPaused + pauseOverlay state, Escape again closes; (2) Resume button click closes overlay. Task Exhaustion Recovery + checkpoint rebuild (19 tasks). 492 tests pass.",
+      "coach": "approved"
+    },
     {
       "task": "fix-hud-tribe-name-truncation",
       "sha": "03aaa7d",
@@ -138,7 +145,7 @@
     }
   ],
   "health": "492_pass_build_clean_200_live",
-  "last_sha": "bd8e1e7",
+  "last_sha": "e656853",
   "blocker": null,
   "spec_gaps": [
     {
@@ -149,9 +156,9 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "bd8e1e7",
-    "last_reviewed_at": "2026-06-25T04:05:00Z",
+    "last_reviewed_sha": "e656853",
+    "last_reviewed_at": "2026-06-26T06:35:00Z",
     "verdict": "approved",
-    "notes": "Player tick 2026-06-25T04:05 — Task Exhaustion Recovery. All 19 AGENTS.md tasks confirmed completed in git history. Checkpoint was stale (only 6 tasks recorded). Rebuilt checkpoint from git log. Live site HTTP 200, 492 tests pass, build clean. Generated 5 new tasks: E2E tests for pause/resume, tribe select sorting, sound toggle, and scoring extensions (territorial + exploration)."
+    "notes": "Coach cycle 2026-06-26T06:35 — health check cycle. No new commits since last review (HEAD e656853). APPROVED. All 492 tests pass (14 files), live site HTTP 200, game loads and renders tribe selection (verified browser: Phaser v3.90.0 WebGL, 0 console errors). Tribe cards sorted alphabetically (Cymanti→Elyrion→Imperius→Oumaji→Polaris). Pause/resume, mute toggle, speed/difficulty controls all present. Pre-existing viewport cropping of tribe cards on narrow screens remains cosmetic. 5 tasks from 2026-06-25 batch still unstarted (stalled 26h): add-e2e-tribe-select-sorting-test, add-e2e-sound-toggle-test, add-territorial-scoring, add-exploration-scoring. GTO Wizard review: both pending commits approved — see gto-wizard-clone checkpoint."
   }
 }
