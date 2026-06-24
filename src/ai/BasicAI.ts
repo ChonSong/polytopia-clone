@@ -158,6 +158,39 @@ export function bfsPathStep(
 }
 
 // ---------------------------------------------------------------------------
+// Difficulty Levels
+// ---------------------------------------------------------------------------
+
+export type DifficultyLevel = 'easy' | 'medium' | 'hard';
+
+/** Difficulty presets that scale AI aggression, economy, and tech priorities. */
+export const DIFFICULTY_PRESETS: Record<DifficultyLevel, AIOptions> = {
+  easy: {
+    minUnitsForUpgrade: 1,
+    preferredUnit: UnitType.WARRIOR,
+    difficulty: 'easy',
+    /** Stars above which the AI prefers unit-unlocking techs — higher = more cautious. */
+    techStarsThreshold: 15,
+    /** Chance (0-1) that a healthy unit skips its move turn. Higher = slower expansion. */
+    moveSkipChance: 0.3,
+  },
+  medium: {
+    minUnitsForUpgrade: 2,
+    preferredUnit: UnitType.WARRIOR,
+    difficulty: 'medium',
+    techStarsThreshold: 10,
+    moveSkipChance: 0,
+  },
+  hard: {
+    minUnitsForUpgrade: 4,
+    preferredUnit: UnitType.SWORDSMAN,
+    difficulty: 'hard',
+    techStarsThreshold: 5,
+    moveSkipChance: 0,
+  },
+};
+
+// ---------------------------------------------------------------------------
 // BasicAI
 // ---------------------------------------------------------------------------
 
@@ -166,11 +199,20 @@ export interface AIOptions {
   minUnitsForUpgrade: number;
   /** Unit type to train by default. */
   preferredUnit: UnitType;
+  /** Difficulty level. */
+  difficulty: DifficultyLevel;
+  /** Stars above which the AI prefers unit-unlocking techs (default: 10). */
+  techStarsThreshold: number;
+  /** Chance (0-1) that a healthy unit skips its move for slower expansion (easy mode). */
+  moveSkipChance: number;
 }
 
 const DEFAULT_OPTIONS: AIOptions = {
   minUnitsForUpgrade: 2,
   preferredUnit: UnitType.WARRIOR,
+  difficulty: 'medium',
+  techStarsThreshold: 10,
+  moveSkipChance: 0,
 };
 
 /**
@@ -224,7 +266,7 @@ export class BasicAI {
 
     if (this.tribe.cities.length === 0) return actions;
 
-    // Priority 1: Train units if we have fewer than minUnitsForUpgrade
+    // Priority 1: Train units if we have fewer than minUnitsForUpgrade (scaled by difficulty: Easy=1, Medium=2, Hard=4)
     if (this.tribe.units.length < this.options.minUnitsForUpgrade) {
       for (const city of this.tribe.cities) {
         const unitTypes = this.tribe.getTrainableUnitTypes();
@@ -288,7 +330,8 @@ export class BasicAI {
     if (affordable.length === 0) return null;
 
     // GDD §7.1 — When AI has spare stars, prioritise unit-unlocking techs
-    if (this.tribe.stars > 10) {
+    // Threshold is scaled by difficulty: Easy=15, Medium=10, Hard=5
+    if (this.tribe.stars > this.options.techStarsThreshold) {
       const unitTechs = affordable
         .filter(t => TECH_DEFS[t.techId].unlocksUnits.length > 0)
         .sort((a, b) => {
@@ -355,6 +398,11 @@ export class BasicAI {
 
     for (const unit of this.tribe.units) {
       if (unit.hasActed || !unit.isAlive) continue;
+
+      // Difficulty-based: Easy AI sometimes skips moves for slower expansion
+      if (this.options.moveSkipChance > 0 && Math.random() < this.options.moveSkipChance) {
+        continue;
+      }
 
       // Priority 0: GDD §7 — Heal damaged units in friendly territory
       const belowHalfHp = unit.health < UNIT_MAX_HEALTH[unit.type] / 2;

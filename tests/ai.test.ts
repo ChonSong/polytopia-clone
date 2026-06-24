@@ -7,7 +7,7 @@ import { Unit, UnitType } from '../src/entities/Unit';
 import { GameState } from '../src/entities/GameState';
 import { TurnPhase } from '../src/entities/TurnManager';
 import { BasicAI, getVisibleTiles, bfsPathStep } from '../src/ai/BasicAI';
-import { TechId } from '../src/entities/TechTree';
+import { TechId, TECH_DEFS } from '../src/entities/TechTree';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -605,5 +605,116 @@ describe('BasicAI', () => {
   it('returns no actions in END phase', () => {
     const actions = ai.decide(gameState, TurnPhase.END);
     expect(actions.length).toBe(0);
+  });
+
+  // -----------------------------------------------------------------------
+  // Difficulty levels — Easy / Medium / Hard
+  // -----------------------------------------------------------------------
+
+  describe('difficulty levels', () => {
+    it('Easy AI trains fewer units (minUnitsForUpgrade=1)', () => {
+      const easyAi = new BasicAI(tribe, {
+        minUnitsForUpgrade: 1,
+        preferredUnit: UnitType.WARRIOR,
+        difficulty: 'easy',
+        techStarsThreshold: 15,
+        moveSkipChance: 0.3,
+      });
+      // With 1 existing unit and minUnitsForUpgrade=1, condition is 1 < 1 = false → skip training
+      const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+      tribe.units.push(warrior1);
+      tribe.stars = 20;
+
+      const actions = easyAi.decide(gameState, TurnPhase.BUILD);
+      const trainAction = actions.find(a => a.type === 'TRAIN');
+      // No training because unit count (1) is NOT less than minUnitsForUpgrade (1)
+      expect(trainAction).toBeUndefined();
+    });
+
+    it('Medium AI uses default minUnitsForUpgrade=2', () => {
+      const mediumAi = new BasicAI(tribe, {
+        minUnitsForUpgrade: 2,
+        preferredUnit: UnitType.WARRIOR,
+        difficulty: 'medium',
+        techStarsThreshold: 10,
+        moveSkipChance: 0,
+      });
+      // With 1 existing unit and minUnitsForUpgrade=2, condition 1 < 2 = true → train
+      const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+      tribe.units.push(warrior1);
+      tribe.stars = 20;
+
+      const actions = mediumAi.decide(gameState, TurnPhase.BUILD);
+      const trainAction = actions.find(a => a.type === 'TRAIN');
+      expect(trainAction).toBeDefined();
+    });
+
+    it('Hard AI trains more units (minUnitsForUpgrade=4)', () => {
+      const hardAi = new BasicAI(tribe, {
+        minUnitsForUpgrade: 4,
+        preferredUnit: UnitType.SWORDSMAN,
+        difficulty: 'hard',
+        techStarsThreshold: 5,
+        moveSkipChance: 0,
+      });
+      // With 3 existing units and minUnitsForUpgrade=4, condition 3 < 4 = true → train
+      for (let i = 0; i < 3; i++) {
+        tribe.units.push(new Unit(new HexCoord(4 + i, 4), UnitType.WARRIOR, 'player'));
+      }
+      tribe.stars = 20;
+
+      const actions = hardAi.decide(gameState, TurnPhase.BUILD);
+      const trainAction = actions.find(a => a.type === 'TRAIN');
+      expect(trainAction).toBeDefined();
+    });
+
+    it('Hard AI picks unit-unlocking tech over cheaper non-unit techs (threshold=5)', () => {
+      const hardAi = new BasicAI(tribe, {
+        minUnitsForUpgrade: 1,
+        preferredUnit: UnitType.SWORDSMAN,
+        difficulty: 'hard',
+        techStarsThreshold: 5,
+        moveSkipChance: 0,
+      });
+      // Give tribe enough units so it skips training
+      for (let i = 0; i < 4; i++) {
+        tribe.units.push(new Unit(new HexCoord(4 + i, 4), UnitType.WARRIOR, 'player'));
+      }
+      tribe.cities[0].population = 0; // block upgrade
+      tribe.stars = 8; // > 5 (hard threshold) → should prefer unit-unlocking techs
+
+      const actions = hardAi.decide(gameState, TurnPhase.BUILD);
+      const researchAction = actions.find(a => a.type === 'RESEARCH');
+      expect(researchAction).toBeDefined();
+      // Should pick a unit-unlocking tech (not Fishing which has no unlocks)
+      const chosenTech = researchAction!.params.techId;
+      const techDef = Object.values(TECH_DEFS).find(t => t.id === chosenTech);
+      expect(techDef).toBeDefined();
+      expect(techDef!.unlocksUnits.length).toBeGreaterThan(0);
+    });
+
+    it('Easy AI prioritises economy techs over military when stars ≤ 15', () => {
+      const easyAi = new BasicAI(tribe, {
+        minUnitsForUpgrade: 1,
+        preferredUnit: UnitType.WARRIOR,
+        difficulty: 'easy',
+        techStarsThreshold: 15,
+        moveSkipChance: 0.3,
+      });
+      // Give tribe enough units so it skips training
+      for (let i = 0; i < 2; i++) {
+        tribe.units.push(new Unit(new HexCoord(4 + i, 4), UnitType.WARRIOR, 'player'));
+      }
+      tribe.cities[0].population = 0; // block upgrade
+      tribe.researchTech(TechId.HUNTING); // prereq for Archery
+      tribe.researchTech(TechId.RIDING); // remove from contention
+      tribe.stars = 12; // > 10 (old threshold) but only > 15 new threshold → should fall back to cheapest
+
+      const actions = easyAi.decide(gameState, TurnPhase.BUILD);
+      const researchAction = actions.find(a => a.type === 'RESEARCH');
+      expect(researchAction).toBeDefined();
+      // With stars=12 (< 15), Easy AI should pick cheapest tech (Fishing at 5⭐) over Archery
+      expect(researchAction!.params.techId).toBe(TechId.FISHING);
+    });
   });
 });

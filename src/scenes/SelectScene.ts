@@ -57,6 +57,26 @@ export class SelectScene extends Phaser.Scene {
       modeLabels.push(lbl);
     });
 
+    // Difficulty selector
+    type Difficulty = 'easy' | 'medium' | 'hard';
+    const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
+    const diffDisplay: Record<Difficulty, string> = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+    this.add.text(160, 150, 'Difficulty:', { fontSize: '16px', color: '#8af', fontFamily: 'monospace' });
+    let selectedDifficulty: Difficulty = 'medium';
+    const diffLabels: Phaser.GameObjects.Text[] = [];
+    difficulties.forEach((diff, i) => {
+      const lbl = this.add.text(260 + i * 100, 150, diffDisplay[diff], {
+        fontSize: '14px', color: diff === selectedDifficulty ? '#ff0' : '#888', fontFamily: 'monospace',
+        backgroundColor: '#333', padding: { x: 6, y: 4 }
+      }).setInteractive({ useHandCursor: true });
+      lbl.on('pointerdown', () => {
+        selectedDifficulty = diff;
+        diffLabels.forEach(l => l.setStyle({ color: '#888' }));
+        lbl.setStyle({ color: '#ff0' });
+      });
+      diffLabels.push(lbl);
+    });
+
     // Tribe cards
     const cardW = 170, gap = 15;
     const totalCards = TRIBE_CONFIGS.length;
@@ -65,29 +85,30 @@ export class SelectScene extends Phaser.Scene {
       const cx = startX + i * (cardW + gap);
       const bg = this.add.graphics();
       bg.fillStyle(cfg.color, 0.3);
-      bg.fillRoundedRect(cx, 150, cardW, 220, 8);
+      bg.fillRoundedRect(cx, 185, cardW, 220, 8);
       bg.lineStyle(2, cfg.color, 0.6);
-      bg.strokeRoundedRect(cx, 150, cardW, 220, 8);
+      bg.strokeRoundedRect(cx, 185, cardW, 220, 8);
 
-      this.add.text(cx + cardW / 2, 170, cfg.name, {
+      this.add.text(cx + cardW / 2, 205, cfg.name, {
         fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
       }).setOrigin(0.5);
 
       const startTech = cfg.id === 'xin-xi' || cfg.id === 'oumaji' ? 'Riding' :
         cfg.id === 'bardur' ? 'Hunting' : cfg.id === 'polaris' ? 'Frostwork' :
         cfg.id === 'cymanti' ? 'Fungiculture' : cfg.id === 'elyrion' ? 'Ecology' : 'Fishing';
-      this.add.text(cx + cardW / 2, 200, `Start: ${startTech}`, {
+      this.add.text(cx + cardW / 2, 235, `Start: ${startTech}`, {
         fontSize: '12px', color: '#aaa', fontFamily: 'monospace',
       }).setOrigin(0.5);
 
       // Click handler
-      const hitArea = this.add.rectangle(cx + cardW / 2, 150 + 110, cardW, 220, 0x000, 0)
+      const hitArea = this.add.rectangle(cx + cardW / 2, 185 + 110, cardW, 220, 0x000, 0)
         .setInteractive({ useHandCursor: true });
       hitArea.on('pointerdown', () => {
         this.scene.start('GameScene', {
           humanTribeIndex: i,
           mapType: selectedMap,
           gameMode: selectedMode,
+          difficulty: selectedDifficulty,
         });
       });
       hitArea.on('pointerover', () => bg.setAlpha(0.6));

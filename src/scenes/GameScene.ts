@@ -8,7 +8,7 @@ import { Tribe, TRIBE_CONFIGS } from '../entities/Tribe';
 import { Unit, UnitType, UNIT_COSTS, UNIT_MAX_HEALTH } from '../entities/Unit';
 import { City, CITY_NAMES } from '../entities/City';
 import { TurnManager, TurnPhase } from '../entities/TurnManager';
-import { BasicAI } from '../ai/BasicAI';
+import { BasicAI, DifficultyLevel, DIFFICULTY_PRESETS } from '../ai/BasicAI';
 import { CombatSystem } from '../entities/CombatSystem';
 import { createCity } from '../entities/CityData';
 import { TECH_DEFS, TECH_SERIES_ORDER, TechId, techCost, UNIT_TECH_GATES } from '../entities/TechTree';
@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private humanTribe!: Tribe;
   private humanTribeIndex = 0;
   private gameMode = 'DOMINATION';
+  private difficulty: DifficultyLevel = 'medium';
   private mapType: MapType = 'CONTINENTS';
   private turnLimit = 99;
   private turnManager!: TurnManager;
@@ -79,10 +80,11 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string }): void {
+  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string; difficulty?: string }): void {
     this.humanTribeIndex = data.humanTribeIndex ?? 0;
     this.gameMode = data.gameMode ?? 'DOMINATION';
     this.mapType = (data.mapType as MapType) ?? 'CONTINENTS';
+    this.difficulty = (data.difficulty as DifficultyLevel) ?? 'medium';
     this.turnLimit = this.gameMode === 'PERFECTION' ? 30 : 99;
   }
 
@@ -103,7 +105,7 @@ export class GameScene extends Phaser.Scene {
     this.tradeRoutes = new TradeRouteSystem();
     // Create AI for non-human tribes
     for (const t of this.tribes) {
-      if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t));
+      if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, DIFFICULTY_PRESETS[this.difficulty]));
     }
 
     // Graphics
