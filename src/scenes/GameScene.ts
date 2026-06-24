@@ -17,6 +17,7 @@ import { Resource } from '../hex/Tile';
 import { runExplorerPathfinding } from '../entities/Explorer';
 import { TradeRouteSystem } from '../entities/TradeRouteSystem';
 import { computeTribeScore } from '../entities/ScoreCalculator';
+import { SPEED_MULTIPLIERS, speedAdjustedCost as applySpeedMultiplier } from '../entities/SpeedUtils';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -26,12 +27,6 @@ const COLORS: Record<string, number> = {
   'polaris': 0x87ceeb,
   'cymanti': 0x9b59b6,
   'elyrion': 0x27ae60,
-};
-
-export const SPEED_MULTIPLIERS: Record<string, number> = {
-  normal: 1.0,
-  fast: 0.75,
-  blitz: 0.5,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -98,7 +93,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Apply game speed multiplier to a base cost, always rounding up to ensure costs ≥ 1. */
   private speedAdjustedCost(baseCost: number): number {
-    return Math.ceil(baseCost * this.speedMultiplier);
+    return applySpeedMultiplier(baseCost, this.speedMultiplier);
   }
 
   create(): void {
