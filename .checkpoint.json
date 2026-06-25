@@ -7,7 +7,7 @@
       "task": "fix-temple-scoring",
       "sha": "dd58f81",
       "date": "2026-06-25",
-      "summary": "Added temple scoring (+20 per temple, GDD §1.2). City.templeCount field added. computeTribeScore() now includes templeScore summing +20 per temple in non-captured cities. 4 new tests: 3 temples=+60, 0 temples=0, captured excluded, multi-city sum. 506 tests pass.",
+      "summary": "Added temple scoring (+20 per temple, GDD \u00a71.2). City.templeCount field added. computeTribeScore() now includes templeScore summing +20 per temple in non-captured cities. 4 new tests: 3 temples=+60, 0 temples=0, captured excluded, multi-city sum. 506 tests pass.",
       "coach": "pending"
     },
     {
@@ -89,16 +89,16 @@
       "type": "missing_feature",
       "priority": 3,
       "evidence": "GDD \u00a71 \u2014 monuments \u00d730 not implemented. Must avoid double-counting with buildings array.",
-      "cycles_stagnant": 2,
-      "status": "open"
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "Score breakdown display \u2014 no UI showing per-category scoring",
       "type": "missing_feature",
       "priority": 3,
       "evidence": "End-of-game shows flat score number only. No breakdown of cities/units/techs/levels/buildings/parks/GrandBazaar/territorial/exploration/temples/monuments.",
-      "cycles_stagnant": 2,
-      "status": "open"
+      "cycles_stagnant": 3,
+      "status": "escalated"
     }
   ],
   "note": "fix-temple-scoring implemented (dd58f81). City.templeCount + templeScore in computeTribeScore. 506 vitest + 10/10 E2E all pass. Next: fix-monument-scoring."

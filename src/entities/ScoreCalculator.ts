@@ -16,6 +16,7 @@ import { HexCoord } from '../hex/HexCoord';
  * - Territory: 20 pts per unique territorial tile (within city.level hex distance of each city)
  * - Exploration: 5 pts per explored (previously revealed fog) tile
  * - Temple: 20 pts per temple (GDD §1.2 — temples ×20, unlocked by FREE_SPIRIT tech)
+ * - Monument: 30 pts per monument (GDD §1.2 — monuments ×30)
  *
  * @param tribe - The tribe to score
  * @param allCoords - Optional array of all valid tile coordinates (map boundary).
@@ -34,6 +35,9 @@ export function computeTribeScore(tribe: Tribe, allCoords?: HexCoord[], explored
 
   // GDD §1.2 — Temples: +20 per temple in each non-captured city
   const templeScore = tribe.cities.reduce((sum, c) => sum + (c.captured ? 0 : c.templeCount * 20), 0);
+
+  // GDD §1.2 — Monuments: +30 per monument in each non-captured city
+  const monumentScore = tribe.cities.reduce((sum, c) => sum + (c.captured ? 0 : c.monumentCount * 30), 0);
 
   // GDD §1.2 — Territorial tiles: +20 per unique tile within city.level hex distance
   let territorialScore = 0;
@@ -54,5 +58,5 @@ export function computeTribeScore(tribe: Tribe, allCoords?: HexCoord[], explored
   // GDD §1.2 — Exploration: +5 per explored (revealed fog) tile
   const explorationScore = (exploredCount ?? 0) * 5;
 
-  return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore + grandBazaarScore + templeScore + territorialScore + explorationScore;
+  return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore + grandBazaarScore + templeScore + monumentScore + territorialScore + explorationScore;
 }

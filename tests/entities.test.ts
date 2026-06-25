@@ -2336,3 +2336,66 @@ describe('GDD §1.2 temple scoring (+20 per temple)', () => {
     expect(score).toBe(200 + 50 + 60);
   });
 });
+
+describe('GDD §1.2 monument scoring (+30 per monument)', () => {
+  it('2 monuments in one city adds +60 to score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.monumentCount = 2;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, monumentScore: 2*30 = 60
+    expect(score).toBe(100 + 50 + 60);
+  });
+
+  it('0 monuments contributes 0 monument score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    // monumentCount defaults to 0
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, monumentScore: 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+
+  it('monuments in captured city do not contribute to score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.monumentCount = 4;
+    city.captured = true;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // city is captured → cityScore: 0, monumentScore: 0
+    // techScore: 50 (RIDING)
+    expect(score).toBe(50);
+  });
+
+  it('monuments do not double-count with buildings array', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.monumentCount = 3;
+    // Add buildings to the buildings array — monumentCount is separate
+    city.buildings.push(BuildingType.LUMBER_HUT);
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, buildingScore: 1*25=25, monumentScore: 3*30=90
+    expect(score).toBe(100 + 50 + 25 + 90);
+  });
+
+  it('monuments and parks together score independently', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 5, 5);
+    city.upgradeChoices[5] = 'A'; // hasPark = true
+    city.monumentCount = 2;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, levelScore: (5-1)*50=200,
+    // parkScore: 250, monumentScore: 2*30=60
+    expect(score).toBe(100 + 50 + 200 + 250 + 60);
+  });
+});

@@ -1630,6 +1630,19 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
+    // --- GDD §1.2 MONUMENT BUILDING (×30 scoring) ---
+    // Monuments are city-level structures (not placed on tiles), cost 15⭐
+    const monumentCost = this.speedAdjustedCost(15);
+    if (this.humanTribe.stars >= monumentCost) {
+      items.push(`BUILD MONUMENT (${monumentCost}⭐)  +30pts`);
+      handlers.push(() => {
+        city.monumentCount++;
+        this.humanTribe.stars -= monumentCost;
+        this.hideCityMenu();
+        this.renderAll(); this.updateUI();
+      });
+    }
+
     // --- BUILDINGS ON ADJACENT TILES (GDD §5.2) ---
     const buildingMenuItems: { label: string; tileCoord: HexCoord; bt: BuildingType }[] = [];
     for (const n of city.position.neighbors()) {

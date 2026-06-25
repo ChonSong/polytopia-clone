@@ -55,6 +55,9 @@ export class City {
   /** GDD §1.2 — Number of temples built in this city (scoring category ×20). */
   public templeCount: number = 0;
 
+  /** GDD §1.2 — Number of monuments built in this city (scoring category ×30). */
+  public monumentCount: number = 0;
+
   constructor(
     public position: HexCoord,
     public name: string,
