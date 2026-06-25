@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "add-territorial-scoring",
+  "current_task": "add-exploration-scoring",
   "completed": [
     {
       "task": "add-e2e-pause-resume-test",
@@ -26,10 +26,10 @@
     },
     {
       "task": "add-territorial-scoring",
-      "sha": "-",
+      "sha": "8b96a53",
       "date": "2026-06-25",
-      "summary": "UNSTARTED.",
-      "coach": "blocked"
+      "summary": "Added territorial tile scoring (+20 per unique tile). City claims tiles within city.level hex distance. Overlapping territories deduplicated via Set. Optional allCoords parameter for map boundary. 5 new tests: L1=140, L3=740, overlap dedup, captured=0, no-allCoords=0. 497 tests pass.",
+      "coach": "approved"
     },
     {
       "task": "add-exploration-scoring",
@@ -39,12 +39,12 @@
       "coach": "blocked"
     }
   ],
-  "health": "492_pass_build_clean_200_live",
-  "last_sha": "11df4db",
+  "health": "497_pass_build_clean_200_live",
+  "last_sha": "8b96a53",
   "blocker": null,
   "coach_review": {
-    "last_reviewed_sha": "11df4db",
-    "last_reviewed_at": "2026-06-25T13:05:00+10:00",
+    "last_reviewed_sha": "8b96a53",
+    "last_reviewed_at": "2026-06-25T14:45:00+10:00",
     "verdict": "approved"
   },
   "spec_gaps": [
@@ -52,7 +52,7 @@
       "item": "Scoring extensions (territorial, exploration, monuments, temples)",
       "type": "missing_feature",
       "priority": 4,
-      "evidence": "GDD §1 — deferred pending design decisions"
+      "evidence": "GDD §1 — territorial scoring done (8b96a53). Exploration pending."
     },
     {
       "item": "E2E pause overlay tests have test bugs (children.list on Group)",
@@ -84,5 +84,6 @@
       "priority": 3,
       "evidence": "Browser verification: tech panel shows tech tree with costs but no current star balance indicator."
     }
-  ]
+  ],
+  "note": "Player tick: add-territorial-scoring complete (8b96a53). Territorial tiles +20 pts per unique tile. 497 tests pass. Next: add-exploration-scoring."
 }
