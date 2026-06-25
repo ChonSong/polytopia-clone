@@ -2238,3 +2238,51 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
     expect(score).toBe(100 + 50 + 100 + 0);
   });
 });
+
+describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
+  it('50 explored tiles adds +250 to score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe, undefined, 50);
+    // cityScore: 100, techScore: 50, explorationScore: 50*5 = 250
+    expect(score).toBe(100 + 50 + 250);
+  });
+
+  it('0 explored tiles contributes 0 exploration score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe, undefined, 0);
+    // cityScore: 100, techScore: 50, explorationScore: 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+
+  it('without exploredCount param, exploration score is 0 (backward compatible)', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, explorationScore: 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+
+  it('1 explored tile adds +5', () => {
+    const tribe = createTestTribe();
+    const score = computeTribeScore(tribe, undefined, 1);
+    // tribe has 0 cities, 1 tech (RIDING) → 50
+    // explorationScore: 1*5 = 5
+    expect(score).toBe(50 + 5);
+  });
+
+  it('1000 explored tiles adds +5000', () => {
+    const tribe = createTestTribe();
+    const score = computeTribeScore(tribe, undefined, 1000);
+    // tribe has 0 cities, 1 tech (RIDING) → 50
+    // explorationScore: 1000*5 = 5000
+    expect(score).toBe(50 + 5000);
+  });
+});

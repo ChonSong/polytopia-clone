@@ -14,12 +14,15 @@ import { HexCoord } from '../hex/HexCoord';
  * - Park: 250 pts per city with Park
  * - Grand Bazaar: 400 pts per city with Grand Bazaar
  * - Territory: 20 pts per unique territorial tile (within city.level hex distance of each city)
+ * - Exploration: 5 pts per explored (previously revealed fog) tile
  *
  * @param tribe - The tribe to score
  * @param allCoords - Optional array of all valid tile coordinates (map boundary).
  *   Without this, territorial scoring is skipped (returns 0 for that component).
+ * @param exploredCount - Optional count of tiles this tribe has revealed from fog.
+ *   Each explored tile contributes +5 to the score. Defaults to 0.
  */
-export function computeTribeScore(tribe: Tribe, allCoords?: HexCoord[]): number {
+export function computeTribeScore(tribe: Tribe, allCoords?: HexCoord[], exploredCount?: number): number {
   const cityScore = tribe.cities.filter(c => !c.captured).length * 100;
   const unitScore = tribe.getAliveUnits().length * 10;
   const techScore = tribe.techs.size * 50;
@@ -44,5 +47,8 @@ export function computeTribeScore(tribe: Tribe, allCoords?: HexCoord[]): number 
     territorialScore = claimedTiles.size * 20;
   }
 
-  return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore + grandBazaarScore + territorialScore;
+  // GDD §1.2 — Exploration: +5 per explored (revealed fog) tile
+  const explorationScore = (exploredCount ?? 0) * 5;
+
+  return cityScore + unitScore + techScore + levelScore + buildingScore + parkScore + grandBazaarScore + territorialScore + explorationScore;
 }
