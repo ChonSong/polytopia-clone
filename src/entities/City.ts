@@ -52,6 +52,9 @@ export class City {
   /** GDD §5.7 — Whether Grand Bazaar bonus has been awarded (5+ connections). */
   public hasGrandBazaar: boolean = false;
 
+  /** GDD §1.2 — Number of temples built in this city (scoring category ×20). */
+  public templeCount: number = 0;
+
   constructor(
     public position: HexCoord,
     public name: string,

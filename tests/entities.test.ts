@@ -2286,3 +2286,53 @@ describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
     expect(score).toBe(50 + 5000);
   });
 });
+
+describe('GDD §1.2 temple scoring (+20 per temple)', () => {
+  it('3 temples in one city adds +60 to score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.templeCount = 3;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, templeScore: 3*20 = 60
+    expect(score).toBe(100 + 50 + 60);
+  });
+
+  it('0 temples contributes 0 temple score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    // templeCount defaults to 0
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 100, techScore: 50, templeScore: 0
+    expect(score).toBe(100 + 50 + 0);
+  });
+
+  it('temples in captured city do not contribute to score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.templeCount = 5;
+    city.captured = true;
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // city is captured → cityScore: 0, templeScore: 0
+    // techScore: 50 (RIDING)
+    expect(score).toBe(50);
+  });
+
+  it('temples across multiple non-captured cities sum correctly', () => {
+    const tribe = createTestTribe();
+    const city1 = new City(coord(0, 0), 'City1', tribe.id, 1, 1);
+    city1.templeCount = 2;
+    const city2 = new City(coord(1, 0), 'City2', tribe.id, 1, 1);
+    city2.templeCount = 1;
+    tribe.cities.push(city1, city2);
+
+    const score = computeTribeScore(tribe);
+    // cityScore: 2*100=200, techScore: 50, templeScore: (2+1)*20=60
+    expect(score).toBe(200 + 50 + 60);
+  });
+});
