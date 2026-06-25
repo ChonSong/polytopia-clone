@@ -1399,6 +1399,12 @@ export class GameScene extends Phaser.Scene {
     const title = this.add.text(300, 48, '— RESEARCH —', titleStyle).setScrollFactor(0).setDepth(29);
     techGroup.add(title);
 
+    // Star balance display
+    const starBalance = this.add.text(660, 48, `★ ${this.humanTribe.stars}`, {
+      fontSize: '16px', color: '#ffd', fontFamily: 'monospace'
+    }).setScrollFactor(0).setDepth(29);
+    techGroup.add(starBalance);
+
     // Render series — each at its row/column position
     seriesKeys.forEach((series, si) => {
       const rowIdx = twoRows ? Math.floor(si / colsPerRow) : 0;

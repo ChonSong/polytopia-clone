@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-city-menu-info-display",
+  "current_task": "fix-tech-panel-star-balance",
   "completed": [
     {
       "task": "add-e2e-pause-resume-test",
@@ -37,10 +37,17 @@
       "date": "2026-06-25",
       "summary": "Added exploration scoring (+5 per explored fog tile). ScoreCalculator accepts optional exploredCount param. Reads from GameState.tribeVisibility.size. 5 new tests. 502 tests pass.",
       "coach": "approved"
+    },
+    {
+      "task": "fix-city-menu-info-display",
+      "sha": "0c0cf86",
+      "date": "2026-06-25",
+      "summary": "Added city info header to showCityMenu(). Header shows city name+level (e.g., '\u25c6 Imperius (Lv3)') and population with food progress (e.g., 'Pop: 2  Food: 15/20'). Non-interactive, offset existing menu items below. 502 tests pass, build clean.",
+      "coach": "pending"
     }
   ],
   "health": "502_pass_build_clean_200_live",
-  "last_sha": "d543c56",
+  "last_sha": "0c0cf86",
   "blocker": null,
   "coach_review": {
     "last_reviewed_sha": "d543c56",
@@ -52,7 +59,7 @@
       "item": "Scoring extensions (territorial, exploration, monuments, temples)",
       "type": "missing_feature",
       "priority": 4,
-      "evidence": "GDD \u00a71 \u2014 territorial scoring done (8b96a53). Exploration pending.",
+      "evidence": "GDD \u00a71 \u2014 territorial scoring done (8b96a53). Exploration done (d543c56).",
       "cycles_stagnant": 3,
       "status": "escalated"
     },
@@ -81,14 +88,6 @@
       "status": "escalated"
     },
     {
-      "item": "City menu missing name, population, production indicator",
-      "type": "missing_feature",
-      "priority": 3,
-      "evidence": "Browser verification: city menu shows trainable units and upgrades but no city name, population count, or production indicator.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
       "item": "Tech panel missing star balance display",
       "type": "missing_feature",
       "priority": 3,
@@ -97,5 +96,5 @@
       "status": "escalated"
     }
   ],
-  "note": "All 23 AGENTS.md tasks complete. 502 tests pass, build clean, live 200. Coach approved add-exploration-scoring (d543c56). Generated 3 new backlog tasks: fix-city-menu-info-display, fix-tech-panel-star-balance, fix-e2e-pause-test-selector-bugs."
+  "note": "fix-city-menu-info-display done (0c0cf86). 502 tests pass, build clean. Advanced to fix-tech-panel-star-balance."
 }
