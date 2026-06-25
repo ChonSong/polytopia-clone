@@ -1,7 +1,7 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "add-exploration-scoring",
+  "current_task": "fix-city-menu-info-display",
   "completed": [
     {
       "task": "add-e2e-pause-resume-test",
@@ -36,15 +36,15 @@
       "sha": "d543c56",
       "date": "2026-06-25",
       "summary": "Added exploration scoring (+5 per explored fog tile). ScoreCalculator accepts optional exploredCount param. Reads from GameState.tribeVisibility.size. 5 new tests. 502 tests pass.",
-      "coach": "pending"
+      "coach": "approved"
     }
   ],
   "health": "502_pass_build_clean_200_live",
   "last_sha": "d543c56",
   "blocker": null,
   "coach_review": {
-    "last_reviewed_sha": "8b96a53",
-    "last_reviewed_at": "2026-06-25T14:45:00+10:00",
+    "last_reviewed_sha": "d543c56",
+    "last_reviewed_at": "2026-06-25T15:37:00Z",
     "verdict": "approved"
   },
   "spec_gaps": [
@@ -52,38 +52,44 @@
       "item": "Scoring extensions (territorial, exploration, monuments, temples)",
       "type": "missing_feature",
       "priority": 4,
-      "evidence": "GDD §1 — territorial scoring done (8b96a53). Exploration pending."
+      "evidence": "GDD §1 — territorial scoring done (8b96a53). Exploration pending.",
+      "cycles_stagnant": 2
     },
     {
       "item": "E2E pause overlay tests have test bugs (children.list on Group)",
       "type": "test_bug",
       "priority": 2,
-      "evidence": "gameplay.spec.ts line 320: gs.pauseOverlay.children.list.filter — Phaser Group.children is a Set, not a Container. Use getChildren() instead. Test returns null (evaluate error) instead of checking text presence."
+      "evidence": "gameplay.spec.ts line 320: gs.pauseOverlay.children.list.filter — Phaser Group.children is a Set, not a Container. Use getChildren() instead. Test returns null (evaluate error) instead of checking text presence.",
+      "cycles_stagnant": 2
     },
     {
       "item": "E2E tech panel test uses unscaled pixel coords",
       "type": "test_bug",
       "priority": 2,
-      "evidence": "gameplay.spec.ts line 241: click(page, 530, 10) uses canvas pixel coords but game has scale factor ~0.96 (FIT mode 800x600→769x577). Misses the actual button at game coord (530,10)."
+      "evidence": "gameplay.spec.ts line 241: click(page, 530, 10) uses canvas pixel coords but game has scale factor ~0.96 (FIT mode 800x600→769x577). Misses the actual button at game coord (530,10).",
+      "cycles_stagnant": 2
     },
     {
       "item": "E2E city menu close test fails — click at (400,300) overlaps city position",
       "type": "test_bug",
       "priority": 2,
-      "evidence": "Click at canvas center (400,300) after city menu opens doesn't close it. City is also at (400,300) screen position, so click lands on city hex (re-opening menu) rather than clearing it. Click at (100,50) correctly closes menu. Test position is wrong."
+      "evidence": "Click at canvas center (400,300) after city menu opens doesn't close it. City is also at (400,300) screen position, so click lands on city hex (re-opening menu) rather than clearing it. Click at (100,50) correctly closes menu. Test position is wrong.",
+      "cycles_stagnant": 2
     },
     {
       "item": "City menu missing name, population, production indicator",
       "type": "missing_feature",
       "priority": 3,
-      "evidence": "Browser verification: city menu shows trainable units and upgrades but no city name, population count, or production indicator."
+      "evidence": "Browser verification: city menu shows trainable units and upgrades but no city name, population count, or production indicator.",
+      "cycles_stagnant": 2
     },
     {
       "item": "Tech panel missing star balance display",
       "type": "missing_feature",
       "priority": 3,
-      "evidence": "Browser verification: tech panel shows tech tree with costs but no current star balance indicator."
+      "evidence": "Browser verification: tech panel shows tech tree with costs but no current star balance indicator.",
+      "cycles_stagnant": 2
     }
   ],
-  "note": "Player tick: add-exploration-scoring complete (d543c56). Exploration scoring +5 per explored fog tile via GameState.tribeVisibility. 502 tests pass. No remaining tasks in AGENTS.md.",
+  "note": "All 23 AGENTS.md tasks complete. 502 tests pass, build clean, live 200. Coach approved add-exploration-scoring (d543c56). Generated 3 new backlog tasks: fix-city-menu-info-display, fix-tech-panel-star-balance, fix-e2e-pause-test-selector-bugs."
 }
