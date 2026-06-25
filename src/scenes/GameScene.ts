@@ -265,18 +265,18 @@ export class GameScene extends Phaser.Scene {
     this.infiltrateBtn.setVisible(false);
 
     // GDD §7.3 — Enchantment button (Elyrion) — camera-fixed
-    const enchantBtn = this.add.text(560, 10, '[ ENCHANT ]', {
+    this.enchantBtn = this.add.text(560, 10, '[ ENCHANT ]', {
       fontSize: '14px', color: '#f8f', fontFamily: 'monospace',
       backgroundColor: '#232', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
-    enchantBtn.on('pointerdown', () => {
+    this.enchantBtn.on('pointerdown', () => {
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed) {
         this.performEnchantment(this.selectedUnit);
       }
     });
-    enchantBtn.on('pointerover', () => enchantBtn.setStyle({ backgroundColor: '#444' }));
-    enchantBtn.on('pointerout', () => enchantBtn.setStyle({ backgroundColor: '#232' }));
-    enchantBtn.setVisible(false);
+    this.enchantBtn.on('pointerover', () => this.enchantBtn?.setStyle({ backgroundColor: '#444' }));
+    this.enchantBtn.on('pointerout', () => this.enchantBtn?.setStyle({ backgroundColor: '#232' }));
+    this.enchantBtn.setVisible(false);
 
     // End Turn (camera-fixed)
     const btn = this.add.text(660, 10, '[ END TURN ]', {
