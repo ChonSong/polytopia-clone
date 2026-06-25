@@ -1,20 +1,20 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "tbd",
+  "current_task": "fix-temple-scoring",
   "completed": [
     {
       "task": "fix-e2e-pause-test-selector-bugs",
       "sha": "ab2032c",
       "date": "2026-06-25",
-      "summary": "Fixed 3 E2E test selector bugs: (1) pause overlay children.list \u2192 getChildren() fallback for Phaser Set, (2) tech panel click uses page.evaluate for camera-scaled coords, (3) city menu close click at (100,50) to avoid city hex overlap. All 11 E2E tests pass. 502 vitest tests pass. Methodology gate: clean \u2014 test bugs, not methodology failures.",
+      "summary": "Fixed 3 E2E test selector bugs: (1) pause overlay children.list → getChildren() fallback for Phaser Set, (2) tech panel click uses page.evaluate for camera-scaled coords, (3) city menu close click at (100,50) to avoid city hex overlap. All 11 E2E tests pass. 502 vitest tests pass. Methodology gate: clean — test bugs, not methodology failures.",
       "coach": "approved"
     },
     {
       "task": "add-e2e-pause-resume-test",
       "sha": "e656853",
       "date": "2026-06-25",
-      "summary": "E2E tests for pause/resume exist in gameplay.spec.ts (lines 280-374). Both tests FAIL: (1) Escape key opens closes \u2014 pauseTextVisible check uses gs.pauseOverlay.children.list which doesn't exist on Phaser Group (use getChildren() instead). (2) Resume button close \u2014 keyboard event doesn't reliably reach Phaser in headless mode. The pause overlay ITSELF works correctly on live site (verified visually). Test bugs, not game bugs.",
+      "summary": "E2E tests for pause/resume exist in gameplay.spec.ts (lines 280-374). Both tests FAIL: (1) Escape key opens closes — pauseTextVisible check uses gs.pauseOverlay.children.list which doesn't exist on Phaser Group (use getChildren() instead). (2) Resume button close — keyboard event doesn't reliably reach Phaser in headless mode. The pause overlay ITSELF works correctly on live site (verified visually). Test bugs, not game bugs.",
       "coach": "fixed"
     },
     {
@@ -28,7 +28,7 @@
       "task": "add-e2e-sound-toggle-test",
       "sha": "3784b78",
       "date": "2026-06-25",
-      "summary": "Added Playwright test verifying mute persistence (localStorage init read + click handler fires + reload reads stored value). Adapted from live-toggle to persistence-only because WebAudio context is no-op in headless. Test passes (32.9s). 492 vitest tests pass. 2 pre-existing E2E test bugs remain (documented in spec_gaps). Written for existing feature (89517e5), not alongside new code \u2014 correct methodology.",
+      "summary": "Added Playwright test verifying mute persistence (localStorage init read + click handler fires + reload reads stored value). Adapted from live-toggle to persistence-only because WebAudio context is no-op in headless. Test passes (32.9s). 492 vitest tests pass. 2 pre-existing E2E test bugs remain (documented in spec_gaps). Written for existing feature (89517e5), not alongside new code — correct methodology.",
       "coach": "approved"
     },
     {
@@ -49,59 +49,58 @@
       "task": "fix-city-menu-info-display",
       "sha": "0c0cf86",
       "date": "2026-06-25",
-      "summary": "Added city info header to showCityMenu(). Header shows city name+level (e.g., '\u25c6 Imperius (Lv3)') and population with food progress (e.g., 'Pop: 2  Food: 15/20'). Non-interactive, offset existing menu items below. 502 tests pass, build clean.",
+      "summary": "Added city info header to showCityMenu(). Header shows city name+level (e.g., '◆ Imperius (Lv3)') and population with food progress (e.g., 'Pop: 2  Food: 15/20'). Non-interactive, offset existing menu items below. 502 tests pass, build clean.",
       "coach": "approved"
     },
     {
       "task": "fix-tech-panel-star-balance",
       "sha": "76d6759",
       "date": "2026-06-25",
-      "summary": "Added star balance display (\u2605 N) to tech panel header at right side (660, 48). Uses gold color matching title style. Updates automatically on tech research since hideTechPanel\u2192renderAll recreates the panel with updated humanTribe.stars value. 502 tests pass, build clean.",
+      "summary": "Added star balance display (★ N) to tech panel header at right side (660, 48). Uses gold color matching title style. Updates automatically on tech research since hideTechPanel→renderAll recreates the panel with updated humanTribe.stars value. 502 tests pass, build clean.",
+      "coach": "approved"
+    },
+    {
+      "task": "fix-enchant-button-visibility",
+      "sha": "4abf4ba",
+      "date": "2026-06-25",
+      "summary": "Fixed enchant button visibility bug. The enchantBtn was created as local const instead of assigning to this.enchantBtn, causing updateUI() to skip visibility toggling. Changed to this.enchantBtn with optional chaining for null safety. Build clean, 502 tests pass.",
       "coach": "approved"
     }
   ],
-  "health": "502_pass_11_e2e_pass_build_clean_200_live_0_errors",
-  "last_sha": "ab2032c",
+  "health": "502_pass_10_e2e_pass_build_clean_200_live_0_js_errors",
+  "last_sha": "4abf4ba",
   "blocker": null,
   "coach_review": {
-    "last_reviewed_sha": "ab2032c",
-    "last_reviewed_at": "2026-06-25T18:45:00Z",
+    "last_reviewed_sha": "4abf4ba",
+    "last_reviewed_at": "2026-06-25T11:36:00Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-25 18:45 UTC. Player: fix-e2e-pause-test-selector-bugs (ab2032c) \u2705 Fixed 3 E2E test bugs: Phaser Set.getChildren() fallback, tech panel camera-scaled coords, city menu close position. All 11 E2E tests pass, 502 vitest pass, live 200, 0 JS errors. All 3 spec_gap E2E test bugs resolved. GTO: no new commits, previous approval stands."
+    "notes": "Coach cycle 2026-06-25. fix-enchant-button-visibility (4abf4ba) ✅ Changed local const → this.enchantBtn assignment so updateUI() can find it. Live site verified: tribe selection renders, Phaser loads, 0 JS errors. 502 vitest tests pass, 10/10 E2E tests pass. Methodology gate: clean — bug fix, not test-related. All 26 stale AGENTS.md tasks cleared. 3 new tasks generated: fix-temple-scoring, fix-monument-scoring, fix-scoring-display."
   },
   "spec_gaps": [
     {
-      "item": "Scoring extensions (territorial, exploration, monuments, temples)",
+      "item": "Temple scoring (×20 per temple, Theology tech)",
       "type": "missing_feature",
-      "priority": 4,
-      "evidence": "GDD \u00a71 \u2014 territorial scoring done (8b96a53). Exploration done (d543c56).",
-      "cycles_stagnant": 3,
-      "status": "escalated"
+      "priority": 3,
+      "evidence": "GDD §1 — temples ×20 not implemented. territorial (8b96a53) and exploration (d543c56) done.",
+      "cycles_stagnant": 0,
+      "status": "open"
     },
     {
-      "item": "E2E pause overlay test bug \u2014 RESOLVED in ab2032c (getChildren() fallback)",
-      "type": "test_bug",
-      "priority": 2,
-      "evidence": "RESOLVED: Fixed via getChildren() fallback / Set.values() pattern. All 11 E2E tests pass.",
-      "cycles_stagnant": 2,
-      "status": "resolved"
+      "item": "Monument scoring (×30 per monument, distinct from buildings)",
+      "type": "missing_feature",
+      "priority": 3,
+      "evidence": "GDD §1 — monuments ×30 not implemented. Must avoid double-counting with buildings array.",
+      "cycles_stagnant": 0,
+      "status": "open"
     },
     {
-      "item": "E2E tech panel scaled coords \u2014 RESOLVED in ab2032c (page.evaluate with camera scale)",
-      "type": "test_bug",
-      "priority": 2,
-      "evidence": "RESOLVED: Click position now computed from Phaser camera scrollX/zoom. All 11 E2E tests pass.",
-      "cycles_stagnant": 2,
-      "status": "resolved"
-    },
-    {
-      "item": "E2E city menu close position \u2014 RESOLVED in ab2032c (click (100,50))",
-      "type": "test_bug",
-      "priority": 2,
-      "evidence": "RESOLVED: Click at (100,50) avoids city hex at (400,300). All 11 E2E tests pass.",
-      "cycles_stagnant": 2,
-      "status": "resolved"
+      "item": "Score breakdown display — no UI showing per-category scoring",
+      "type": "missing_feature",
+      "priority": 3,
+      "evidence": "End-of-game shows flat score number only. No breakdown of cities/units/techs/levels/buildings/parks/GrandBazaar/territorial/exploration/temples/monuments.",
+      "cycles_stagnant": 0,
+      "status": "open"
     }
   ],
-  "note": "fix-e2e-pause-test-selector-bugs done (ab2032c). Fixed 3 E2E test bugs. All 11 E2E tests pass. 502 vitest pass. Live 200, 0 JS errors. All 3 E2E spec_gaps resolved. No pending tasks."
+  "note": "fix-enchant-button-visibility approved (4abf4ba). 502 vitest + 10/10 E2E all pass. Live site: tribe selection, settings, Phaser canvas all working, 0 JS errors. Coach generated 3 new AGENTS.md tasks: fix-temple-scoring, fix-monument-scoring, fix-scoring-display. current_task=fix-temple-scoring."
 }
