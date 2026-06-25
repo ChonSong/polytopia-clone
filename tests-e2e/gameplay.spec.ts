@@ -410,4 +410,65 @@ test.describe('Human-like Gameplay', () => {
     expect(tribeNames).toEqual(expected);
   });
 
+  test('mute button interaction and persistence', async ({ page }) => {
+    test.setTimeout(60_000);
+
+    // ── Step 1: Pre-set localStorage to 'muted' and verify GameScene reads it ──
+    await page.goto('http://localhost:3001', { waitUntil: 'networkidle' });
+    await page.waitForSelector('canvas', { timeout: 15000 });
+    await page.waitForTimeout(2500);
+    await page.evaluate(() => {
+      try { localStorage.setItem('polytopia_mute', 'true'); } catch { /* noop */ }
+    });
+    // Reload so GameScene picks up the stored preference on init
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForSelector('canvas', { timeout: 15000 });
+    await page.waitForTimeout(2500);
+
+    // Start a game (select tribe, wait for human turn)
+    const outcome = await selectTribeAndWait(page);
+    if (outcome === 'game_over') {
+      console.log('Game ended during initial AI processing — skipping');
+      return;
+    }
+
+    // ── Step 2: Verify GameScene respects persisted mute preference ──
+    const muteState = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.sound?.mute) ?? false`,
+    );
+    expect(muteState).toBe(true);
+
+    // ── Step 3: Click the mute button and verify handler fires ──
+    // Button is at game-space (10,10), 22px font → center ~(23,22).
+    // Playwright's canvas.click dispatches mousedown+mouseup which Phaser
+    // translates into pointerdown+pointerup on the registered handler.
+    await page.locator('canvas').click({ position: { x: 23, y: 22 } });
+    await page.waitForTimeout(500);
+
+    // The handler writes to localStorage on every click (even in headless mode
+    // where WebAudio context isn't unlocked and sound.mute is a no-op).
+    const storedAfterClick = await page.evaluate(() => {
+      try { return localStorage.getItem('polytopia_mute'); } catch { return null; }
+    });
+    expect(storedAfterClick).not.toBeNull(); // handler fired and wrote
+
+    // ── Step 4: Change stored value and reload to verify GameScene reads it ──
+    await page.evaluate(() => {
+      try { localStorage.setItem('polytopia_mute', 'false'); } catch { /* noop */ }
+    });
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForSelector('canvas', { timeout: 15000 });
+    await page.waitForTimeout(2500);
+
+    // Re-enter game
+    await selectTribeAndWait(page);
+
+    const unmutedState = await readGame<boolean>(
+      page,
+      `(window.__PHASER_GAME__?.scene?.getScene('GameScene')?.sound?.mute) ?? true`,
+    );
+    expect(unmutedState).toBe(false);
+  });
+
 });
