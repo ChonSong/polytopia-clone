@@ -7,7 +7,7 @@
       "task": "add-e2e-pause-resume-test",
       "sha": "e656853",
       "date": "2026-06-25",
-      "summary": "E2E tests for pause/resume exist in gameplay.spec.ts (lines 280-374). Both tests FAIL: (1) Escape key opens closes — pauseTextVisible check uses gs.pauseOverlay.children.list which doesn't exist on Phaser Group (use getChildren() instead). (2) Resume button close — keyboard event doesn't reliably reach Phaser in headless mode. The pause overlay ITSELF works correctly on live site (verified visually). Test bugs, not game bugs.",
+      "summary": "E2E tests for pause/resume exist in gameplay.spec.ts (lines 280-374). Both tests FAIL: (1) Escape key opens closes \u2014 pauseTextVisible check uses gs.pauseOverlay.children.list which doesn't exist on Phaser Group (use getChildren() instead). (2) Resume button close \u2014 keyboard event doesn't reliably reach Phaser in headless mode. The pause overlay ITSELF works correctly on live site (verified visually). Test bugs, not game bugs.",
       "coach": "fixed"
     },
     {
@@ -21,7 +21,7 @@
       "task": "add-e2e-sound-toggle-test",
       "sha": "3784b78",
       "date": "2026-06-25",
-      "summary": "Added Playwright test verifying mute persistence (localStorage init read + click handler fires + reload reads stored value). Adapted from live-toggle to persistence-only because WebAudio context is no-op in headless. Test passes (32.9s). 492 vitest tests pass. 2 pre-existing E2E test bugs remain (documented in spec_gaps). Written for existing feature (89517e5), not alongside new code — correct methodology.",
+      "summary": "Added Playwright test verifying mute persistence (localStorage init read + click handler fires + reload reads stored value). Adapted from live-toggle to persistence-only because WebAudio context is no-op in headless. Test passes (32.9s). 492 vitest tests pass. 2 pre-existing E2E test bugs remain (documented in spec_gaps). Written for existing feature (89517e5), not alongside new code \u2014 correct methodology.",
       "coach": "approved"
     },
     {
@@ -52,43 +52,49 @@
       "item": "Scoring extensions (territorial, exploration, monuments, temples)",
       "type": "missing_feature",
       "priority": 4,
-      "evidence": "GDD §1 — territorial scoring done (8b96a53). Exploration pending.",
-      "cycles_stagnant": 2
+      "evidence": "GDD \u00a71 \u2014 territorial scoring done (8b96a53). Exploration pending.",
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "E2E pause overlay tests have test bugs (children.list on Group)",
       "type": "test_bug",
       "priority": 2,
-      "evidence": "gameplay.spec.ts line 320: gs.pauseOverlay.children.list.filter — Phaser Group.children is a Set, not a Container. Use getChildren() instead. Test returns null (evaluate error) instead of checking text presence.",
-      "cycles_stagnant": 2
+      "evidence": "gameplay.spec.ts line 320: gs.pauseOverlay.children.list.filter \u2014 Phaser Group.children is a Set, not a Container. Use getChildren() instead. Test returns null (evaluate error) instead of checking text presence.",
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "E2E tech panel test uses unscaled pixel coords",
       "type": "test_bug",
       "priority": 2,
-      "evidence": "gameplay.spec.ts line 241: click(page, 530, 10) uses canvas pixel coords but game has scale factor ~0.96 (FIT mode 800x600→769x577). Misses the actual button at game coord (530,10).",
-      "cycles_stagnant": 2
+      "evidence": "gameplay.spec.ts line 241: click(page, 530, 10) uses canvas pixel coords but game has scale factor ~0.96 (FIT mode 800x600\u2192769x577). Misses the actual button at game coord (530,10).",
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
-      "item": "E2E city menu close test fails — click at (400,300) overlaps city position",
+      "item": "E2E city menu close test fails \u2014 click at (400,300) overlaps city position",
       "type": "test_bug",
       "priority": 2,
       "evidence": "Click at canvas center (400,300) after city menu opens doesn't close it. City is also at (400,300) screen position, so click lands on city hex (re-opening menu) rather than clearing it. Click at (100,50) correctly closes menu. Test position is wrong.",
-      "cycles_stagnant": 2
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "City menu missing name, population, production indicator",
       "type": "missing_feature",
       "priority": 3,
       "evidence": "Browser verification: city menu shows trainable units and upgrades but no city name, population count, or production indicator.",
-      "cycles_stagnant": 2
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "Tech panel missing star balance display",
       "type": "missing_feature",
       "priority": 3,
       "evidence": "Browser verification: tech panel shows tech tree with costs but no current star balance indicator.",
-      "cycles_stagnant": 2
+      "cycles_stagnant": 3,
+      "status": "escalated"
     }
   ],
   "note": "All 23 AGENTS.md tasks complete. 502 tests pass, build clean, live 200. Coach approved add-exploration-scoring (d543c56). Generated 3 new backlog tasks: fix-city-menu-info-display, fix-tech-panel-star-balance, fix-e2e-pause-test-selector-bugs."

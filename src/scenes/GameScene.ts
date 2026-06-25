@@ -1491,6 +1491,22 @@ export class GameScene extends Phaser.Scene {
     // Only show menu on human's turn
     if (this.state.getCurrentTribe() !== this.humanTribe) return;
 
+    // --- CITY INFO HEADER (GDD §5 city info display) ---
+    const headerStyle = { fontSize: '15px', color: '#fff', fontFamily: 'monospace',
+      backgroundColor: '#333', padding: { x: 8, y: 6 } as const };
+
+    // Production indicator: show food progress toward next population
+    const foodThreshold = city.population * 10;
+    const productionText = foodThreshold > 0
+      ? `Food: ${city.food}/${foodThreshold}`
+      : 'Max Population';
+
+    const headerItems: string[] = [
+      `◆ ${city.name} (Lv${city.level})`,
+      `Pop: ${city.population}  ${productionText}`,
+    ];
+    const headerCount = headerItems.length;
+
     const items: string[] = [];
     const handlers: (() => void)[] = [];
 
@@ -1782,12 +1798,22 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.cityMenu = this.add.group();
+
+    // Render city info header (non-interactive)
+    headerItems.forEach((text, i) => {
+      const hdr = this.add.text(sx, sy + i * 24, text, headerStyle)
+        .setScrollFactor(0).setDepth(25);
+      this.cityMenu!.add(hdr);
+    });
+
+    // Render menu items, offset below the header
+    const itemOffsetY = headerCount * 24 + 8; // gap between header and items
     items.forEach((text, i) => {
       // Items are interactive unless they're a separator/header or locked
       const isSeparator = text.startsWith('──');
       const isClickable = handlers[i].toString().length > 15; // non-empty handler
       const canAfford = !isSeparator && isClickable;
-      const lbl = this.add.text(sx, sy + i * 24, text, canAfford ? style : disabledStyle)
+      const lbl = this.add.text(sx, sy + itemOffsetY + i * 24, text, canAfford ? style : disabledStyle)
         .setScrollFactor(0).setDepth(25).setInteractive({ useHandCursor: canAfford });
       if (canAfford) {
         lbl.on('pointerdown', handlers[i]);
@@ -1798,7 +1824,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     // "Close" hint
-    const hint = this.add.text(sx, sy + items.length * 24 + 4, '[click elsewhere to close]', {
+    const hint = this.add.text(sx, sy + itemOffsetY + items.length * 24 + 4, '[click elsewhere to close]', {
       fontSize: '11px', color: '#888', fontFamily: 'monospace'
     }).setScrollFactor(0).setDepth(25);
     this.cityMenu.add(hint);
