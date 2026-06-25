@@ -1015,7 +1015,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private calcScore(tribe: Tribe): number {
-    return computeTribeScore(tribe);
+    const allCoords = Array.from(this.tiles.keys()).map(k => {
+      const [q, r] = k.split(',').map(Number);
+      return new HexCoord(q, r);
+    });
+    return computeTribeScore(tribe, allCoords);
   }
 
   /** GDD §8 — Reveal tiles within vision range of all units and cities of a tribe. */

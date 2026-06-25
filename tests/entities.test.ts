@@ -2136,3 +2136,105 @@ describe('GDD §1.2 level score formula', () => {
     expect(score).toBe(300 + 50 + 300);
   });
 });
+
+describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () => {
+  it('L1 city claims 7 tiles (center + 6 neighbors) → +140', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    tribe.cities.push(city);
+
+    // Build a small map: center + 6 neighbors = 7 tiles
+    const allCoords = [coord(0, 0)];
+    for (const d of HexCoord.DIRECTIONS) {
+      allCoords.push(new HexCoord(d.q, d.r));
+    }
+
+    const score = computeTribeScore(tribe, allCoords);
+    // cityScore: 100, techScore: 50 (RIDING), levelScore: 0
+    // territorialScore: 7 tiles × 20 = 140
+    expect(score).toBe(100 + 50 + 0 + 140);
+  });
+
+  it('L3 city claims all tiles within distance 3', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
+    tribe.cities.push(city);
+
+    // Build a map with tiles at distance ≤ 3 from center
+    const allCoords: HexCoord[] = [];
+    for (let q = -3; q <= 3; q++) {
+      for (let r = -3; r <= 3; r++) {
+        const c = new HexCoord(q, r);
+        if (c.distanceTo(coord(0, 0)) <= 3) {
+          allCoords.push(c);
+        }
+      }
+    }
+    // Number of tiles within hex distance 3 = 1 + 6 + 12 + 18 = 37
+    const expectedTiles = allCoords.length;
+
+    const score = computeTribeScore(tribe, allCoords);
+    // cityScore: 100, techScore: 50, levelScore: (3-1)*50 = 100
+    // territorialScore: expectedTiles × 20
+    expect(score).toBe(100 + 50 + 100 + expectedTiles * 20);
+  });
+
+  it('overlapping city territories — tiles counted only once', () => {
+    const tribe = createTestTribe();
+    const city1 = new City(coord(0, 0), 'City1', tribe.id, 2, 1);
+    const city2 = new City(coord(1, 0), 'City2', tribe.id, 2, 1);
+    tribe.cities.push(city1, city2);
+
+    // Build a map: tiles within distance 2 of either city
+    const allCoords: HexCoord[] = [];
+    for (let q = -2; q <= 3; q++) {
+      for (let r = -2; r <= 2; r++) {
+        const c = new HexCoord(q, r);
+        const d1 = c.distanceTo(city1.position);
+        const d2 = c.distanceTo(city2.position);
+        if (d1 <= 2 || d2 <= 2) {
+          allCoords.push(c);
+        }
+      }
+    }
+    const expectedTiles = allCoords.length;
+
+    const score = computeTribeScore(tribe, allCoords);
+    // cityScore: 200, techScore: 50, levelScore: (2-1)*50*2 = 100
+    // territorialScore: unique tiles × 20 (no double-counting)
+    expect(score).toBe(200 + 50 + 100 + expectedTiles * 20);
+  });
+
+  it('captured city contributes 0 territorial score', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
+    city.captured = true;
+    tribe.cities.push(city);
+
+    const allCoords: HexCoord[] = [];
+    for (let q = -3; q <= 3; q++) {
+      for (let r = -3; r <= 3; r++) {
+        const c = new HexCoord(q, r);
+        if (c.distanceTo(coord(0, 0)) <= 3) {
+          allCoords.push(c);
+        }
+      }
+    }
+
+    const score = computeTribeScore(tribe, allCoords);
+    // cityScore: 0 (captured), techScore: 50, levelScore: 100
+    // territorialScore: 0 (captured city claims nothing)
+    expect(score).toBe(0 + 50 + 100 + 0);
+  });
+
+  it('without allCoords, territorial score is 0 (backward compatible)', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
+    tribe.cities.push(city);
+
+    const score = computeTribeScore(tribe);
+    // No allCoords → no territorial scoring
+    // cityScore: 100, techScore: 50, levelScore: 100, territorialScore: 0
+    expect(score).toBe(100 + 50 + 100 + 0);
+  });
+});
