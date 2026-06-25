@@ -107,5 +107,6 @@
       "status": "escalated"
     }
   ],
-  "note": "Tick 2026-06-26T04:02. fix-scoring-display was already implemented in commit 7e6e529 (ScoreBreakdown refactor + renderScoreBreakdown panel). Checkpoint updated to reflect reality. All 3 AGENTS.md tasks complete. current_task set to tbd for Coach replenishment."
+  "blocker": "Live site unreachable (domain timeout, polytopia-clone.com does not resolve) — deployment/infrastructure issue, not code. All 3 AGENTS.md tasks committed and verified in git.",
+  "note": "Tick 2026-06-26T16:00. Master checkpoint stale (10h). Investigated both projects. polytopia-clone: all 3 AGENTS.md tasks complete (temple dd58f81, monument cb65bd4, scoring display 7e6e529). Live site UNREACHABLE — domain timeout, likely infra/deploy issue. 515 tests pass, build clean. current_task=tbd awaiting Coach replenishment or deploy fix."
 }
