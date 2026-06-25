@@ -2055,7 +2055,7 @@ describe('GDD §5.7 Grand Bazaar score in calcScore', () => {
     city2.hasGrandBazaar = true;
     tribe.cities.push(city1, city2);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // Xin-xi starts with 1 tech (RIDING) → +50 techScore
     // cityScore: 2 × 100 = 200
     // levelScore: ((1-1) × 50) + ((2-1) × 50) = 50
@@ -2069,7 +2069,7 @@ describe('GDD §5.7 Grand Bazaar score in calcScore', () => {
     city.hasGrandBazaar = false;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // Xin-xi starts with 1 tech (RIDING) → +50 techScore
     // cityScore: 1 × 100 = 100
     // levelScore: (1-1) × 50 = 0
@@ -2082,7 +2082,7 @@ describe('GDD §1.2 level score formula', () => {
     const tribe = createTestTribe();
     const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
     tribe.cities.push(city);
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: (1-1) × 50 = 0
     expect(score).toBe(100 + 50 + 0);
   });
@@ -2091,7 +2091,7 @@ describe('GDD §1.2 level score formula', () => {
     const tribe = createTestTribe();
     const city = new City(coord(0, 0), 'City', tribe.id, 2, 1);
     tribe.cities.push(city);
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: (2-1) × 50 = 50
     expect(score).toBe(100 + 50 + 50);
   });
@@ -2100,7 +2100,7 @@ describe('GDD §1.2 level score formula', () => {
     const tribe = createTestTribe();
     const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
     tribe.cities.push(city);
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: (3-1) × 50 = 100
     expect(score).toBe(100 + 50 + 100);
   });
@@ -2109,7 +2109,7 @@ describe('GDD §1.2 level score formula', () => {
     const tribe = createTestTribe();
     const city = new City(coord(0, 0), 'City', tribe.id, 4, 1);
     tribe.cities.push(city);
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: (4-1) × 50 = 150
     expect(score).toBe(100 + 50 + 150);
   });
@@ -2118,7 +2118,7 @@ describe('GDD §1.2 level score formula', () => {
     const tribe = createTestTribe();
     const city = new City(coord(0, 0), 'City', tribe.id, 5, 1);
     tribe.cities.push(city);
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: (5-1) × 50 = 200
     expect(score).toBe(100 + 50 + 200);
   });
@@ -2130,7 +2130,7 @@ describe('GDD §1.2 level score formula', () => {
       new City(coord(1, 0), 'L3', tribe.id, 3, 1),
       new City(coord(2, 0), 'L5', tribe.id, 5, 1),
     );
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // levelScore: 0 + 100 + 200 = 300
     // cityScore: 3 × 100 = 300
     expect(score).toBe(300 + 50 + 300);
@@ -2149,7 +2149,7 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
       allCoords.push(new HexCoord(d.q, d.r));
     }
 
-    const score = computeTribeScore(tribe, allCoords);
+    const score = computeTribeScore(tribe, allCoords).getTotal();
     // cityScore: 100, techScore: 50 (RIDING), levelScore: 0
     // territorialScore: 7 tiles × 20 = 140
     expect(score).toBe(100 + 50 + 0 + 140);
@@ -2173,7 +2173,7 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
     // Number of tiles within hex distance 3 = 1 + 6 + 12 + 18 = 37
     const expectedTiles = allCoords.length;
 
-    const score = computeTribeScore(tribe, allCoords);
+    const score = computeTribeScore(tribe, allCoords).getTotal();
     // cityScore: 100, techScore: 50, levelScore: (3-1)*50 = 100
     // territorialScore: expectedTiles × 20
     expect(score).toBe(100 + 50 + 100 + expectedTiles * 20);
@@ -2199,7 +2199,7 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
     }
     const expectedTiles = allCoords.length;
 
-    const score = computeTribeScore(tribe, allCoords);
+    const score = computeTribeScore(tribe, allCoords).getTotal();
     // cityScore: 200, techScore: 50, levelScore: (2-1)*50*2 = 100
     // territorialScore: unique tiles × 20 (no double-counting)
     expect(score).toBe(200 + 50 + 100 + expectedTiles * 20);
@@ -2221,10 +2221,10 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
       }
     }
 
-    const score = computeTribeScore(tribe, allCoords);
-    // cityScore: 0 (captured), techScore: 50, levelScore: 100
+    const score = computeTribeScore(tribe, allCoords).getTotal();
+    // cityScore: 0 (captured), techScore: 50, levelScore: 0 (captured city filtered out)
     // territorialScore: 0 (captured city claims nothing)
-    expect(score).toBe(0 + 50 + 100 + 0);
+    expect(score).toBe(0 + 50 + 0 + 0);
   });
 
   it('without allCoords, territorial score is 0 (backward compatible)', () => {
@@ -2232,7 +2232,7 @@ describe('GDD §1.2 territorial scoring (+20 per unique territorial tile)', () =
     const city = new City(coord(0, 0), 'City', tribe.id, 3, 1);
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // No allCoords → no territorial scoring
     // cityScore: 100, techScore: 50, levelScore: 100, territorialScore: 0
     expect(score).toBe(100 + 50 + 100 + 0);
@@ -2245,7 +2245,7 @@ describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
     const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe, undefined, 50);
+    const score = computeTribeScore(tribe, undefined, 50).getTotal();
     // cityScore: 100, techScore: 50, explorationScore: 50*5 = 250
     expect(score).toBe(100 + 50 + 250);
   });
@@ -2255,7 +2255,7 @@ describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
     const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe, undefined, 0);
+    const score = computeTribeScore(tribe, undefined, 0).getTotal();
     // cityScore: 100, techScore: 50, explorationScore: 0
     expect(score).toBe(100 + 50 + 0);
   });
@@ -2265,14 +2265,14 @@ describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
     const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, explorationScore: 0
     expect(score).toBe(100 + 50 + 0);
   });
 
   it('1 explored tile adds +5', () => {
     const tribe = createTestTribe();
-    const score = computeTribeScore(tribe, undefined, 1);
+    const score = computeTribeScore(tribe, undefined, 1).getTotal();
     // tribe has 0 cities, 1 tech (RIDING) → 50
     // explorationScore: 1*5 = 5
     expect(score).toBe(50 + 5);
@@ -2280,7 +2280,7 @@ describe('GDD §1.2 exploration scoring (+5 per explored tile)', () => {
 
   it('1000 explored tiles adds +5000', () => {
     const tribe = createTestTribe();
-    const score = computeTribeScore(tribe, undefined, 1000);
+    const score = computeTribeScore(tribe, undefined, 1000).getTotal();
     // tribe has 0 cities, 1 tech (RIDING) → 50
     // explorationScore: 1000*5 = 5000
     expect(score).toBe(50 + 5000);
@@ -2294,7 +2294,7 @@ describe('GDD §1.2 temple scoring (+20 per temple)', () => {
     city.templeCount = 3;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, templeScore: 3*20 = 60
     expect(score).toBe(100 + 50 + 60);
   });
@@ -2305,7 +2305,7 @@ describe('GDD §1.2 temple scoring (+20 per temple)', () => {
     // templeCount defaults to 0
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, templeScore: 0
     expect(score).toBe(100 + 50 + 0);
   });
@@ -2317,7 +2317,7 @@ describe('GDD §1.2 temple scoring (+20 per temple)', () => {
     city.captured = true;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // city is captured → cityScore: 0, templeScore: 0
     // techScore: 50 (RIDING)
     expect(score).toBe(50);
@@ -2331,7 +2331,7 @@ describe('GDD §1.2 temple scoring (+20 per temple)', () => {
     city2.templeCount = 1;
     tribe.cities.push(city1, city2);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 2*100=200, techScore: 50, templeScore: (2+1)*20=60
     expect(score).toBe(200 + 50 + 60);
   });
@@ -2344,7 +2344,7 @@ describe('GDD §1.2 monument scoring (+30 per monument)', () => {
     city.monumentCount = 2;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, monumentScore: 2*30 = 60
     expect(score).toBe(100 + 50 + 60);
   });
@@ -2355,7 +2355,7 @@ describe('GDD §1.2 monument scoring (+30 per monument)', () => {
     // monumentCount defaults to 0
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, monumentScore: 0
     expect(score).toBe(100 + 50 + 0);
   });
@@ -2367,7 +2367,7 @@ describe('GDD §1.2 monument scoring (+30 per monument)', () => {
     city.captured = true;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // city is captured → cityScore: 0, monumentScore: 0
     // techScore: 50 (RIDING)
     expect(score).toBe(50);
@@ -2381,7 +2381,7 @@ describe('GDD §1.2 monument scoring (+30 per monument)', () => {
     city.buildings.push(BuildingType.LUMBER_HUT);
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, buildingScore: 1*25=25, monumentScore: 3*30=90
     expect(score).toBe(100 + 50 + 25 + 90);
   });
@@ -2393,9 +2393,76 @@ describe('GDD §1.2 monument scoring (+30 per monument)', () => {
     city.monumentCount = 2;
     tribe.cities.push(city);
 
-    const score = computeTribeScore(tribe);
+    const score = computeTribeScore(tribe).getTotal();
     // cityScore: 100, techScore: 50, levelScore: (5-1)*50=200,
     // parkScore: 250, monumentScore: 2*30=60
     expect(score).toBe(100 + 50 + 200 + 250 + 60);
+  });
+});
+
+describe('GDD §1.2 score breakdown structure', () => {
+  it('computeTribeScore returns a ScoreBreakdown with all categories', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 3, 3);
+    city.templeCount = 4;
+    city.monumentCount = 1;
+    tribe.cities.push(city);
+
+    const breakdown = computeTribeScore(tribe);
+
+    expect(breakdown.categories).toHaveLength(11);
+    const names = breakdown.categories.map(c => c.name);
+    expect(names).toContain('Cities');
+    expect(names).toContain('Units');
+    expect(names).toContain('Techs');
+    expect(names).toContain('City Levels');
+    expect(names).toContain('Buildings');
+    expect(names).toContain('Parks');
+    expect(names).toContain('Grand Bazaar');
+    expect(names).toContain('Territory');
+    expect(names).toContain('Exploration');
+    expect(names).toContain('Temples');
+    expect(names).toContain('Monuments');
+  });
+
+  it('getTotal equals sum of all category subtotals', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 2, 2);
+    city.templeCount = 2;
+    tribe.cities.push(city);
+
+    const breakdown = computeTribeScore(tribe, undefined, 10);
+    const summed = breakdown.categories.reduce((s, c) => s + c.subtotal, 0);
+
+    expect(breakdown.getTotal()).toBe(summed);
+    expect(breakdown.getTotal()).toBeGreaterThan(0);
+  });
+
+  it('breakdown with all-zero categories returns total of 0', () => {
+    const tribe = createTestTribe();
+    // 0 cities, 0 units, 1 starting tech (50), no temples/monuments
+    const breakdown = computeTribeScore(tribe);
+
+    // Only techScore should be non-zero
+    const techCat = breakdown.categories.find(c => c.name === 'Techs');
+    expect(techCat!.subtotal).toBe(50);
+    expect(breakdown.getTotal()).toBe(50);
+  });
+
+  it('each category has count, perUnit, and subtotal fields', () => {
+    const tribe = createTestTribe();
+    const city = new City(coord(0, 0), 'City', tribe.id, 1, 1);
+    city.templeCount = 3;
+    city.monumentCount = 2;
+    tribe.cities.push(city);
+
+    const breakdown = computeTribeScore(tribe);
+    for (const cat of breakdown.categories) {
+      expect(cat).toHaveProperty('name');
+      expect(cat).toHaveProperty('count');
+      expect(cat).toHaveProperty('perUnit');
+      expect(cat).toHaveProperty('subtotal');
+      expect(cat.subtotal).toBe(cat.count * cat.perUnit);
+    }
   });
 });

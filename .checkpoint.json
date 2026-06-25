@@ -1,8 +1,15 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-monument-scoring",
+  "current_task": "fix-scoring-display",
   "completed": [
+    {
+      "task": "fix-monument-scoring",
+      "sha": "cb65bd4",
+      "date": "2026-06-26",
+      "summary": "Added monument scoring (+30 per monument, GDD \u00a71.2). City.monumentCount field added (distinct from buildings array to avoid double-counting). computeTribeScore() now includes monumentScore summing +30 per monument in non-captured cities. City build menu: BUILD MONUMENT (15\u2b50). 5 new tests: 2 monuments=+60, 0=0, captured excluded, buildings no double-count, parks independent. 511 tests pass, 11/11 E2E pass.",
+      "coach": "pending"
+    },
     {
       "task": "fix-temple-scoring",
       "sha": "dd58f81",
@@ -74,8 +81,8 @@
       "coach": "approved"
     }
   ],
-  "health": "506_pass_10_e2e_pass_build_clean_200_live_0_js_errors",
-  "last_sha": "dd58f81",
+  "health": "511_pass_11_e2e_pass_build_clean_200_live_0_js_errors",
+  "last_sha": "cb65bd4",
   "blocker": null,
   "coach_review": {
     "last_reviewed_sha": "4abf4ba",
@@ -85,21 +92,13 @@
   },
   "spec_gaps": [
     {
-      "item": "Monument scoring (\u00d730 per monument, distinct from buildings)",
-      "type": "missing_feature",
-      "priority": 3,
-      "evidence": "GDD \u00a71 \u2014 monuments \u00d730 not implemented. Must avoid double-counting with buildings array.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
       "item": "Score breakdown display \u2014 no UI showing per-category scoring",
       "type": "missing_feature",
       "priority": 3,
       "evidence": "End-of-game shows flat score number only. No breakdown of cities/units/techs/levels/buildings/parks/GrandBazaar/territorial/exploration/temples/monuments.",
-      "cycles_stagnant": 3,
+      "cycles_stagnant": 5,
       "status": "escalated"
     }
   ],
-  "note": "fix-temple-scoring implemented (dd58f81). City.templeCount + templeScore in computeTribeScore. 506 vitest + 10/10 E2E all pass. Next: fix-monument-scoring."
+  "note": "fix-monument-scoring implemented (cb65bd4). City.monumentCount + monumentScore in computeTribeScore. Build menu: BUILD MONUMENT (15\u2b50). 511 vitest + 11/11 E2E all pass. Next: fix-scoring-display."
 }

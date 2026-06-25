@@ -16,7 +16,7 @@ import { BUILDING_DEFS, BuildingType } from '../entities/Building';
 import { Resource } from '../hex/Tile';
 import { runExplorerPathfinding } from '../entities/Explorer';
 import { TradeRouteSystem } from '../entities/TradeRouteSystem';
-import { computeTribeScore } from '../entities/ScoreCalculator';
+import { computeTribeScore, ScoreBreakdown } from '../entities/ScoreCalculator';
 import { SPEED_MULTIPLIERS, speedAdjustedCost as applySpeedMultiplier } from '../entities/SpeedUtils';
 
 const COLORS: Record<string, number> = {
@@ -1005,22 +1005,87 @@ export class GameScene extends Phaser.Scene {
 
   private showFinalScore(): void {
     this.isAiRunning = true;
-    let msg = '🏁 GAME OVER — SCORES\n\n';
     const sorted = [...this.tribes].sort((a, b) => this.calcScore(b) - this.calcScore(a));
+
+    // Build plain-text fallback for setStatus
+    let msg = '🏁 GAME OVER — SCORES\n\n';
     for (const t of sorted) {
       const s = this.calcScore(t);
       msg += `${t.name}: ${s} pts${t === this.humanTribe ? ' (YOU)' : ''}\n`;
     }
+
+    // Render breakdown panel for the human tribe (or first tribe if none)
+    const humanTribe = this.humanTribe ?? sorted[0];
+    if (humanTribe) {
+      this.renderScoreBreakdown(humanTribe, sorted);
+    }
+
     this.setStatus(msg);
   }
 
   private calcScore(tribe: Tribe): number {
+    return this.calcScoreBreakdown(tribe).getTotal();
+  }
+
+  private calcScoreBreakdown(tribe: Tribe): ScoreBreakdown {
     const allCoords = Array.from(this.tiles.keys()).map(k => {
       const [q, r] = k.split(',').map(Number);
       return new HexCoord(q, r);
     });
     const exploredCount = this.state.tribeVisibility.get(tribe.id)?.size ?? 0;
     return computeTribeScore(tribe, allCoords, exploredCount);
+  }
+
+  /**
+   * Render a visual score breakdown panel using Phaser text objects.
+   * Shows each scoring category with count, per-unit value, and subtotal.
+   */
+  private renderScoreBreakdown(tribe: Tribe, _sorted: Tribe[]): void {
+    const breakdown = this.calcScoreBreakdown(tribe);
+    const panelX = 120;
+    const panelY = 80;
+    const lineH = 22;
+    const colName = panelX;
+    const colCount = panelX + 180;
+    const colPer = panelX + 240;
+    const colSub = panelX + 330;
+    const headerStyle = { fontSize: '13px', color: '#8af', fontFamily: 'monospace' };
+    const rowStyle = { fontSize: '13px', color: '#eee', fontFamily: 'monospace' };
+    const totalStyle = { fontSize: '14px', color: '#ffd700', fontFamily: 'monospace' };
+
+    // Background panel
+    const panelWidth = 420;
+    const panelHeight = 80 + breakdown.categories.length * lineH + 40;
+    this.add.rectangle(panelX - 10, panelY - 30, panelWidth, panelHeight, 0x1a1a2e, 0.9)
+      .setScrollFactor(0).setDepth(50);
+
+    // Title
+    this.add.text(panelX, panelY - 20, `🏁 ${tribe.name} — Score Breakdown`, {
+      fontSize: '16px', color: '#ffd700', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(51);
+
+    // Header row
+    let y = panelY + 10;
+    this.add.text(colName, y, 'Category', headerStyle).setScrollFactor(0).setDepth(51);
+    this.add.text(colCount, y, 'Count', headerStyle).setScrollFactor(0).setDepth(51);
+    this.add.text(colPer, y, '× Each', headerStyle).setScrollFactor(0).setDepth(51);
+    this.add.text(colSub, y, '= Subtotal', headerStyle).setScrollFactor(0).setDepth(51);
+
+    y += lineH;
+
+    // Category rows
+    for (const cat of breakdown.categories) {
+      this.add.text(colName, y, cat.name, rowStyle).setScrollFactor(0).setDepth(51);
+      this.add.text(colCount, y, `${cat.count}`, rowStyle).setScrollFactor(0).setDepth(51);
+      this.add.text(colPer, y, `×${cat.perUnit}`, rowStyle).setScrollFactor(0).setDepth(51);
+      this.add.text(colSub, y, `= ${cat.subtotal}`, rowStyle).setScrollFactor(0).setDepth(51);
+      y += lineH;
+    }
+
+    // Total row
+    y += 4;
+    this.add.text(colName, y, 'TOTAL', totalStyle).setScrollFactor(0).setDepth(51);
+    this.add.text(colSub, y, `${breakdown.getTotal()} pts`, totalStyle).setScrollFactor(0).setDepth(51);
   }
 
   /** GDD §8 — Reveal tiles within vision range of all units and cities of a tribe. */
