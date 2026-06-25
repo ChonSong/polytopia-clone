@@ -4,8 +4,8 @@
   "reference_url": "Polytopia (original game)",
   "clone_url": "https://hex.codeovertcp.com",
   "repo": "/home/sc/repos/polytopia-clone",
-  "phase": 1,
-  "phase_name": "Core game loop + unit system + scoring",
+  "phase": 2,
+  "phase_name": "AI, Animations, UX improvements",
   "completed": [
     {
       "task": "fix-scoring-display",
@@ -84,7 +84,7 @@
       "task": "fix-ranged-combat-multitile",
       "sha": "a4b5c6d",
       "date": "2026-06-16",
-      "summary": "Fixed ranged combat for multi-tile cities: archers/catapults now target city center hex correctly. 460 tests pass.",
+      "summary": "Fixed ranged combat for multi-tile cities: archers/catapults target city center hex correctly. 460 tests pass.",
       "coach": "approved"
     },
     {
@@ -137,130 +137,17 @@
       "coach": "approved"
     }
   ],
-  "health": "515_tests_pass_live_200_tribe_selection_renders",
-  "last_sha": "78ed749",
+  "health": "515_tests_pass_live_200_phaser_renders_0_js_errors",
+  "last_sha": "9169ebd",
   "blocker": null,
-  "current_task": "tbd",
-  "all_coach_tasks_done": true,
-  "spec_gaps": [
-    {
-      "item": "Score breakdown display on end-game screen — RESOLVED in 7e6e529",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "ScoreBreakdown component shows per-category scoring (temples, monuments, cities, units, technology). ScorePopup renders at game end. 515 tests pass.",
-      "cycles_stagnant": 1,
-      "status": "escalated"
-    },
-    {
-      "item": "Monument scoring (+30 per monument, GDD §1.2) — RESOLVED in cb65bd4",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Monuments tracked via City.monumentCount, +30 per monument at game end. 515 tests pass.",
-      "cycles_stagnant": 1,
-      "status": "escalated"
-    },
-    {
-      "item": "Temple scoring (+20 per temple, GDD §1.2) — RESOLVED in dd58f81",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Temples tracked via City.templeCount, +20 per temple at game end (separate from buildings[]). 515 tests pass.",
-      "cycles_stagnant": 1,
-      "status": "escalated"
-    },
-    {
-      "item": "Buildable temples (GDD §1.1) — RESOLVED in a4b9f13",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Temples buildable in cities after Temple technology is researched (level 3 tech). Temple technology appears when population > 10. +20 per temple at game end. 515 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Special tribe: Elyrion (Polytaur, no Sanctuaries) — RESOLVED in 4d4f565",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Elyrion has Polytaur instead of Warrior, starts with Forestry, no Sanctuary unit. 515 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Special tribe: Cymanti (poison, centipede segments) — RESOLVED in a69e0f8",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Cymanti has Hexapod/Doomux/Ryy, all poison on attack, Centipede grows segments. 515 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Special tribe: Polaris (freeze mechanics) — RESOLVED in e281afc",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Polaris has Ice Archer/Ice Fortress/Gaami/Mooni. All freeze on attack. Starts with Philosophy + Ice Bank. 515 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Naval combat (ships, ports, battleship upgrade) — RESOLVED in 5cb7e2e",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "Ships, Ports, naval movement rules, Battleship upgrade implemented. 515 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Air unit movement anomaly — RESOLVED in 3b2a29b",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "Bird riders/Mooni/Ryy movement ignores terrain. 502 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Player spawn system — RESOLVED in 14755f6",
-      "type": "missing_feature",
-      "priority": 2,
-      "evidence": "All 16 tribes spawn with warrior + explorer. Elyrion spawns with Polytaur. Cymanti spawns with Hexapod. Balanced resource distribution. 480+ tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Multiplayer state crash — RESOLVED in f1a2d3c",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "GameState deep-cloned before multiplayer handler. 17 multiplayer tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Ranged combat multi-tile targeting — RESOLVED in a4b5c6d",
-      "type": "bug",
-      "priority": 2,
-      "evidence": "Archers/catapults target city center correctly. 460 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "Resources double-count on expansion — RESOLVED in 7e8f9a0",
-      "type": "bug",
-      "priority": 3,
-      "evidence": "Fix verified. 450 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    },
-    {
-      "item": "City radius sharing — RESOLVED in 1b2c3d4",
-      "type": "bug",
-      "priority": 3,
-      "evidence": "Cities within 2 tiles share border tiles. 440 tests pass.",
-      "cycles_stagnant": 3,
-      "status": "escalated"
-    }
-  ],
+  "current_task": "fix-ai-opponent-intelligence",
+  "all_coach_tasks_done": false,
+  "spec_gaps": [],
   "coach_review": {
-    "last_reviewed_sha": "78ed749",
-    "last_reviewed_at": "2026-06-26T08:35:00Z",
+    "last_reviewed_sha": "9169ebd",
+    "last_reviewed_at": "2026-06-25T23:10:00Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-26 08:35 AEST. Reviewed pending scoring commits: dd58f81 (temple scoring), cb65bd4 (monument scoring), 7e6e529 (score display). ALL VERIFIED: 515 tests pass, hex.codeovertcp.com renders correctly with tribe selection screen and all settings options. 0 console errors. Phaser v3.90.0 WebGL + Web Audio working. Site reachable at hex.codeovertcp.com (not polytopia-clone.com). Note: checkpoint previously had stale 'Live site unreachable' blocker — this was using wrong URL. Site is healthy."
+    "notes": "Coach cycle 2026-06-26 09:10 AEST. Phase 1 complete — no new player commits since last review. Both sites healthy (200, 0 JS errors). Generated Phase 2 backlog: AI improvements, combat animations, sound/music, tech tree visualization, city building visuals, save/load game, mobile responsive canvas. Updated AGENTS.md with fresh Phase 2 tasks."
   },
-  "note": "Tick 2026-06-26T08:35 AEST. All 3 scoring tasks Coach-approved. No blockers. Site healthy at hex.codeovertcp.com. 515 tests pass. Phase 1 complete. Next: potential Phase 2 scope (multiplayer, animations, AI improvements, sound)."
+  "note": "Tick 2026-06-26 09:10 AEST. Phase 1 complete. Phase 2 backlog generated by Coach (7 tasks: AI, animations, sound, tech tree, city visuals, save/load, mobile responsive)."
 }
