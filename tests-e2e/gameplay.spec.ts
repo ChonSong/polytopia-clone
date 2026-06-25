@@ -221,7 +221,8 @@ test.describe('Human-like Gameplay', () => {
       );
       expect(menuOpen).toBe(true);
 
-      await click(page, 400, 300);
+      // Click top-left corner (away from city which is centered on screen)
+      await click(page, 100, 50);
       await page.waitForTimeout(300);
 
       const menuClosed = await readGame<boolean>(
@@ -238,7 +239,27 @@ test.describe('Human-like Gameplay', () => {
     await loadGame(page);
     await selectTribeAndWait(page);
 
-    await click(page, 530, 10);
+    // Use page.evaluate to find the tech panel button position (handles canvas scaling)
+    const techBtnPos = await page.evaluate(() => {
+      const gs = (window as any).__PHASER_GAME__?.scene?.getScene('GameScene');
+      if (!gs) return null;
+      // techPanelButton is a Phaser container at game-space (530, 10)
+      const btn = gs.techPanelButton;
+      if (!btn) return null;
+      const sx = gs.cameras.main.scrollX;
+      const sy = gs.cameras.main.scrollY;
+      const scale = gs.cameras.main.zoom;
+      return {
+        x: Math.round((btn.x - sx) * scale),
+        y: Math.round((btn.y - sy) * scale),
+      };
+    });
+
+    // Fallback to known position if button ref not found
+    const clickX = techBtnPos?.x ?? 530;
+    const clickY = techBtnPos?.y ?? 10;
+
+    await click(page, clickX, clickY);
     await page.waitForTimeout(600);
 
     const panelOpen = await readGame<boolean>(
@@ -247,7 +268,7 @@ test.describe('Human-like Gameplay', () => {
     );
     expect(panelOpen).toBe(true);
 
-    await click(page, 530, 10);
+    await click(page, clickX, clickY);
     await page.waitForTimeout(300);
 
     const panelClosed = await readGame<boolean>(
@@ -317,7 +338,8 @@ test.describe('Human-like Gameplay', () => {
       `(() => {
         const gs = window.__PHASER_GAME__?.scene?.getScene('GameScene');
         if (!gs?.pauseOverlay) return false;
-        const texts = gs.pauseOverlay.children.list.filter(c => c.type === 'Text');
+        const children = gs.pauseOverlay.getChildren ? gs.pauseOverlay.getChildren() : Array.from(gs.pauseOverlay.children.values());
+        const texts = children.filter(c => c.type === 'Text');
         return texts.some(t => t.text === 'PAUSED');
       })()`,
     );
