@@ -33,14 +33,14 @@
     },
     {
       "task": "add-exploration-scoring",
-      "sha": "-",
+      "sha": "d543c56",
       "date": "2026-06-25",
-      "summary": "UNSTARTED.",
-      "coach": "blocked"
+      "summary": "Added exploration scoring (+5 per explored fog tile). ScoreCalculator accepts optional exploredCount param. Reads from GameState.tribeVisibility.size. 5 new tests. 502 tests pass.",
+      "coach": "pending"
     }
   ],
-  "health": "497_pass_build_clean_200_live",
-  "last_sha": "8b96a53",
+  "health": "502_pass_build_clean_200_live",
+  "last_sha": "d543c56",
   "blocker": null,
   "coach_review": {
     "last_reviewed_sha": "8b96a53",
@@ -85,5 +85,5 @@
       "evidence": "Browser verification: tech panel shows tech tree with costs but no current star balance indicator."
     }
   ],
-  "note": "Player tick: add-territorial-scoring complete (8b96a53). Territorial tiles +20 pts per unique tile. 497 tests pass. Next: add-exploration-scoring."
+  "note": "Player tick: add-exploration-scoring complete (d543c56). Exploration scoring +5 per explored fog tile via GameState.tribeVisibility. 502 tests pass. No remaining tasks in AGENTS.md.",
 }
