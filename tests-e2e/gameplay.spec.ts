@@ -373,4 +373,41 @@ test.describe('Human-like Gameplay', () => {
     expect(pausedFinal).toBe(false);
   });
 
+  test('tribe cards are sorted alphabetically on SelectScene', async ({ page }) => {
+    await loadGame(page);
+
+    // Wait for SelectScene to be active
+    await page.waitForFunction(() => {
+      return !!(window as any).__PHASER_GAME__?.scene?.isActive('SelectScene');
+    }, { timeout: 10000 });
+
+    // Extract tribe card name texts from SelectScene children
+    // Each tribe card creates: Graphics (bg), Text (name), Text (start tech), Rectangle (hit area)
+    // We filter Text objects whose text matches a known tribe name
+    const tribeNames = await page.evaluate(() => {
+      const g = window as any;
+      const ss = g.__PHASER_GAME__?.scene?.getScene('SelectScene');
+      if (!ss) return [];
+
+      const TRIBE_NAMES = ['Bardur', 'Cymanti', 'Elyrion', 'Imperius', 'Oumaji', 'Polaris', 'Xin-xi'];
+      const texts: string[] = [];
+
+      // Iterate scene children.list — filter Text objects matching tribe names
+      const list = ss.children.list || [];
+      for (const child of list) {
+        if (child.type === 'Text' && child.text && TRIBE_NAMES.includes(child.text)) {
+          texts.push(child.text);
+        }
+      }
+      return texts;
+    });
+
+    // All 7 tribes must be present
+    expect(tribeNames.length).toBe(7);
+
+    // Verify alphabetical order
+    const expected = ['Bardur', 'Cymanti', 'Elyrion', 'Imperius', 'Oumaji', 'Polaris', 'Xin-xi'];
+    expect(tribeNames).toEqual(expected);
+  });
+
 });
