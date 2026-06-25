@@ -1,8 +1,15 @@
 {
   "project": "polytopia-clone",
   "repo": "/home/sc/repos/polytopia-clone",
-  "current_task": "fix-scoring-display",
+  "current_task": "tbd",
   "completed": [
+    {
+      "task": "fix-scoring-display",
+      "sha": "7e6e529",
+      "date": "2026-06-26",
+      "summary": "Refactored computeTribeScore() to return structured ScoreBreakdown with categories array and getTotal(). renderScoreBreakdown() renders Phaser text table on end-of-game screen with all 11 categories (count × perUnit = subtotal) plus TOTAL row. 515 tests pass (4 new for ScoreBreakdown structure).",
+      "coach": "pending"
+    },
     {
       "task": "fix-monument-scoring",
       "sha": "cb65bd4",
@@ -81,8 +88,8 @@
       "coach": "approved"
     }
   ],
-  "health": "511_pass_11_e2e_pass_build_clean_200_live_0_js_errors",
-  "last_sha": "cb65bd4",
+  "health": "515_pass_11_e2e_pass_build_clean_200_live_0_js_errors",
+  "last_sha": "7e6e529",
   "blocker": null,
   "coach_review": {
     "last_reviewed_sha": "4abf4ba",
@@ -100,5 +107,5 @@
       "status": "escalated"
     }
   ],
-  "note": "fix-monument-scoring implemented (cb65bd4). City.monumentCount + monumentScore in computeTribeScore. Build menu: BUILD MONUMENT (15\u2b50). 511 vitest + 11/11 E2E all pass. Next: fix-scoring-display."
+  "note": "Tick 2026-06-26T04:02. fix-scoring-display was already implemented in commit 7e6e529 (ScoreBreakdown refactor + renderScoreBreakdown panel). Checkpoint updated to reflect reality. All 3 AGENTS.md tasks complete. current_task set to tbd for Coach replenishment."
 }
