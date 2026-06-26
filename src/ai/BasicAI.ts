@@ -278,13 +278,9 @@ export class BasicAI {
     if (this.tribe.units.length < this.options.minUnitsForUpgrade) {
       for (const city of this.tribe.cities) {
         const unitTypes = this.tribe.getTrainableUnitTypes();
-        // Pick the best affordable unit (favor high attack)
-        const best = unitTypes
-          .map(ut => ({ type: ut, cost: this.speedAdjustedCost(UNIT_COSTS[ut]) }))
-          .filter(u => this.tribe.stars >= u.cost)
-          .sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack);
-        if (best.length > 0 && city) {
-          const chosen = best[0];
+        // Pick a balanced unit composition instead of always highest attack
+        const chosen = this.pickBalancedUnit(unitTypes);
+        if (chosen && city) {
           actions.push({
             type: 'TRAIN',
             params: { cityId: city.id, unitType: chosen.type, cost: chosen.cost },
@@ -298,8 +294,8 @@ export class BasicAI {
       for (const city of sortedCities) {
         const cost = this.speedAdjustedCost(city.level * 5);
         if (this.tribe.stars >= cost && city.canGrow()) {
-          // Pick a random upgrade choice
-          const choice = Math.random() < 0.5 ? 'A' : 'B';
+          // Strategic upgrade choice based on game state
+          const choice = this.chooseUpgrade(gameState);
           actions.push({
             type: 'UPGRADE',
             params: { cityId: city.id, cost, choice },
@@ -316,6 +312,94 @@ export class BasicAI {
     }
 
     return actions;
+  }
+
+  /**
+   * Pick a unit type that maintains army composition balance.
+   * Ensures the AI doesn't spam a single unit type — aims for a mix of
+   * melee, ranged, and defensive units based on current army composition.
+   * Falls back to highest-attack affordable unit if no composition logic applies.
+   */
+  private pickBalancedUnit(availableTypes: UnitType[]): { type: UnitType; cost: number } | null {
+    const affordable = availableTypes
+      .map(ut => ({ type: ut, cost: this.speedAdjustedCost(UNIT_COSTS[ut]) }))
+      .filter(u => this.tribe.stars >= u.cost && u.cost > 0); // exclude free units (Egg, Giant, etc.)
+
+    if (affordable.length === 0) return null;
+
+    // Count existing unit types in army
+    const typeCounts = new Map<UnitType, number>();
+    for (const u of this.tribe.units) {
+      typeCounts.set(u.type, (typeCounts.get(u.type) ?? 0) + 1);
+    }
+    const totalUnits = this.tribe.units.length;
+
+    // Categorize available types
+    const ranged = affordable.filter(a => UNIT_BASE_STATS[a.type].ranged);
+    const melee = affordable.filter(a => !UNIT_BASE_STATS[a.type].ranged);
+    const tanky = affordable.filter(a => UNIT_BASE_STATS[a.type].defense >= 2);
+
+    // If army is small, just pick the best affordable unit
+    if (totalUnits < 3) {
+      return affordable.sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack)[0];
+    }
+
+    // Check composition gaps — if we have no ranged units and they're available, train one
+    const hasRanged = this.tribe.units.some(u => UNIT_BASE_STATS[u.type].ranged);
+    if (!hasRanged && ranged.length > 0) {
+      return ranged.sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack)[0];
+    }
+
+    // If we have mostly melee (80%+), try to get a tanky unit for frontline
+    const meleeCount = this.tribe.units.filter(u => !UNIT_BASE_STATS[u.type].ranged).length;
+    if (meleeCount / totalUnits > 0.8 && tanky.length > 0) {
+      // Pick a tanky unit that's not already over-represented
+      const underrepresented = tanky.filter(t => (typeCounts.get(t.type) ?? 0) < totalUnits * 0.3);
+      if (underrepresented.length > 0) {
+        return underrepresented.sort((a, b) => UNIT_BASE_STATS[b.type].defense - UNIT_BASE_STATS[a.type].defense)[0];
+      }
+    }
+
+    // Avoid over-training one type — pick the least-represented affordable type
+    const minCount = Math.min(...affordable.map(a => typeCounts.get(a.type) ?? 0));
+    const underrepresented = affordable.filter(a => (typeCounts.get(a.type) ?? 0) <= minCount);
+    // Among underrepresented, pick highest attack
+    return underrepresented.sort((a, b) => UNIT_BASE_STATS[b.type].attack - UNIT_BASE_STATS[a.type].attack)[0];
+  }
+
+  /**
+   * Choose a city upgrade (A or B) strategically based on game state.
+   * Considers: enemy proximity (defensive vs economic), current city level,
+   * available resources, and difficulty.
+   */
+  private chooseUpgrade(gameState: GameState): 'A' | 'B' {
+    // Assess threat level: are there enemy units/cities nearby?
+    const enemyUnits = this.getEnemyUnits(gameState);
+    const enemyCities = this.getEnemyCities(gameState);
+    const myCity = this.tribe.cities[0]; // upgrade targets lowest-level city
+
+    let threatLevel = 0;
+    for (const eu of enemyUnits) {
+      for (const c of this.tribe.cities) {
+        const dist = c.position.distanceTo(eu.position);
+        if (dist <= 3) threatLevel += (4 - dist);
+      }
+    }
+    for (const ec of enemyCities) {
+      for (const c of this.tribe.cities) {
+        const dist = c.position.distanceTo(ec.position);
+        if (dist <= 5) threatLevel += (6 - dist);
+      }
+    }
+
+    // High threat → prefer defensive upgrades (A at level 3 = City Wall)
+    if (threatLevel >= 6) return 'A';
+
+    // Low threat and high difficulty → prefer economic upgrades (B choices yield resources/pop)
+    if (threatLevel <= 2 && this.options.difficulty === 'hard') return 'B';
+
+    // Default: alternate based on city level for variety
+    return myCity.level % 2 === 0 ? 'A' : 'B';
   }
 
   /**
@@ -572,8 +656,14 @@ export class BasicAI {
         return b.enemy.attack - a.enemy.attack;
       });
 
-      // Attack sorted enemies
+      // Attack sorted enemies — but apply threat assessment:
+      // Weak units (<25% HP) should not attack unless they can one-shot the target
+      const unitHpRatio = unit.health / unit.maxHealth;
       for (const { enemy, pos } of indexed) {
+        // Skip attacking if unit is very weak and enemy would survive the hit
+        if (unitHpRatio < 0.25 && unit.attack < enemy.health) {
+          continue; // Don't throw away a dying unit's life
+        }
         actions.push({
           type: 'ATTACK',
           params: {
