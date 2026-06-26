@@ -54,6 +54,7 @@ Reference: Original Polytopia AI adapts to player skill. Implement at minimum a 
 
 ### Task: fix-unit-combat-animations
 **Priority:** P2
+**Status:** ✅ Coach APPROVED 2026-06-26T11:51:47Z — commit 86410dc
 **Description:** Units currently teleport to target hex and HP changes instantly. Add basic combat animations:
 1. **Attack animation** — attacker unit moves toward target, attack visual (slash/projectile), defender HP flash, attacker returns
 2. **Death animation** — destroyed unit fades/scales out
@@ -71,6 +72,7 @@ Keep animations fast (< 500ms per action) to maintain game pace.
 
 ### Task: add-sound-effects-and-music
 **Priority:** P2
+**Status:** ✅ Coach APPROVED 2026-06-26T11:51:47Z — commit a1b035b. Note: task spec mentions volume slider but only mute toggle (🔊) implemented. Minor gap.
 **Description:** The game is silent. Add basic sound effects and background music:
 1. **UI sounds** — button click, tribe select, settings toggle
 2. **Combat sounds** — attack hit, unit death, city capture
@@ -88,6 +90,7 @@ Use Web Audio API (Phaser's built-in audio). For music, use simple synthesized/l
 
 ### Task: fix-tech-tree-visualization
 **Priority:** P2
+**Status:** ✅ Coach APPROVED 2026-06-26T11:51:47Z — commit 914395d (tech tree implementation) + 08151c0 (P1 tribe blocker fix)
 **Description:** Technology research is functional but has no visual tech tree. Add a tech tree panel accessible from the city view that shows:
 1. **Tech tree graph** — nodes connected by edges showing tech dependencies
 2. **Research progress** — per-tech star cost and current progress bar

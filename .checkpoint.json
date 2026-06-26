@@ -141,21 +141,24 @@
       "sha": "86410dc",
       "date": "2026-06-26",
       "summary": "Added ranged projectile animation: archers/catapults fire a projectile sprite (colored circle with trail) toward target instead of lunging. Melee units retain existing lunge animation. All 4 sub-items now complete (attack lunge, death fade, damage numbers, ranged projectile). 515 tests pass.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-26T11:51:47Z"
     },
     {
       "task": "add-sound-effects-and-music",
-      "sha": "pending",
+      "sha": "a1b035b",
       "date": "2026-06-26",
       "summary": "Synthesized Web Audio API sound effects: UI clicks, tribe select chime, attack hit, unit death, city capture fanfare, looping ambient arpeggio. Mute button synced. 515 tests pass, 0 regressions.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-26T11:51:47Z"
     },
     {
       "task": "fix-tech-tree-visualization",
       "sha": "914395d",
       "date": "2026-06-26",
       "summary": "Enhanced tech tree panel with: (1) dependency edges with arrows between prerequisite and dependent techs, (2) progress bars showing star accumulation toward research cost, (3) category filter tabs (ALL/MILITARY/ECONOMIC/NAVAL). 515 tests pass, build clean.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-26T11:51:47Z"
     },
     {
       "task": "fix-tribe-index-mapping",
@@ -176,7 +179,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 7,
+      "cycles_stagnant": 8,
       "status": "escalated"
     },
     {
@@ -184,15 +187,15 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
-      "cycles_stagnant": 7,
+      "cycles_stagnant": 8,
       "status": "escalated"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "08151c0",
-    "last_reviewed_at": "2026-06-26T11:20:00Z",
+    "last_reviewed_sha": "e45e61e",
+    "last_reviewed_at": "2026-06-26T11:51:47Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-26 11:20 UTC. fix-tribe-index-mapping (08151c0) APPROVED. Live verification: Imperius loads with Fishing, Elyrion loads with Ecology + Polytaur, Cymanti resolves to correct index 5. 0 console errors. 515/515 tests pass. RefQA smoke passes. Next: fix-ai-opponent-intelligence (AI spec_gaps at 7 cycles stagnant)."
+    "notes": "Coach cycle 2026-06-26 11:51 UTC. Reviewed pending feature commits: a1b035b (audio) — SoundManager clean, Web Audio API synthesis, mute toggle integrated. 86410dc (ranged combat) — projectile animation with trail, health bars, color-coded per type. 914395d (tech tree) — dependency edges, progress bars, category filters, all complete. P1 tribe blocker (08151c0) confirmed fixed. APPROVED all 3. Minor gap: task spec mentions volume slider but only mute toggle implemented. AI spec_gaps at 7 cycles stagnant."
   },
-  "note": "Tick 2026-06-26 11:20 UTC. fix-tribe-index-mapping (08151c0) APPROVED by Coach. Tribe fix verified live. 0 JS errors, 515 tests pass. Next: fix-ai-opponent-intelligence (AI territory expansion + difficulty differentiation still open, 7 cycles stagnant)."
+  "note": "Tick 2026-06-26 11:51 UTC. Coach review: a1b035b (audio), 86410dc (ranged combat), 914395d (tech tree) APPROVED. 515 tests pass, 0 JS errors, RefQA passes. Next: fix-ai-opponent-intelligence (AI territory expansion + difficulty differentiation still open, 8 cycles stagnant)."
 }
