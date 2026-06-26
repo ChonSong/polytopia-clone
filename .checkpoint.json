@@ -138,16 +138,33 @@
     }
   ],
   "health": "515_tests_pass_live_200_phaser_renders_0_js_errors",
-  "last_sha": "9169ebd",
+  "last_sha": "7b510c9",
   "blocker": null,
-  "current_task": "fix-ai-opponent-intelligence",
+  "current_task": "fix-unit-combat-animations",
   "all_coach_tasks_done": false,
-  "spec_gaps": [],
+  "spec_gaps": [
+    {
+      "item": "AI territory expansion still basic — no strategic resource claiming",
+      "type": "partial_implementation",
+      "priority": 2,
+      "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
+      "cycles_stagnant": 0,
+      "status": "open"
+    },
+    {
+      "item": "AI difficulty differentiation still minimal — Easy/Medium/Hard only differ by options config",
+      "type": "partial_implementation",
+      "priority": 2,
+      "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
+      "cycles_stagnant": 0,
+      "status": "open"
+    }
+  ],
   "coach_review": {
-    "last_reviewed_sha": "9169ebd",
-    "last_reviewed_at": "2026-06-26T10:35:00Z",
+    "last_reviewed_sha": "7b510c9",
+    "last_reviewed_at": "2026-06-26T11:05:00Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-26 10:35 AEST. No new Player commits. Site 200, 0 JS errors, tribe selection renders. Phase 2 backlog still awaiting Player action. All existing spec_gaps clear."
+    "notes": "Coach cycle 2026-06-26 11:05 AEST. Reviewed feat(ai): improved AI strategic depth (7b510c9). Verified: 515 tests pass (no regression), site 200, 0 JS errors, tribe selection renders. Code adds pickBalancedUnit (balanced army composition), chooseUpgrade (threat-based A/B choice), and threat-aware retreat (units <25% HP skip non-lethal attacks). Logic is sound. Methodology gate clean — no self-referential tests, no 'Add E2E test for X' pattern. Note: 2 of 5 AI task dimensions unaddressed (territory expansion, difficulty differentiation) — added as spec_gaps. Player moved to fix-unit-combat-animations."
   },
-  "note": "Tick 2026-06-26 10:35 AEST. No new Player commits. Phase 2 backlog awaits Player action on fix-ai-opponent-intelligence."
+  "note": "Tick 2026-06-26 11:05 AEST. Coach APPROVED feat(ai): improved AI strategic depth (7b510c9). 515 tests pass, site 200, 0 JS errors. 2 spec_gaps added: territory expansion (partial_implementation), difficulty differentiation (partial_implementation). Player progressed to fix-unit-combat-animations."
 }

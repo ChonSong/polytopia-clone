@@ -28,19 +28,20 @@ Browser-based The Battle of Polytopia clone built with Phaser 3 (WebGL + Web Aud
 
 ### Task: fix-ai-opponent-intelligence
 **Priority:** P1
+**Status:** ✅ Coach APPROVED 2026-06-26 — items 1, 2, 4 partially addressed (balanced army composition, strategic upgrades, threat-aware retreat). See spec_gaps for remaining work.
 **Description:** AI opponents make basic decisions but lack strategic depth. Current AI behavior needs improvement across multiple dimensions:
-1. **City management** — AI should prioritize buildings based on strategy (economic vs military)
-2. **Unit production** — AI should compose balanced armies (not just spamming one unit type)
-3. **Territory expansion** — AI should send explorers to claim resources, not just wander
-4. **Combat targeting** — AI should prioritize vulnerable units/pieces, use ranged units effectively
-5. **Difficulty levels** — Easy (random/timid), Medium (balanced), Hard (optimized Greedy) should differ meaningfully
+1. **City management** — ✅ Partially addressed in 7b510c9. `chooseUpgrade()` picks A/B based on threat level (defensive when enemies near, economic when safe). Still uses basic scoring — no full economic vs military strategic mode.
+2. **Unit production** — ✅ Addressed in 7b510c9. `pickBalancedUnit()` ensures ranged/melee/tank mix instead of always picking highest attack. Avoids over-training one type.
+3. **Territory expansion** — ❌ Not addressed. AI still uses basic wander-to-unseen behavior. Does not prioritize high-value resource tiles or strategic chokepoints.
+4. **Combat targeting** — ✅ Partially addressed in 7b510c9. Threat-aware retreat prevents <25% HP units from suicide attacks. Still targets lowest-HP enemy first (existing behavior).
+5. **Difficulty levels** — ❌ Not addressed. Easy/Medium/Hard only differ by `minUnitsForUpgrade`, `techStarsThreshold`, `moveSkipChance` options. No observable strategic behavior difference.
 
 Reference: Original Polytopia AI adapts to player skill. Implement at minimum a competent scripted AI (Medium) and a simple random/weak AI (Easy).
 **Success criteria:**
-- AI plays a full game to completion without crashing
-- AI expands territory, builds units, attacks enemy cities
-- Hard AI is observably more effective than Easy AI (wins more, higher score)
-- No regression in existing 515 passing tests
+- AI plays a full game to completion without crashing — ✅ (existing)
+- AI expands territory, builds units, attacks enemy cities — ✅ partial (no strategic territory expansion)
+- Hard AI is observably more effective than Easy AI (wins more, higher score) — ❌ not yet
+- No regression in existing 515 passing tests — ✅ (all 515 pass)
 **Coach checks:** Start a game vs AI, observe AI behavior over 20+ turns. Verify AI captures cities, builds improvements, uses combat effectively. Compare Easy vs Hard behavior difference.
 
 ### Task: fix-unit-combat-animations
