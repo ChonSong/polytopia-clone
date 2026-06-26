@@ -2385,7 +2385,7 @@ export class GameScene extends Phaser.Scene {
       const startPixel = attackerPos.toPixel(HEX_SIZE);
       const targetPixel = defenderPos.toPixel(HEX_SIZE);
 
-      // Compute lunge direction (normalized to ~12px)
+      // Compute lunge direction (normalized to ~12px) — used only for melee
       const dx = targetPixel.x - startPixel.x;
       const dy = targetPixel.y - startPixel.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -2426,6 +2426,9 @@ export class GameScene extends Phaser.Scene {
       // by temporarily hiding their positions (set to null-equivalent)
       const origAtkPos = attacker.position;
       const origDefPos = defender.position;
+
+      // Ranged units fire a projectile instead of lunging
+      const isRanged = attacker.ranged;
 
       const tickFn = (_time: number, delta: number) => {
         elapsed += delta;
@@ -2470,30 +2473,65 @@ export class GameScene extends Phaser.Scene {
           }
         }
 
-        // Lunge ease: forward then back
-        const lungeT = t < 0.4
-          ? Math.sin((t / 0.4) * Math.PI)       // 0→1→0 over first 40%
-          : Math.max(0, 1 - (t - 0.4) / 0.6);   // 1→0 over last 60%
-        const currentX = startPixel.x + lungeX * lungeT;
-        const currentY = startPixel.y + lungeY * lungeT;
-
-        // Draw attacker at lunged position
+        // Attacker rendering: lunge for melee, stationary for ranged
         const c = COLORS[attacker.owner] || 0x888;
         const ar = HEX_SIZE * 0.33;
-        this.entityGraphics.fillStyle(c, 1);
-        this.entityGraphics.fillCircle(currentX, currentY, ar);
-        this.entityGraphics.lineStyle(3, 0x000, 0.6);
-        this.entityGraphics.strokeCircle(currentX, currentY, ar);
-        this.entityGraphics.fillStyle(0x000, 0.6);
-        this.entityGraphics.fillCircle(currentX, currentY, ar * 0.85);
-        this.entityGraphics.fillStyle(c, 1);
-        this.entityGraphics.fillCircle(currentX, currentY, ar * 0.65);
-        // Health bar
-        const bw = ar * 1.4, bh = 3;
-        this.entityGraphics.fillStyle(0x000, 0.7);
-        this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw, bh);
-        this.entityGraphics.fillStyle(attacker.health > 3 ? 0x4c4 : 0xc44, 1);
-        this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw * (attacker.health / UNIT_MAX_HEALTH[attacker.type]), bh);
+
+        if (isRanged) {
+          // Ranged: attacker stays at origin, projectile travels to target
+          // Projectile position: ease from start to target over first 40% of animation
+          const projT = Math.min(1, t / 0.4);
+          const projX = startPixel.x + dx * projT;
+          const projY = startPixel.y + dy * projT;
+
+          // Draw projectile (arrow/bomb sprite as a small bright circle with trail)
+          const projColor = attacker.type === UnitType.CATAPULT ? 0x553311 : 0xccddff;
+          const projSize = attacker.type === UnitType.CATAPULT ? 5 : 3;
+          this.entityGraphics.fillStyle(projColor, 1);
+          this.entityGraphics.fillCircle(projX, projY, projSize);
+          // Trail
+          this.entityGraphics.fillStyle(projColor, 0.3);
+          this.entityGraphics.fillCircle(projX - dx * 0.02, projY - dy * 0.02, projSize + 1);
+
+          // Draw attacker at origin (stationary)
+          this.entityGraphics.fillStyle(c, 1);
+          this.entityGraphics.fillCircle(startPixel.x, startPixel.y, ar);
+          this.entityGraphics.lineStyle(3, 0x000, 0.6);
+          this.entityGraphics.strokeCircle(startPixel.x, startPixel.y, ar);
+          this.entityGraphics.fillStyle(0x000, 0.6);
+          this.entityGraphics.fillCircle(startPixel.x, startPixel.y, ar * 0.85);
+          this.entityGraphics.fillStyle(c, 1);
+          this.entityGraphics.fillCircle(startPixel.x, startPixel.y, ar * 0.65);
+          // Health bar
+          const bw = ar * 1.4, bh = 3;
+          this.entityGraphics.fillStyle(0x000, 0.7);
+          this.entityGraphics.fillRect(startPixel.x - bw / 2, startPixel.y - ar - 5, bw, bh);
+          this.entityGraphics.fillStyle(attacker.health > 3 ? 0x4c4 : 0xc44, 1);
+          this.entityGraphics.fillRect(startPixel.x - bw / 2, startPixel.y - ar - 5, bw * (attacker.health / UNIT_MAX_HEALTH[attacker.type]), bh);
+        } else {
+          // Melee: lunge ease — forward then back
+          const lungeT = t < 0.4
+            ? Math.sin((t / 0.4) * Math.PI)       // 0→1→0 over first 40%
+            : Math.max(0, 1 - (t - 0.4) / 0.6);   // 1→0 over last 60%
+          const currentX = startPixel.x + lungeX * lungeT;
+          const currentY = startPixel.y + lungeY * lungeT;
+
+          // Draw attacker at lunged position
+          this.entityGraphics.fillStyle(c, 1);
+          this.entityGraphics.fillCircle(currentX, currentY, ar);
+          this.entityGraphics.lineStyle(3, 0x000, 0.6);
+          this.entityGraphics.strokeCircle(currentX, currentY, ar);
+          this.entityGraphics.fillStyle(0x000, 0.6);
+          this.entityGraphics.fillCircle(currentX, currentY, ar * 0.85);
+          this.entityGraphics.fillStyle(c, 1);
+          this.entityGraphics.fillCircle(currentX, currentY, ar * 0.65);
+          // Health bar
+          const bw = ar * 1.4, bh = 3;
+          this.entityGraphics.fillStyle(0x000, 0.7);
+          this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw, bh);
+          this.entityGraphics.fillStyle(attacker.health > 3 ? 0x4c4 : 0xc44, 1);
+          this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw * (attacker.health / UNIT_MAX_HEALTH[attacker.type]), bh);
+        }
 
         // Impact flash (t: 0.3–0.45)
         if (t > 0.3 && t < 0.45) {
