@@ -77,6 +77,9 @@ export class GameScene extends Phaser.Scene {
   private animatingUnitId: string | null = null;
   private damageTexts: Phaser.GameObjects.Text[] = [];
 
+  // Border expansion animation state
+  private borderPulses: { x: number; y: number; progress: number; tribeColor: number }[] = [];
+
   // Pause overlay state
   private isPaused = false;
   private pauseOverlay: Phaser.GameObjects.Group | null = null;
@@ -1764,6 +1767,8 @@ export class GameScene extends Phaser.Scene {
             city.applyLevelUp(ch.id);
             this.humanTribe.stars -= upgradeCost;
             this.applyUpgradeEffect(city, ch.id);
+            // Border expansion pulse animation
+            this.triggerBorderPulse(city);
             this.hideCityMenu();
             this.renderAll(); this.updateUI();
           });
@@ -1843,6 +1848,18 @@ export class GameScene extends Phaser.Scene {
         this.renderAll(); this.updateUI();
       });
     }
+
+    // --- RENAME CITY (free) ---
+    items.push('RENAME CITY (free)');
+    handlers.push(() => {
+      // Cycle through predefined names from the city name pool
+      const namePool = CITY_NAMES[city.tribeId] || CITY_NAMES['Imperius'] || ['City'];
+      const currentIdx = namePool.indexOf(city.name);
+      const nextIdx = (currentIdx + 1) % namePool.length;
+      city.name = namePool[nextIdx];
+      this.hideCityMenu();
+      this.renderAll(); this.updateUI();
+    });
 
     // --- BUILDINGS ON ADJACENT TILES (GDD §5.2) ---
     const buildingMenuItems: { label: string; tileCoord: HexCoord; bt: BuildingType }[] = [];
@@ -2058,6 +2075,28 @@ export class GameScene extends Phaser.Scene {
     this.selectedCity = null;
   }
 
+  /** Trigger a border expansion pulse animation from the city center. */
+  private triggerBorderPulse(city: City): void {
+    const p = city.position.toPixel(HEX_SIZE);
+    const cl = COLORS[city.tribeId] || 0x888;
+    this.borderPulses.push({ x: p.x, y: p.y, progress: 0, tribeColor: cl });
+  }
+
+  /** Phaser update loop — animate border pulses and other visual effects. */
+  update(_time: number, delta: number): void {
+    // Animate border expansion pulses
+    if (this.borderPulses.length > 0) {
+      const dt = delta / 1000; // seconds
+      for (const pulse of this.borderPulses) {
+        pulse.progress += dt * 0.8; // ~1.25s animation
+      }
+      // Remove completed pulses
+      this.borderPulses = this.borderPulses.filter(p => p.progress < 1);
+      // Re-render to show pulse overlay
+      this.renderAll();
+    }
+  }
+
   /** Find the best adjacent tile to spawn a unit from a city. Returns the city position as fallback. */
   private findSpawnPosition(city: City): HexCoord {
     for (const n of city.position.neighbors()) {
@@ -2222,20 +2261,91 @@ export class GameScene extends Phaser.Scene {
         }
         const p = city.position.toPixel(HEX_SIZE);
         const cl = COLORS[city.tribeId] || 0x888;
+        const cityR = HEX_SIZE * 0.38;
+
+        // GDD §5.3 — City wall outer ring (thick stone wall for L3+ with City Wall upgrade)
+        if (city.hasCityWall) {
+          this.entityGraphics.lineStyle(4, 0xc0c0c0, 0.85);
+          this.entityGraphics.strokeCircle(p.x, p.y, cityR + 4);
+          // Crenellation dots around the wall
+          for (let a = 0; a < 6; a++) {
+            const angle = (a / 6) * Math.PI * 2 - Math.PI / 2;
+            const wx = p.x + Math.cos(angle) * (cityR + 4);
+            const wy = p.y + Math.sin(angle) * (cityR + 4);
+            this.entityGraphics.fillStyle(0xa0a0a0, 0.9);
+            this.entityGraphics.fillCircle(wx, wy, 2);
+          }
+        }
+
+        // Main city circle
         this.entityGraphics.fillStyle(cl, 1);
-        this.entityGraphics.fillCircle(p.x, p.y, HEX_SIZE * 0.38);
+        this.entityGraphics.fillCircle(p.x, p.y, cityR);
+
         // GDD §5.8 — Siege indicator: red border on besieged cities
         if (city.isBesieged) {
           this.entityGraphics.lineStyle(3, 0xe53935, 0.9);
         } else {
           this.entityGraphics.lineStyle(2, 0x000, 0.4);
         }
-        this.entityGraphics.strokeCircle(p.x, p.y, HEX_SIZE * 0.38);
+        this.entityGraphics.strokeCircle(p.x, p.y, cityR);
+
+        // Level pips (bottom of city circle)
         for (let i = 0; i < city.level; i++) {
-          this.entityGraphics.fillStyle(0x000, 0.5);
-          this.entityGraphics.fillCircle(p.x - 5 + i * 5, p.y + 5, 2);
+          this.entityGraphics.fillStyle(0xfff, 0.8);
+          this.entityGraphics.fillCircle(p.x - 5 + i * 5, p.y + cityR - 3, 2);
+        }
+
+        // GDD §1.2 — Temple icon (gold triangle on top of city)
+        if (city.templeCount > 0) {
+          const ty = p.y - cityR - 6;
+          for (let ti = 0; ti < Math.min(city.templeCount, 3); ti++) {
+            const tx = p.x - 6 + ti * 6;
+            this.entityGraphics.fillStyle(0xffd700, 0.95);
+            this.entityGraphics.fillTriangle(tx, ty - 5, tx - 3, ty + 2, tx + 3, ty + 2);
+          }
+        }
+
+        // GDD §1.2 — Monument icon (blue diamond on right side of city)
+        if (city.monumentCount > 0) {
+          const mx = p.x + cityR + 4;
+          const my = p.y - 2;
+          for (let mi = 0; mi < Math.min(city.monumentCount, 2); mi++) {
+            const dy = my + mi * 7;
+            this.entityGraphics.fillStyle(0x4fc3f7, 0.95);
+            this.entityGraphics.fillTriangle(mx, dy - 4, mx - 3, dy, mx, dy + 4);
+            this.entityGraphics.fillTriangle(mx, dy - 4, mx + 3, dy, mx, dy + 4);
+          }
+        }
+
+        // Population growth bar (green progress bar below city circle)
+        // Shows food progress toward next population threshold
+        const popThreshold = city.population * 10;
+        if (popThreshold > 0 && city.population < 10) {
+          const barW = cityR * 1.6;
+          const barH = 3;
+          const barX = p.x - barW / 2;
+          const barY = p.y + cityR + 3;
+          // Background
+          this.entityGraphics.fillStyle(0x333, 0.7);
+          this.entityGraphics.fillRect(barX, barY, barW, barH);
+          // Fill (green if >50%, yellow if >25%, red otherwise)
+          const ratio = city.food / popThreshold;
+          const fillColor = ratio > 0.5 ? 0x4caf50 : ratio > 0.25 ? 0xffc107 : 0xf44336;
+          this.entityGraphics.fillStyle(fillColor, 0.9);
+          this.entityGraphics.fillRect(barX, barY, barW * Math.min(ratio, 1), barH);
+          // Border
+          this.entityGraphics.lineStyle(1, 0x000, 0.4);
+          this.entityGraphics.strokeRect(barX, barY, barW, barH);
         }
       }
+    }
+
+    // Border expansion pulse animations
+    for (const pulse of this.borderPulses) {
+      const alpha = 1 - pulse.progress; // fade out
+      const radius = HEX_SIZE * 0.38 + pulse.progress * HEX_SIZE * 2.5;
+      this.entityGraphics.lineStyle(3 * (1 - pulse.progress), pulse.tribeColor, alpha * 0.6);
+      this.entityGraphics.strokeCircle(pulse.x, pulse.y, radius);
     }
 
     // Units
