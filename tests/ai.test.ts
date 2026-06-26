@@ -717,4 +717,125 @@ describe('BasicAI', () => {
       expect(researchAction!.params.techId).toBe(TechId.FISHING);
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Difficulty behavior differentiation
+  // -----------------------------------------------------------------------
+
+  describe('difficulty behavior', () => {
+    it('Easy AI avoids attacking when units are evenly matched', () => {
+      //  Easy AI with a warrior adjacent to an equal-strength enemy, no HP advantage
+      const easyTribe = new Tribe({ id: 'easy', name: 'Easy', color: 0x44ff44 });
+      easyTribe.stars = 10;
+      const easyCity = new City(new HexCoord(5, 5), 'EasyCity', 'easy');
+      easyTribe.cities.push(easyCity);
+
+      const easyEnemy = new Tribe({ id: 'enemy-e', name: 'Enemy', color: 0xff4444 });
+      easyEnemy.stars = 10;
+      const easyEnemyCity = new City(new HexCoord(20, 20), 'EnemyCity', 'enemy-e');
+      easyEnemy.cities.push(easyEnemyCity);
+
+      const easyGs = new GameState([easyTribe, easyEnemy]);
+      (easyGs as unknown as { tileMap: Map<string, TileData> }).tileMap = makeTileMap(30, 30);
+
+      const easyAi = new BasicAI(easyTribe, { difficulty: 'easy' });
+
+      // Place easy warrior adjacent to enemy warrior (same stats, full HP on both)
+      const warrior = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'easy');
+      warrior.health = 10; // full HP
+      easyTribe.units.push(warrior);
+
+      const enemyWarrior = new Unit(new HexCoord(6, 5), UnitType.WARRIOR, 'enemy-e');
+      enemyWarrior.health = 10; // full HP
+      easyEnemy.units.push(enemyWarrior);
+
+      const actions = easyAi.decide(easyGs, TurnPhase.ATTACK);
+      // Easy AI should NOT attack — no one-shot possible, no 2:1 HP advantage
+      expect(actions.length).toBe(0);
+    });
+
+    it('Medium AI attacks when adjacent (no difficulty avoidance)', () => {
+      // Medium AI should still attack evenly-matched enemies
+      const warrior = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+      warrior.health = 10;
+      tribe.units.push(warrior);
+
+      const enemyWarrior = new Unit(new HexCoord(5, 4), UnitType.WARRIOR, 'enemy');
+      enemyWarrior.health = 10;
+      enemyTribe.units.push(enemyWarrior);
+
+      const actions = ai.decide(gameState, TurnPhase.ATTACK);
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('ATTACK');
+    });
+
+    it('Easy AI always picks economic upgrades (B)', () => {
+      // Give enough units to trigger upgrade, no enemies nearby
+      // Remove enemies so there's no threat influence on upgrade choice
+      enemyTribe.cities = [];
+      enemyTribe.units = [];
+
+      const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+      const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+      tribe.units.push(warrior1, warrior2);
+      tribe.stars = 20;
+      // Don't set population = 0 — city.canGrow() requires population >= level
+
+      // No enemies → Easy should pick B (economic)
+      const easyAi = new BasicAI(tribe, { difficulty: 'easy' });
+      const actions = easyAi.decide(gameState, TurnPhase.BUILD);
+      const upgradeAction = actions.find(a => a.type === 'UPGRADE');
+      expect(upgradeAction).toBeDefined();
+      expect(upgradeAction!.params.choice).toBe('B');
+    });
+
+    it('Hard AI always picks military upgrades (A)', () => {
+      // Remove enemies so threat level doesn't override
+      enemyTribe.cities = [];
+      enemyTribe.units = [];
+
+      const warrior1 = new Unit(new HexCoord(4, 4), UnitType.WARRIOR, 'player');
+      const warrior2 = new Unit(new HexCoord(5, 5), UnitType.WARRIOR, 'player');
+      tribe.units.push(warrior1, warrior2);
+      tribe.stars = 20;
+
+      const hardAi = new BasicAI(tribe, { difficulty: 'hard' });
+      const actions = hardAi.decide(gameState, TurnPhase.BUILD);
+      const upgradeAction = actions.find(a => a.type === 'UPGRADE');
+      expect(upgradeAction).toBeDefined();
+      expect(upgradeAction!.params.choice).toBe('A');
+    });
+
+    it('Hard AI hunts enemy units in MOVE phase', () => {
+      // Clear existing units first
+      tribe.units.length = 0;
+
+      // Place a hard AI warrior far from enemy city but within hunt range of enemy unit
+      const warrior = new Unit(new HexCoord(10, 10), UnitType.WARRIOR, 'player');
+      warrior.hasActed = false;
+      tribe.units.push(warrior);
+
+      // Enemy unit within 8 hexes (hunt range)
+      enemyTribe.units.length = 0;
+      const enemyUnit = new Unit(new HexCoord(14, 10), UnitType.WARRIOR, 'enemy');
+      enemyTribe.units.push(enemyUnit);
+
+      // Enemy city far away (40 tiles) — should prefer hunting the unit
+      enemyTribe.cities[0] = new City(new HexCoord(40, 40), 'FarCity', 'enemy');
+
+      const hardAi = new BasicAI(tribe, { difficulty: 'hard' });
+      const actions = hardAi.decide(gameState, TurnPhase.MOVE);
+
+      // Hard AI should produce a move action toward the enemy unit
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('MOVE');
+      expect(warrior.hasActed).toBe(true);
+
+      // Verify the unit moved toward the enemy (decreasing distance to (14,10))
+      // Original position (10,10), enemy at (14,10) — distance 4
+      // After move, unit should be closer to (14,10)
+      const distToEnemy = Math.abs(warrior.position.q - 14) + Math.abs(warrior.position.r - 10);
+      expect(distToEnemy).toBeLessThan(4);
+    });
+  });
 });

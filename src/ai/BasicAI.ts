@@ -371,6 +371,11 @@ export class BasicAI {
    * Choose a city upgrade (A or B) strategically based on game state.
    * Considers: enemy proximity (defensive vs economic), current city level,
    * available resources, and difficulty.
+   *
+   * Difficulty differences:
+   * - Easy: Always prefers economic upgrades (B) — focuses on growth, not military.
+   * - Medium: Balanced — defensive when threatened, economic when safe.
+   * - Hard: Always prefers military upgrades (A) — wants combat advantages.
    */
   private chooseUpgrade(gameState: GameState): 'A' | 'B' {
     // Assess threat level: are there enemy units/cities nearby?
@@ -392,12 +397,21 @@ export class BasicAI {
       }
     }
 
+    // Difficulty-specific upgrade preferences
+    if (this.options.difficulty === 'easy') {
+      // Easy: always prefer economic (B) — growth over military
+      return 'B';
+    }
+    if (this.options.difficulty === 'hard') {
+      // Hard: always prefer military (A) — combat upgrades to dominate
+      return 'A';
+    }
+
+    // Medium: tactical choice based on threat level
     // High threat → prefer defensive upgrades (A at level 3 = City Wall)
     if (threatLevel >= 6) return 'A';
-
-    // Low threat and high difficulty → prefer economic upgrades (B choices yield resources/pop)
-    if (threatLevel <= 2 && this.options.difficulty === 'hard') return 'B';
-
+    // Low threat → prefer economic upgrades (B choices yield resources/pop)
+    if (threatLevel <= 2) return 'B';
     // Default: alternate based on city level for variety
     return myCity.level % 2 === 0 ? 'A' : 'B';
   }
@@ -533,7 +547,15 @@ export class BasicAI {
         target = nearest.position;
       }
 
-      // Priority 2.5: Move toward nearest visible village (GDD §2.5)
+      // Priority 2.5: Hard AI hunts nearby enemy units (aggressive expansion)
+      if (!target && this.options.difficulty === 'hard' && enemyUnits.length > 0) {
+        const huntTarget = this.findNearestEnemyUnitTarget(unit, enemyUnits);
+        if (huntTarget) {
+          target = huntTarget;
+        }
+      }
+
+      // Priority 2.7: Move toward nearest visible village (GDD §2.5)
       if (!target) {
         const villageTarget = this.findNearestVillage(unit, tileMap);
         if (villageTarget) {
@@ -621,6 +643,30 @@ export class BasicAI {
     return best;
   }
 
+  /**
+   * Find the nearest enemy unit for Hard AI to hunt.
+   * Only targets enemies within 8 hexes — beyond that, the AI focuses on cities/villages/exploration.
+   */
+  private findNearestEnemyUnitTarget(unit: Unit, enemyUnits: Unit[]): HexCoord | null {
+    let best: HexCoord | null = null;
+    let bestDist = Infinity;
+    const HUNT_RANGE = 8;
+
+    for (const eu of enemyUnits) {
+      const dist = unit.position.distanceTo(eu.position);
+      if (dist < bestDist && dist > 0 && dist <= HUNT_RANGE) {
+        // Prefer weaker units (easier kills), then closer units
+        const score = dist + eu.health * 0.5;
+        if (score < bestDist) {
+          bestDist = score;
+          best = eu.position;
+        }
+      }
+    }
+
+    return best;
+  }
+
   // -----------------------------------------------------------------------
   // ATTACK phase
   // -----------------------------------------------------------------------
@@ -655,6 +701,16 @@ export class BasicAI {
         if (a.enemy.health !== b.enemy.health) return a.enemy.health - b.enemy.health;
         return b.enemy.attack - a.enemy.attack;
       });
+
+      // Difficulty: Easy AI avoids combat unless it can one-shot or has HP advantage
+      if (this.options.difficulty === 'easy' && adjacentEnemies.length > 0) {
+        const canOneShot = adjacentEnemies.some(e => unit.attack >= e.health);
+        const hpAdvantage = unit.health >= adjacentEnemies.reduce((min, e) => Math.min(min, e.health), Infinity) * 2;
+        if (!canOneShot && !hpAdvantage) {
+          // Easy AI skips the attack — too risky
+          continue;
+        }
+      }
 
       // Attack sorted enemies — but apply threat assessment:
       // Weak units (<25% HP) should not attack unless they can one-shot the target
