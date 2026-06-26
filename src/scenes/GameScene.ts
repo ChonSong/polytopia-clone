@@ -70,6 +70,11 @@ export class GameScene extends Phaser.Scene {
   private battlePreviewGraphics!: Phaser.GameObjects.Graphics;
   private hoveredEnemy: Unit | null = null;
 
+  // Combat animation state
+  private isAnimating = false;
+  private animatingUnitId: string | null = null;
+  private damageTexts: Phaser.GameObjects.Text[] = [];
+
   // Pause overlay state
   private isPaused = false;
   private pauseOverlay: Phaser.GameObjects.Group | null = null;
@@ -742,6 +747,8 @@ export class GameScene extends Phaser.Scene {
         const target = this.findUnit(targetPos);
         if (unit && target && CombatSystem.canAttack(unit, target, this.tiles)) {
           const r = CombatSystem.executeAttack(unit, target, this.tiles, this.state);
+          // Start combat animation (non-blocking — game logic proceeds underneath)
+          this.animateAttack(unit, target, r.attackerDamage, r.defenderDamage, r.defenderKilled);
           unit.takeDamage(r.attackerDamage);
           target.takeDamage(r.defenderDamage);
 
@@ -1253,6 +1260,10 @@ export class GameScene extends Phaser.Scene {
       if (cu && cu.owner !== this.humanTribe.id) {
         if (CombatSystem.canAttack(this.selectedUnit, cu, this.tiles)) {
           const r = CombatSystem.executeAttack(this.selectedUnit, cu, this.tiles, this.state);
+
+          // Start combat animation (non-blocking — game logic proceeds underneath)
+          this.animateAttack(this.selectedUnit, cu, r.attackerDamage, r.defenderDamage, r.defenderKilled);
+
           this.selectedUnit.takeDamage(r.attackerDamage);
           cu.takeDamage(r.defenderDamage);
 
@@ -2342,6 +2353,178 @@ export class GameScene extends Phaser.Scene {
    * Tries to move 1 tile in the direction opposite the attacker.
    * Falls back to any walkable unoccupied adjacent tile, then null.
    */
+  /**
+   * Animate a combat attack sequence: attacker lunges toward target,
+   * damage numbers float up, destroyed units fade out.
+   * Returns a promise that resolves when the animation completes (~400-500ms).
+   * Game logic (damage application, death checks) must be handled separately;
+   * this only produces visual feedback.
+   *
+   * This is deliberately decoupled from the CombatSystem pure-logic layer
+   * so animations never block or modify game state.
+   */
+  private animateAttack(attacker: Unit, defender: Unit, attackerDamage: number, defenderDamage: number, defenderDies: boolean): Promise<void> {
+    return new Promise<void>((resolve) => {
+      const attackerPos = attacker.position;
+      const defenderPos = defender.position;
+      const startPixel = attackerPos.toPixel(HEX_SIZE);
+      const targetPixel = defenderPos.toPixel(HEX_SIZE);
+
+      // Compute lunge direction (normalized to ~12px)
+      const dx = targetPixel.x - startPixel.x;
+      const dy = targetPixel.y - startPixel.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const lungeDist = Math.min(12, HEX_SIZE * 0.3);
+      const lungeX = (dx / dist) * lungeDist;
+      const lungeY = (dy / dist) * lungeDist;
+
+      this.isAnimating = true;
+      this.animatingUnitId = attacker.id;
+
+      const totalDuration = defenderDies ? 450 : 350;
+      let elapsed = 0;
+
+      // Floating damage texts
+      const dmgTexts: Phaser.GameObjects.Text[] = [];
+
+      const dmgToDef = this.add.text(targetPixel.x, targetPixel.y - 15, `-${defenderDamage}`, {
+        fontSize: '14px', color: '#ff6666', fontFamily: 'monospace', fontStyle: 'bold',
+      }).setOrigin(0.5).setDepth(50);
+      dmgTexts.push(dmgToDef);
+
+      if (attackerDamage > 0) {
+        const dmgToAtk = this.add.text(startPixel.x + 10, startPixel.y - 15, `-${attackerDamage}`, {
+          fontSize: '12px', color: '#ffaa44', fontFamily: 'monospace', fontStyle: 'bold',
+        }).setOrigin(0.5).setDepth(50);
+        dmgTexts.push(dmgToAtk);
+      }
+
+      if (defenderDies) {
+        const skull = this.add.text(targetPixel.x, targetPixel.y + 10, '�', {
+          fontSize: '16px', color: '#ffffff', fontFamily: 'monospace',
+        }).setOrigin(0.5).setDepth(50);
+        dmgTexts.push(skull);
+      }
+
+      // Suppress base rendering of the attacker/defender during animation
+      // by temporarily hiding their positions (set to null-equivalent)
+      const origAtkPos = attacker.position;
+      const origDefPos = defender.position;
+
+      const tickFn = (_time: number, delta: number) => {
+        elapsed += delta;
+        const t = Math.min(elapsed / totalDuration, 1);
+
+        // Clear and redraw everything except the animating units
+        this.entityGraphics.clear();
+
+        // Redraw all entities except the ones being animated
+        const humanTribeId = this.humanTribe.id;
+        for (const tribe of this.tribes) {
+          if (tribe.isDefeated()) continue;
+          // Cities
+          for (const city of tribe.cities) {
+            if (city.captured) continue;
+            if (city.position.equals(origDefPos) && defenderDies) {
+              // Still draw city under fading defender
+            }
+            const p = city.position.toPixel(HEX_SIZE);
+            const cl = COLORS[city.tribeId] || 0x888;
+            this.entityGraphics.fillStyle(cl, 1);
+            this.entityGraphics.fillCircle(p.x, p.y, HEX_SIZE * 0.38);
+            this.entityGraphics.lineStyle(city.isBesieged ? 3 : 2, city.isBesieged ? 0xe53935 : 0x000, city.isBesieged ? 0.9 : 0.4);
+            this.entityGraphics.strokeCircle(p.x, p.y, HEX_SIZE * 0.38);
+          }
+          // Units — skip the animating ones
+          for (const u of tribe.getAliveUnits()) {
+            // Skip attacker and defender (drawn separately below with animation)
+            if (u.id === attacker.id || u.id === defender.id) continue;
+            if (tribe.id !== humanTribeId && !this.state.isTileVisibleToTribe(u.position, humanTribeId)) continue;
+            const p = u.position.toPixel(HEX_SIZE);
+            const cl = COLORS[u.owner] || 0x888;
+            const r = HEX_SIZE * 0.28;
+            this.entityGraphics.fillStyle(cl, 1);
+            this.entityGraphics.fillCircle(p.x, p.y, r);
+            this.entityGraphics.lineStyle(1, 0x000, 0.6);
+            this.entityGraphics.strokeCircle(p.x, p.y, r);
+            this.entityGraphics.fillStyle(0x000, 0.6);
+            this.entityGraphics.fillCircle(p.x, p.y, r * 0.85);
+            this.entityGraphics.fillStyle(cl, 1);
+            this.entityGraphics.fillCircle(p.x, p.y, r * 0.65);
+          }
+        }
+
+        // Lunge ease: forward then back
+        const lungeT = t < 0.4
+          ? Math.sin((t / 0.4) * Math.PI)       // 0→1→0 over first 40%
+          : Math.max(0, 1 - (t - 0.4) / 0.6);   // 1→0 over last 60%
+        const currentX = startPixel.x + lungeX * lungeT;
+        const currentY = startPixel.y + lungeY * lungeT;
+
+        // Draw attacker at lunged position
+        const c = COLORS[attacker.owner] || 0x888;
+        const ar = HEX_SIZE * 0.33;
+        this.entityGraphics.fillStyle(c, 1);
+        this.entityGraphics.fillCircle(currentX, currentY, ar);
+        this.entityGraphics.lineStyle(3, 0x000, 0.6);
+        this.entityGraphics.strokeCircle(currentX, currentY, ar);
+        this.entityGraphics.fillStyle(0x000, 0.6);
+        this.entityGraphics.fillCircle(currentX, currentY, ar * 0.85);
+        this.entityGraphics.fillStyle(c, 1);
+        this.entityGraphics.fillCircle(currentX, currentY, ar * 0.65);
+        // Health bar
+        const bw = ar * 1.4, bh = 3;
+        this.entityGraphics.fillStyle(0x000, 0.7);
+        this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw, bh);
+        this.entityGraphics.fillStyle(attacker.health > 3 ? 0x4c4 : 0xc44, 1);
+        this.entityGraphics.fillRect(currentX - bw / 2, currentY - ar - 5, bw * (attacker.health / UNIT_MAX_HEALTH[attacker.type]), bh);
+
+        // Impact flash (t: 0.3–0.45)
+        if (t > 0.3 && t < 0.45) {
+          const flashAlpha = (1 - (t - 0.3) / 0.15) * 0.3;
+          this.entityGraphics.fillStyle(0xff4444, flashAlpha);
+          this.entityGraphics.fillCircle(targetPixel.x, targetPixel.y, HEX_SIZE * 0.5);
+        }
+
+        // Defender: fade out if dying
+        if (defenderDies && t > 0.5) {
+          const fadeT = (t - 0.5) / 0.5;
+          const fadeAlpha = 1 - fadeT;
+          const fadeR = HEX_SIZE * 0.3 * (1 - fadeT * 0.5);
+          const dc = COLORS[defender.owner] || 0x888;
+          this.entityGraphics.fillStyle(dc, fadeAlpha);
+          this.entityGraphics.fillCircle(targetPixel.x, targetPixel.y, fadeR);
+          this.entityGraphics.lineStyle(1, 0x000, fadeAlpha * 0.6);
+          this.entityGraphics.strokeCircle(targetPixel.x, targetPixel.y, fadeR);
+        }
+
+        // Damage text float-up (t: 0.2 to 0.8)
+        if (t > 0.15) {
+          const textT = Math.min(1, (t - 0.15) / 0.65);
+          const yOffset = textT * 22;
+          dmgTexts[0].setAlpha(1 - textT).setY(targetPixel.y - 15 - yOffset);
+          if (dmgTexts[1]) dmgTexts[1].setAlpha(1 - textT).setY(startPixel.y - 15 - yOffset);
+          if (dmgTexts[2]) dmgTexts[2].setAlpha(1 - textT).setY(targetPixel.y + 10 - yOffset);
+        }
+
+        if (t >= 1) {
+          this.time.removeEvent(timer);
+          for (const txt of dmgTexts) txt.destroy();
+          this.entityGraphics.clear();
+          this.isAnimating = false;
+          this.animatingUnitId = null;
+          resolve();
+        }
+      };
+
+      const timer = this.time.addEvent({
+        delay: 16,
+        loop: true,
+        callback: tickFn,
+      });
+    });
+  }
+
   private findRetreatDirection(defender: Unit, attacker: Unit): HexCoord | null {
     const defPos = defender.position;
     const atkPos = attacker.position;
