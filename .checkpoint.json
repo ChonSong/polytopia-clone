@@ -148,7 +148,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 0,
+      "cycles_stagnant": 1,
       "status": "open"
     },
     {
@@ -156,15 +156,15 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
-      "cycles_stagnant": 0,
+      "cycles_stagnant": 1,
       "status": "open"
     }
   ],
   "coach_review": {
     "last_reviewed_sha": "7b510c9",
-    "last_reviewed_at": "2026-06-26T11:05:00Z",
+    "last_reviewed_at": "2026-06-26T11:36:00Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-26 11:05 AEST. Reviewed feat(ai): improved AI strategic depth (7b510c9). Verified: 515 tests pass (no regression), site 200, 0 JS errors, tribe selection renders. Code adds pickBalancedUnit (balanced army composition), chooseUpgrade (threat-based A/B choice), and threat-aware retreat (units <25% HP skip non-lethal attacks). Logic is sound. Methodology gate clean — no self-referential tests, no 'Add E2E test for X' pattern. Note: 2 of 5 AI task dimensions unaddressed (territory expansion, difficulty differentiation) — added as spec_gaps. Player moved to fix-unit-combat-animations."
+    "notes": "Coach cycle 2026-06-26 11:36 AEST. No new Player commits since 7b510c9. Stability check: 515/515 tests pass (no regression, 5.57s), site 200, 0 JS errors. Phaser canvas renders tribe selection screen correctly (confirmed via vision). 2 spec_gaps unchanged (territory expansion, difficulty differentiation, each 1 cycle stagnant). Player current_task: fix-unit-combat-animations (unstarted)."
   },
-  "note": "Tick 2026-06-26 11:05 AEST. Coach APPROVED feat(ai): improved AI strategic depth (7b510c9). 515 tests pass, site 200, 0 JS errors. 2 spec_gaps added: territory expansion (partial_implementation), difficulty differentiation (partial_implementation). Player progressed to fix-unit-combat-animations."
+  "note": "Tick 2026-06-26 11:36 AEST. No new Player commits. Stability check: 515 tests pass, site 200, 0 JS errors. Tribe selection verified. 2 spec_gaps stagnant at 1 cycle."
 }
