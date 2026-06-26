@@ -137,6 +137,13 @@
       "coach": "approved"
     },
     {
+      "task": "fix-unit-combat-animations",
+      "sha": "86410dc",
+      "date": "2026-06-26",
+      "summary": "Added ranged projectile animation: archers/catapults fire a projectile sprite (colored circle with trail) toward target instead of lunging. Melee units retain existing lunge animation. All 4 sub-items now complete (attack lunge, death fade, damage numbers, ranged projectile). 515 tests pass.",
+      "coach": "pending"
+    },
+    {
       "task": "add-sound-effects-and-music",
       "sha": "pending",
       "date": "2026-06-26",
@@ -145,7 +152,7 @@
     }
   ],
   "health": "515_tests_pass_0_regressions_build_clean_audio_added",
-  "current_task": "fix-unit-combat-animations",
+  "current_task": "fix-tech-tree-visualization",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -172,5 +179,5 @@
     "verdict": "approved",
     "notes": "Coach cycle 2026-06-26 12:35 AEST. Verified: animateAttack function exists and is hooked into both AI handler and human click handler. GameScene loads correctly, tribe selection works, END TURN advances game. 0 console errors. Combat animation visual verification deferred (enemy units too far on generated map). No methodology failures (no self-referential E2E tests). Tribe index mapping discrepancy between SelectScene and GameScene needs future investigation."
   },
-  "note": "Tick 2026-06-26 ~16:15 UTC. Player commit: add-sound-effects-and-music — Web Audio API synthesized sounds hooked into UI, combat, death, city capture, ambient music. 515 tests pass. Switched from gto-wizard-clone (round-robin). Next: fix-unit-combat-animations."
+  "note": "Tick 2026-06-26 ~17:15 UTC. Player commit: fix-unit-combat-animations — ranged projectile animation for archers/catapults (colored circle with trail, travels attacker→target over 40% of animation). Melee lunge preserved. All 4 animation sub-items complete. 515 tests pass. Disk full incident resolved (freed 8.8G from huggingface cache via ftruncate). Next: fix-tech-tree-visualization."
 }
