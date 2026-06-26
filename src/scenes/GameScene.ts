@@ -1454,6 +1454,15 @@ export class GameScene extends Phaser.Scene {
     const numCities = cur.cities.filter(c => !c.captured).length;
     const techGroup = this.add.group();
 
+    // Category definitions for filtering
+    const SERIES_CATEGORY: Record<string, string> = {
+      hunting: 'military', riding: 'military', frostwork: 'military', fungiculture: 'military',
+      fishing: 'naval', aquaculture: 'naval',
+      climbing: 'economic', organization: 'economic', farming: 'economic', ecology: 'economic',
+    };
+    const CATEGORY_LABELS: Record<string, string> = { all: 'ALL', military: 'MILITARY', economic: 'ECONOMIC', naval: 'NAVAL' };
+    let activeFilter = 'all';
+
     // Filter series based on current tribe — exclude tribe-specific series that don't match
     const BASE_SERIES = new Set(['hunting', 'riding', 'fishing', 'climbing', 'organization', 'farming', 'aquaculture']);
     const TRIBE_EXTRA: Record<string, string[]> = {
@@ -1462,16 +1471,23 @@ export class GameScene extends Phaser.Scene {
       elyrion: ['ecology'],
     };
     const extra = TRIBE_EXTRA[cur.id] ?? [];
-    const seriesKeys = TECH_SERIES_ORDER.filter(s => BASE_SERIES.has(s) || extra.includes(s));
+    const allSeries = TECH_SERIES_ORDER.filter(s => BASE_SERIES.has(s) || extra.includes(s));
+
+    const getFilteredSeries = () => {
+      if (activeFilter === 'all') return allSeries;
+      return allSeries.filter(s => SERIES_CATEGORY[s] === activeFilter);
+    };
 
     // Layout: split into 2 rows when >5 series so each column is ≥120px
-    const total = seriesKeys.length;
+    const filteredSeries = getFilteredSeries();
+    const total = filteredSeries.length;
     const twoRows = total > 5;
     const colsPerRow = twoRows ? Math.ceil(total / 2) : total;
     const colW = Math.min(220, Math.floor(600 / colsPerRow));
     const startX = Math.max(80, Math.floor((720 - colsPerRow * colW) / 2));
     const rowGap = 230;
-    const panelH = twoRows ? 540 : 340;
+    const filterBarH = 32;
+    const panelH = filterBarH + (twoRows ? 540 : 340);
 
     // Background panel
     const bg = this.add.graphics().setScrollFactor(0).setDepth(28);
@@ -1495,11 +1511,45 @@ export class GameScene extends Phaser.Scene {
     }).setScrollFactor(0).setDepth(29);
     techGroup.add(starBalance);
 
+    // Filter tabs
+    const filterKeys = ['all', 'military', 'economic', 'naval'];
+    const filterStartX = 80;
+    const filterY = 72;
+    const filterTabW = 80;
+    const filterTabH = 22;
+    const filterTabs: Phaser.GameObjects.Text[] = [];
+    const filterBgGraphics: Phaser.GameObjects.Graphics[] = [];
+
+    filterKeys.forEach((cat, ci) => {
+      const fx = filterStartX + ci * (filterTabW + 8);
+      const fbg = this.add.graphics().setScrollFactor(0).setDepth(28);
+      fbg.fillStyle(cat === activeFilter ? 0x335 : 0x222, 0.9);
+      fbg.fillRoundedRect(fx, filterY, filterTabW, filterTabH, 4);
+      techGroup.add(fbg);
+      filterBgGraphics.push(fbg);
+
+      const ftxt = this.add.text(fx + filterTabW / 2, filterY + 3, CATEGORY_LABELS[cat], {
+        fontSize: '11px', color: cat === activeFilter ? '#ffd' : '#888', fontFamily: 'monospace'
+      }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(29);
+      ftxt.setInteractive({ useHandCursor: true });
+      ftxt.on('pointerdown', () => {
+        activeFilter = cat;
+        this.hideTechPanel();
+        this.showTechPanel();
+      });
+      techGroup.add(ftxt);
+      filterTabs.push(ftxt);
+    });
+
+    // Store node positions for dependency line drawing
+    const nodePositions = new Map<TechId, { x: number; y: number }>();
+
     // Render series — each at its row/column position
+    const seriesKeys = getFilteredSeries();
     seriesKeys.forEach((series, si) => {
       const rowIdx = twoRows ? Math.floor(si / colsPerRow) : 0;
       const colIdx = si % colsPerRow;
-      const yBase = rowIdx * rowGap;
+      const yBase = rowIdx * rowGap + filterBarH;
 
       // Series header
       const header = this.add.text(startX + colIdx * colW, 80 + yBase, series.toUpperCase(), headerStyle)
@@ -1531,11 +1581,34 @@ export class GameScene extends Phaser.Scene {
           .setScrollFactor(0).setDepth(29);
         techGroup.add(txt);
 
+        // Store center position for dependency lines
+        nodePositions.set(techId, { x: startX + colIdx * colW, y: y + 7 });
+
         // Description
         const desc = this.add.text(startX + colIdx * colW, y + 18, def.description, {
           fontSize: '11px', color: owned ? '#484' : '#888', fontFamily: 'monospace'
         }).setScrollFactor(0).setDepth(29);
         techGroup.add(desc);
+
+        // Progress bar for available techs (shows star accumulation toward cost)
+        if (canResearch && !owned) {
+          const barW = 80;
+          const barH = 4;
+          const barX = startX + colIdx * colW;
+          const barY = y + 34;
+          const progress = Math.min(1, this.humanTribe.stars / cost);
+
+          const barBg = this.add.graphics().setScrollFactor(0).setDepth(29);
+          barBg.fillStyle(0x333, 0.8);
+          barBg.fillRect(barX, barY, barW, barH);
+          techGroup.add(barBg);
+
+          const barFill = this.add.graphics().setScrollFactor(0).setDepth(30);
+          const fillColor = progress >= 1 ? 0x4c4 : 0x8af;
+          barFill.fillStyle(fillColor, 0.9);
+          barFill.fillRect(barX, barY, barW * progress, barH);
+          techGroup.add(barFill);
+        }
 
         if (canResearch && this.humanTribe.stars >= cost) {
           txt.setInteractive({ useHandCursor: true });
@@ -1553,8 +1626,43 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
+    // Draw dependency edges (after all nodes positioned)
+    const lineGfx = this.add.graphics().setScrollFactor(0).setDepth(27);
+    for (const techId of nodePositions.keys()) {
+      const def = TECH_DEFS[techId];
+      const targetPos = nodePositions.get(techId)!;
+      for (const prereqId of def.prerequisites) {
+        const prereqPos = nodePositions.get(prereqId);
+        if (!prereqPos) continue;
+
+        const owned = cur.hasTech(techId);
+        const prereqOwned = cur.hasTech(prereqId);
+        const lineColor = owned ? 0x262 : (prereqOwned ? 0x468 : 0x335);
+        const lineAlpha = owned ? 0.3 : (prereqOwned ? 0.7 : 0.4);
+
+        lineGfx.lineStyle(2, lineColor, lineAlpha);
+        // Draw from prereq bottom-center to target top-center with a midpoint bend
+        const midY = (prereqPos.y + targetPos.y) / 2;
+        lineGfx.beginPath();
+        lineGfx.moveTo(prereqPos.x + 20, prereqPos.y + 12);
+        lineGfx.lineTo(prereqPos.x + 20, midY);
+        lineGfx.lineTo(targetPos.x + 20, midY);
+        lineGfx.lineTo(targetPos.x + 20, targetPos.y - 2);
+        lineGfx.strokePath();
+
+        // Arrow head
+        lineGfx.fillStyle(lineColor, lineAlpha);
+        lineGfx.fillTriangle(
+          targetPos.x + 20, targetPos.y - 2,
+          targetPos.x + 16, targetPos.y + 4,
+          targetPos.x + 24, targetPos.y + 4
+        );
+      }
+    }
+    techGroup.add(lineGfx);
+
     // Close hint
-    const hintPosY = panelH - 20;
+    const hintPosY = panelH - 16;
     const hint = this.add.text(300, hintPosY, '[ click TECH or elsewhere to close ]', {
       fontSize: '12px', color: '#888', fontFamily: 'monospace'
     }).setScrollFactor(0).setDepth(29);
