@@ -18,6 +18,7 @@ import { runExplorerPathfinding } from '../entities/Explorer';
 import { TradeRouteSystem } from '../entities/TradeRouteSystem';
 import { computeTribeScore, ScoreBreakdown } from '../entities/ScoreCalculator';
 import { SPEED_MULTIPLIERS, speedAdjustedCost as applySpeedMultiplier } from '../entities/SpeedUtils';
+import SoundManager from '../audio/SoundManager';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -63,6 +64,7 @@ export class GameScene extends Phaser.Scene {
   private selectedCity: City | null = null;
   private techPanel: Phaser.GameObjects.Group | null = null;
   private muteBtn!: Phaser.GameObjects.Text;
+  private soundManager = new SoundManager();
 
   private tribeText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
@@ -184,6 +186,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 8, y: 6 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.waitBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
         // Deselect the unit without marking hasActed = true
         // Unit stays inactive → eligible for end-of-turn healing (+4 friendly, +2 other)
@@ -203,6 +206,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#323', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.convertBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasConvert && !this.selectedUnit.hasActed) {
         this.performConvert(this.selectedUnit);
       }
@@ -217,6 +221,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.healBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHeal && !this.selectedUnit.hasActed) {
         this.performHeal(this.selectedUnit);
       }
@@ -231,6 +236,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#223', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.submergeBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && !this.selectedUnit.isSubmerged) {
         this.state.submergeCloak(this.selectedUnit);
         this.renderAll(); this.updateUI();
@@ -246,6 +252,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#233', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.emergeBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasHide && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged) {
         this.state.emergeCloak(this.selectedUnit);
         this.renderAll(); this.updateUI();
@@ -261,6 +268,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#332', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.infiltrateBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.hasInfiltrate && !this.selectedUnit.hasActed && this.selectedUnit.isSubmerged && this.selectedUnit.primedForInfiltrate) {
         this.performInfiltrate(this.selectedUnit);
       }
@@ -275,6 +283,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#232', padding: { x: 6, y: 4 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     this.enchantBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && this.selectedUnit.type === UnitType.POLYTAUR && !this.selectedUnit.hasActed) {
         this.performEnchantment(this.selectedUnit);
       }
@@ -288,7 +297,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
       backgroundColor: '#333', padding: { x: 10, y: 6 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
-    btn.on('pointerdown', () => { if (!this.isPaused && !this.isAiRunning) this.endTurn(); });
+    btn.on('pointerdown', () => { this.soundManager.playUIclick(); if (!this.isPaused && !this.isAiRunning) this.endTurn(); });
     btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#555' }));
     btn.on('pointerout', () => btn.setStyle({ backgroundColor: '#333' }));
 
@@ -298,6 +307,7 @@ export class GameScene extends Phaser.Scene {
       backgroundColor: '#224', padding: { x: 8, y: 6 }
     }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
     techBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.state.getCurrentTribe() === this.humanTribe) {
         this.toggleTechPanel();
       }
@@ -315,14 +325,17 @@ export class GameScene extends Phaser.Scene {
       if (this.isPaused) return;
       this.sound.mute = !this.sound.mute;
       this.muteBtn.setText(this.sound.mute ? '🔇' : '🔊');
+      this.soundManager.mute = this.sound.mute;
       try { localStorage.setItem('polytopia_mute', String(this.sound.mute)); } catch { /* localStorage unavailable */ }
     });
     this.muteBtn.on('pointerover', () => this.muteBtn.setAlpha(0.8));
     this.muteBtn.on('pointerout', () => this.muteBtn.setAlpha(1));
+    this.soundManager.mute = this.sound.mute;
 
     this.renderAll();
     this.updateUI();
     this.startTurn();
+    this.soundManager.startMusic();
 
     // Keyboard: W = Wait (skip selected unit's turn)
     if (this.input.keyboard) {
@@ -806,6 +819,7 @@ export class GameScene extends Phaser.Scene {
               const r = CombatSystem.executeCityAttack(unit, cd, this.tiles);
               if (r.cityCaptured) {
                 city.captured = true;
+                this.soundManager.playCityCapture();
                 // Remove from original owner's list
                 for (const t of this.tribes) {
                   if (t !== tribe) {
@@ -2365,6 +2379,7 @@ export class GameScene extends Phaser.Scene {
    */
   private animateAttack(attacker: Unit, defender: Unit, attackerDamage: number, defenderDamage: number, defenderDies: boolean): Promise<void> {
     return new Promise<void>((resolve) => {
+      this.soundManager.playAttackHit();
       const attackerPos = attacker.position;
       const defenderPos = defender.position;
       const startPixel = attackerPos.toPixel(HEX_SIZE);
@@ -2400,6 +2415,7 @@ export class GameScene extends Phaser.Scene {
       }
 
       if (defenderDies) {
+        this.soundManager.playUnitDeath();
         const skull = this.add.text(targetPixel.x, targetPixel.y + 10, '�', {
           fontSize: '16px', color: '#ffffff', fontFamily: 'monospace',
         }).setOrigin(0.5).setDepth(50);

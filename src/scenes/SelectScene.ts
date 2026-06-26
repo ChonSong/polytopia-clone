@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { MAP_TYPES } from '../hex/MapGenerator';
 import { TRIBE_CONFIGS } from '../entities/Tribe';
+import SoundManager from '../audio/SoundManager';
 
 export enum GameMode {
   DOMINATION = 'DOMINATION',
@@ -8,6 +9,8 @@ export enum GameMode {
 }
 
 export class SelectScene extends Phaser.Scene {
+  private soundManager = new SoundManager();
+
   constructor() {
     super({ key: 'SelectScene' });
   }
@@ -33,6 +36,7 @@ export class SelectScene extends Phaser.Scene {
         backgroundColor: '#333', padding: { x: 6, y: 4 }
       }).setInteractive({ useHandCursor: true });
       lbl.on('pointerdown', () => {
+        this.soundManager.playUIclick();
         selectedMap = mt;
         mapLabels.forEach(l => l.setStyle({ color: '#888' }));
         lbl.setStyle({ color: '#ff0' });
@@ -50,6 +54,7 @@ export class SelectScene extends Phaser.Scene {
         backgroundColor: '#333', padding: { x: 6, y: 4 }
       }).setInteractive({ useHandCursor: true });
       lbl.on('pointerdown', () => {
+        this.soundManager.playUIclick();
         selectedMode = mode;
         modeLabels.forEach(l => l.setStyle({ color: '#888' }));
         lbl.setStyle({ color: '#ff0' });
@@ -70,6 +75,7 @@ export class SelectScene extends Phaser.Scene {
         backgroundColor: '#333', padding: { x: 6, y: 4 }
       }).setInteractive({ useHandCursor: true });
       lbl.on('pointerdown', () => {
+        this.soundManager.playUIclick();
         selectedSpeed = spd;
         speedLabels.forEach(l => l.setStyle({ color: '#888' }));
         lbl.setStyle({ color: '#ff0' });
@@ -90,6 +96,7 @@ export class SelectScene extends Phaser.Scene {
         backgroundColor: '#333', padding: { x: 6, y: 4 }
       }).setInteractive({ useHandCursor: true });
       lbl.on('pointerdown', () => {
+        this.soundManager.playUIclick();
         selectedDifficulty = diff;
         diffLabels.forEach(l => l.setStyle({ color: '#888' }));
         lbl.setStyle({ color: '#ff0' });
@@ -125,6 +132,7 @@ export class SelectScene extends Phaser.Scene {
       const hitArea = this.add.rectangle(cx + cardW / 2, 220 + 110, cardW, 220, 0x000, 0)
         .setInteractive({ useHandCursor: true });
       hitArea.on('pointerdown', () => {
+        this.soundManager.playTribeSelect();
         this.scene.start('GameScene', {
           humanTribeIndex: i,
           mapType: selectedMap,

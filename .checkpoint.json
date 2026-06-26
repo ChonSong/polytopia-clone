@@ -135,9 +135,16 @@
       "date": "2026-06-01",
       "summary": "Tribe selection infinite loop: default bot tribes were generated twice \u2014 once on init and once on game start. Fixed by only generating default bot tribes once.",
       "coach": "approved"
+    },
+    {
+      "task": "add-sound-effects-and-music",
+      "sha": "pending",
+      "date": "2026-06-26",
+      "summary": "Synthesized Web Audio API sound effects: UI clicks, tribe select chime, attack hit, unit death, city capture fanfare, looping ambient arpeggio. Mute button synced. 515 tests pass, 0 regressions.",
+      "coach": "pending"
     }
   ],
-  "health": "515_tests_pass_0_regressions_build_clean",
+  "health": "515_tests_pass_0_regressions_build_clean_audio_added",
   "current_task": "fix-unit-combat-animations",
   "blocker": null,
   "all_coach_tasks_done": false,
@@ -147,7 +154,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 4,
+      "cycles_stagnant": 5,
       "status": "escalated"
     },
     {
@@ -155,15 +162,15 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
-      "cycles_stagnant": 4,
+      "cycles_stagnant": 5,
       "status": "escalated"
     }
   ],
   "coach_review": {
     "last_reviewed_sha": "5c7bf4f",
-    "last_reviewed_at": "2026-06-26T12:35:00Z",
+    "last_reviewed_at": "2026-06-26T05:12:00Z",
     "verdict": "approved",
     "notes": "Coach cycle 2026-06-26 12:35 AEST. Verified: animateAttack function exists and is hooked into both AI handler and human click handler. GameScene loads correctly, tribe selection works, END TURN advances game. 0 console errors. Combat animation visual verification deferred (enemy units too far on generated map). No methodology failures (no self-referential E2E tests). Tribe index mapping discrepancy between SelectScene and GameScene needs future investigation."
   },
-  "note": "Tick 2026-06-26 12:35 AEST. Coach approved combat animations (5c7bf4f). Verified code integration, game loading, turn advancement. Visual combat verification deferred. Stale AI spec_gaps at 4 cycles stagnant."
+  "note": "Tick 2026-06-26 ~16:15 UTC. Player commit: add-sound-effects-and-music — Web Audio API synthesized sounds hooked into UI, combat, death, city capture, ambient music. 515 tests pass. Switched from gto-wizard-clone (round-robin). Next: fix-unit-combat-animations."
 }
