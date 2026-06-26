@@ -96,8 +96,11 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init(data: { humanTribeIndex?: number; mapType?: string; gameMode?: string; difficulty?: string; speed?: string }): void {
-    this.humanTribeIndex = data.humanTribeIndex ?? 0;
+  init(data: { humanTribeId?: string; mapType?: string; gameMode?: string; difficulty?: string; speed?: string }): void {
+    this.humanTribeIndex = data.humanTribeId
+      ? TRIBE_CONFIGS.findIndex(c => c.id === data.humanTribeId)
+      : 0;
+    if (this.humanTribeIndex < 0) this.humanTribeIndex = 0;
     this.gameMode = data.gameMode ?? 'DOMINATION';
     this.mapType = (data.mapType as MapType) ?? 'CONTINENTS';
     this.difficulty = (data.difficulty as DifficultyLevel) ?? 'medium';

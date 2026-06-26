@@ -134,7 +134,7 @@ export class SelectScene extends Phaser.Scene {
       hitArea.on('pointerdown', () => {
         this.soundManager.playTribeSelect();
         this.scene.start('GameScene', {
-          humanTribeIndex: i,
+          humanTribeId: cfg.id,
           mapType: selectedMap,
           gameMode: selectedMode,
           speed: selectedSpeed,
