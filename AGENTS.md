@@ -109,18 +109,35 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-city-building-visual-improvements
 **Priority:** P3
+**Status:** ✅ Coach APPROVED 2026-06-26T23:35:00Z — commit df00a19
 **Description:** Cities show level but lack visual feedback for buildings placed:
 1. **Building sprites** — show visible improvements on city tile (walls for level 2+, temples, monuments)
 2. **Population growth** — visual indicator when city is about to level up
 3. **City border expansion** — animate border growth when city expands
 4. **Customize city name** — allow player to rename cities (like original game)
 
+**Verification:** 520/520 tests pass. Live page verified: Imperius loads correctly (no tribe regression). City circle with level pips, population progress bar renders. Entity graphics and update loop working. 0 console errors. RefQA passes.
+**Coach checks:** Build city wall → verify crenellation dots. Build temple/monument → verify gold triangle / blue diamond icons. Level up city → verify border pulse animation (1.25s fade ring). Use RENAME CITY menu option → verify name cycles through tribe pool.
+
+### Task: fix-ai-territory-expansion
+**Priority:** P2
+**Status:** ❌ Not started — 11 cycles stagnant
+**Description:** AI opponents still use basic wander-to-unseen behavior instead of prioritizing high-value tiles or strategic expansion. Remaining gap from fix-ai-opponent-intelligence (item 3: Territory expansion).
+1. **Tile valuation** — rate tiles by resource value (fruits > animals > forests for chopping) and strategic position
+2. **Enemy proximity** — prioritize tiles that push toward nearest enemy city when difficulty is Hard/Medium
+3. **Chokepoint awareness** — avoid expanding into dead-end peninsula tiles; prefer branching positions
+4. **Settler logic** — if AI has a settler unit, guide it toward high-value unclaimed tiles within 5-8 hexes of capital
+
+**Reference:** Original Polytopia AI expands strategically — captures resource-rich tiles first, creates front toward enemies.
+
 **Success criteria:**
-- City tile sprite updates when buildings are constructed
-- Population progress visible in city view
-- Border expansion has visual animation
-- City rename works (optional depth)
-**Coach checks:** Build a temple, verify visual change on city tile. Level up city, verify sprite update.
+- AI claims fruit/animal tiles before empty tiles when both are available
+- Hard AI expands in direction of nearest enemy
+- AI captures multiple cities in a full game (not just capital)
+- Territory-controlled hex count grows faster than current wander behavior
+- No regression in existing 520 passing tests
+
+**Coach checks:** Start a game vs Hard AI, observe AI city expansion over 20+ turns. Verify AI claims resource tiles and expands toward player. Compare tile ownership growth rate vs current behavior.
 
 ### Task: fix-save-load-game-state
 **Priority:** P3

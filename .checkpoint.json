@@ -8,6 +8,14 @@
   "phase_name": "AI, Animations, UX improvements",
   "completed": [
     {
+      "task": "fix-city-building-visual-improvements",
+      "sha": "df00a19",
+      "date": "2026-06-26",
+      "summary": "Added city wall outer ring with crenellation dots, temple gold triangles (up to 3), monument blue diamonds (up to 2), population growth progress bar below city circle, border pulse animation on level-up (~1.25s fade ring), and RENAME CITY option cycling through tribe name pool. 520 tests pass, 0 regressions.",
+      "coach": "approved",
+      "coach_verified_at": "2026-06-26T23:35:00Z"
+    },
+    {
       "task": "fix-scoring-display",
       "sha": "7e6e529",
       "date": "2026-06-25",
@@ -169,8 +177,8 @@
       "coach_verified_at": "2026-06-26T11:20:00Z"
     }
   ],
-  "health": "520_tests_pass_0_regressions_difficulty_behavior_added",
-  "current_task": "fix-ai-opponent-intelligence",
+  "health": "520_tests_pass_0_regressions_city_visuals_approved",
+  "current_task": "fix-ai-territory-expansion",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -178,8 +186,8 @@
       "item": "AI territory expansion still basic — no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
-      "evidence": "fix-ai-opponent-intelligence (7c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 10,
+      "evidence": "Now has dedicated AGENTS.md task fix-ai-territory-expansion. fix-ai-opponent-intelligence (7c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
+      "cycles_stagnant": 12,
       "status": "escalated"
     },
     {
@@ -192,10 +200,10 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "98eba7b",
-    "last_reviewed_at": "2026-06-26T22:35:00Z",
+    "last_reviewed_sha": "df00a19",
+    "last_reviewed_at": "2026-06-26T23:35:00Z",
     "verdict": "approved",
-    "notes": "APPROVED Tier 1: browser-verified Imperius tribe selection correct, game starts Turn 1, AI processes 6 tribes, Tech Tree works. 520/520 tests pass. RefQA passes. Difficulty differentiation verified (commit 98eba7b). Territory expansion still escalated (10 cycles)."
+    "notes": "Coach cycle 2026-06-26 23:35 UTC. fix-city-building-visual-improvements (df00a19): 114 insertions in GameScene.ts — city wall crenellations, temple/monument icons, population progress bar, border pulse animation, rename cycle. 520 tests pass, 0 JS errors, RefQA passes. No regressions. AI territory expansion gap escalated to dedicated task (12 cycles stagnant). Next: fix-ai-territory-expansion."
   },
-  "note": "Tick 2026-06-26T22:35 UTC. Coach APPROVED feat(ai): difficulty-driven behavioral differentiation (98eba7b). Live verification: tribe selection correct (Imperius→Fishing), Turn 1→2 AI processes 6 tribes, Tech Tree works. 520 tests pass, RefQA passes. Territory expansion escalated (10 cycles)."
+  "note": "Tick 2026-06-26T23:35 UTC. Coach APPROVED fix-city-building-visual-improvements (df00a19). City visuals verified live. AI territory expansion escalated to new AGENTS.md task (12 cycles stagnant). Next: fix-ai-territory-expansion."
 }
