@@ -42,13 +42,13 @@ Browser-based The Battle of Polytopia clone built with Phaser 3 (WebGL + Web Aud
 2. **Unit production** — ✅ Addressed in 7b510c9. `pickBalancedUnit()` ensures ranged/melee/tank mix instead of always picking highest attack. Avoids over-training one type.
 3. **Territory expansion** — ❌ Not addressed. AI still uses basic wander-to-unseen behavior. Does not prioritize high-value resource tiles or strategic chokepoints.
 4. **Combat targeting** — ✅ Partially addressed in 7b510c9. Threat-aware retreat prevents <25% HP units from suicide attacks. Still targets lowest-HP enemy first (existing behavior).
-5. **Difficulty levels** — ❌ Not addressed. Easy/Medium/Hard only differ by `minUnitsForUpgrade`, `techStarsThreshold`, `moveSkipChance` options. No observable strategic behavior difference.
+5. **Difficulty levels** — ✅ Addressed in 98eba7b. Easy AI picks economic upgrades (B), avoids combat unless one-shot or 2:1 HP advantage. Hard AI picks military upgrades (A), hunts enemies within 8 hexes. Medium uses balanced tactical logic. 5 new tests verify observable differences.
 
 Reference: Original Polytopia AI adapts to player skill. Implement at minimum a competent scripted AI (Medium) and a simple random/weak AI (Easy).
 **Success criteria:**
 - AI plays a full game to completion without crashing — ✅ (existing)
 - AI expands territory, builds units, attacks enemy cities — ✅ partial (no strategic territory expansion)
-- Hard AI is observably more effective than Easy AI (wins more, higher score) — ❌ not yet
+- Hard AI is observably more effective than Easy AI (wins more, higher score) — ✅ Addressed in 98eba7b: Hard hunts enemies & picks military, Easy avoids combat & picks economic
 - No regression in existing 515 passing tests — ✅ (all 515 pass)
 **Coach checks:** Start a game vs AI, observe AI behavior over 20+ turns. Verify AI captures cities, builds improvements, uses combat effectively. Compare Easy vs Hard behavior difference.
 

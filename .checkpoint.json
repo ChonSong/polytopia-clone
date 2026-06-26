@@ -169,7 +169,7 @@
       "coach_verified_at": "2026-06-26T11:20:00Z"
     }
   ],
-  "health": "515_tests_pass_0_regressions_build_clean_tribe_fixed_live_verified",
+  "health": "520_tests_pass_0_regressions_difficulty_behavior_added",
   "current_task": "fix-ai-opponent-intelligence",
   "blocker": null,
   "all_coach_tasks_done": false,
@@ -178,24 +178,24 @@
       "item": "AI territory expansion still basic — no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
-      "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 8,
+      "evidence": "fix-ai-opponent-intelligence (7c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
+      "cycles_stagnant": 10,
       "status": "escalated"
     },
     {
-      "item": "AI difficulty differentiation still minimal — Easy/Medium/Hard only differ by options config",
-      "type": "partial_implementation",
+      "item": "AI difficulty differentiation now implemented (commit 98eba7b) — Easy avoids combat + picks economic, Hard hunts enemies + picks military",
+      "type": "completed",
       "priority": 2,
-      "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
-      "cycles_stagnant": 8,
-      "status": "escalated"
+      "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
+      "cycles_stagnant": 0,
+      "status": "completed"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "e45e61e",
-    "last_reviewed_at": "2026-06-26T11:51:47Z",
+    "last_reviewed_sha": "98eba7b",
+    "last_reviewed_at": "2026-06-26T22:35:00Z",
     "verdict": "approved",
-    "notes": "Coach cycle 2026-06-26 11:51 UTC. Reviewed pending feature commits: a1b035b (audio) — SoundManager clean, Web Audio API synthesis, mute toggle integrated. 86410dc (ranged combat) — projectile animation with trail, health bars, color-coded per type. 914395d (tech tree) — dependency edges, progress bars, category filters, all complete. P1 tribe blocker (08151c0) confirmed fixed. APPROVED all 3. Minor gap: task spec mentions volume slider but only mute toggle implemented. AI spec_gaps at 7 cycles stagnant."
+    "notes": "APPROVED Tier 1: browser-verified Imperius tribe selection correct, game starts Turn 1, AI processes 6 tribes, Tech Tree works. 520/520 tests pass. RefQA passes. Difficulty differentiation verified (commit 98eba7b). Territory expansion still escalated (10 cycles)."
   },
-  "note": "Tick 2026-06-26 11:51 UTC. Coach review: a1b035b (audio), 86410dc (ranged combat), 914395d (tech tree) APPROVED. 515 tests pass, 0 JS errors, RefQA passes. Next: fix-ai-opponent-intelligence (AI territory expansion + difficulty differentiation still open, 8 cycles stagnant)."
+  "note": "Tick 2026-06-26T22:35 UTC. Coach APPROVED feat(ai): difficulty-driven behavioral differentiation (98eba7b). Live verification: tribe selection correct (Imperius→Fishing), Turn 1→2 AI processes 6 tribes, Tech Tree works. 520 tests pass, RefQA passes. Territory expansion escalated (10 cycles)."
 }
