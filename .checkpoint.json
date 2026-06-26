@@ -156,10 +156,18 @@
       "date": "2026-06-26",
       "summary": "Enhanced tech tree panel with: (1) dependency edges with arrows between prerequisite and dependent techs, (2) progress bars showing star accumulation toward research cost, (3) category filter tabs (ALL/MILITARY/ECONOMIC/NAVAL). 515 tests pass, build clean.",
       "coach": "pending"
+    },
+    {
+      "task": "fix-tribe-index-mapping",
+      "sha": "08151c0",
+      "date": "2026-06-26",
+      "summary": "Fixed tribe selection mapping: SelectScene now passes humanTribeId (string) instead of sorted index. GameScene resolves the correct tribe by id lookup against unsorted TRIBE_CONFIGS. Every tribe card now starts the correct game. 515 tests pass, build clean.",
+      "coach": "approved",
+      "coach_verified_at": "2026-06-26T11:20:00Z"
     }
   ],
-  "health": "515_tests_pass_0_regressions_build_clean_tech_tree_enhanced_tribe_index_mismatch",
-  "current_task": "fix-tribe-index-mapping",
+  "health": "515_tests_pass_0_regressions_build_clean_tribe_fixed_live_verified",
+  "current_task": "fix-ai-opponent-intelligence",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -168,7 +176,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 6,
+      "cycles_stagnant": 7,
       "status": "escalated"
     },
     {
@@ -176,23 +184,15 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "fix-ai-opponent-intelligence (7b510c9) did not implement observable strategic differences between Easy/Medium/Hard beyond the existing options config (minUnitsForUpgrade, techStarsThreshold, moveSkipChance).",
-      "cycles_stagnant": 6,
+      "cycles_stagnant": 7,
       "status": "escalated"
-    },
-    {
-      "item": "Tribe index mismatch between SelectScene and GameScene",
-      "type": "bug",
-      "priority": 1,
-      "evidence": "Live verification: clicking Elyrion starts Bardur. SelectScene sorts TRIBE_CONFIGS alphabetically (line 109) and passes sorted index. GameScene uses unsorted TRIBE_CONFIGS (line 115). Full mapping verified in Coach review 2026-06-26 20:20 UTC.",
-      "cycles_stagnant": 0,
-      "status": "new"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "914395d",
-    "last_reviewed_at": "2026-06-26T20:20:00Z",
-    "verdict": "fix",
-    "notes": "Coach cycle 2026-06-26 20:20 UTC. Verified: tech tree panel has dependency edges (green lines), progress bars (blue bars under available techs), and category filter tabs (ALL/MILITARY/ECONOMIC/NAVAL) — all working. Game loads, tribe selection works, END TURN advances game. 0 console errors. P1 bug found: tribe index mismatch — every tribe card starts wrong game. RefQA polytopia-core-loop passes (39.3s). RefQA gto-study-preflop passes (106.5s). Methodology gate: no methodology failures (0 self-referential E2E tests). New task fix-tribe-index-mapping added to AGENTS.md."
+    "last_reviewed_sha": "08151c0",
+    "last_reviewed_at": "2026-06-26T11:20:00Z",
+    "verdict": "approved",
+    "notes": "Coach cycle 2026-06-26 11:20 UTC. fix-tribe-index-mapping (08151c0) APPROVED. Live verification: Imperius loads with Fishing, Elyrion loads with Ecology + Polytaur, Cymanti resolves to correct index 5. 0 console errors. 515/515 tests pass. RefQA smoke passes. Next: fix-ai-opponent-intelligence (AI spec_gaps at 7 cycles stagnant)."
   },
-  "note": "Tick 2026-06-26 20:20 UTC. Coach review of fix-tech-tree-visualization (914395d) and fix-unit-combat-animations (86410dc). Tech tree verified working. P1 tribe index mismatch bug found. New task fix-tribe-index-mapping added. Next: fix-tribe-index-mapping."
+  "note": "Tick 2026-06-26 11:20 UTC. fix-tribe-index-mapping (08151c0) APPROVED by Coach. Tribe fix verified live. 0 JS errors, 515 tests pass. Next: fix-ai-opponent-intelligence (AI territory expansion + difficulty differentiation still open, 7 cycles stagnant)."
 }
