@@ -158,7 +158,7 @@ export const NAVAL_UNIT_TYPES: Set<UnitType> = new Set([
 ]);
 
 export class Unit {
-  public readonly id: string;
+  public id: string;
   public health: number;
   /** Whether this unit has already acted (moved/attacked) this turn. */
   public hasActed: boolean;

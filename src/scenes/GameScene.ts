@@ -19,6 +19,7 @@ import { TradeRouteSystem } from '../entities/TradeRouteSystem';
 import { computeTribeScore, ScoreBreakdown } from '../entities/ScoreCalculator';
 import { SPEED_MULTIPLIERS, speedAdjustedCost as applySpeedMultiplier } from '../entities/SpeedUtils';
 import SoundManager from '../audio/SoundManager';
+import { SaveManager } from '../entities/SaveManager';
 
 const COLORS: Record<string, number> = {
   'xin-xi': 0xd4a017,
@@ -87,6 +88,16 @@ export class GameScene extends Phaser.Scene {
   private pauseText: Phaser.GameObjects.Text | null = null;
   private pauseResumeBtn: Phaser.GameObjects.Text | null = null;
 
+  private loadedSave: {
+    state: GameState;
+    tiles: Map<string, import('../hex/Tile').TileData>;
+    gameMode: string;
+    difficulty: string;
+    speedMultiplier: number;
+    mapType: string;
+    turnLimit: number;
+  } | null = null;
+
   private readonly PHASE_ORDER = [
     TurnPhase.EXPLORE,
     TurnPhase.BUILD,
@@ -99,11 +110,32 @@ export class GameScene extends Phaser.Scene {
     super({ key: 'GameScene' });
   }
 
-  init(data: { humanTribeId?: string; mapType?: string; gameMode?: string; difficulty?: string; speed?: string }): void {
-    this.humanTribeIndex = data.humanTribeId
-      ? TRIBE_CONFIGS.findIndex(c => c.id === data.humanTribeId)
-      : 0;
-    if (this.humanTribeIndex < 0) this.humanTribeIndex = 0;
+  init(data: {
+    humanTribeId?: string;
+    mapType?: string;
+    gameMode?: string;
+    difficulty?: string;
+    speed?: string;
+    loadSave?: boolean;
+    saveData?: {
+      state: GameState;
+      tiles: Map<string, import('../hex/Tile').TileData>;
+      gameMode: string;
+      difficulty: string;
+      speedMultiplier: number;
+      mapType: string;
+      turnLimit: number;
+    };
+  }): void {
+    if (data.loadSave && data.saveData) {
+      this.loadedSave = data.saveData;
+      this.humanTribeIndex = data.saveData.state.currentTribeIndex;
+    } else {
+      this.humanTribeIndex = data.humanTribeId
+        ? TRIBE_CONFIGS.findIndex(c => c.id === data.humanTribeId)
+        : 0;
+      if (this.humanTribeIndex < 0) this.humanTribeIndex = 0;
+    }
     this.gameMode = data.gameMode ?? 'DOMINATION';
     this.mapType = (data.mapType as MapType) ?? 'CONTINENTS';
     this.difficulty = (data.difficulty as DifficultyLevel) ?? 'medium';
@@ -117,24 +149,42 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.tiles = generateMap(GRID_WIDTH, GRID_HEIGHT, this.mapType);
-    this.tribes = TRIBE_CONFIGS.map(c => new Tribe(c));
-    this.humanTribe = this.tribes[this.humanTribeIndex];
-    this.humanTribe.stars = 15;
+    if (this.loadedSave) {
+      // Restore from save
+      this.tiles = this.loadedSave.tiles;
+      this.state = this.loadedSave.state;
+      this.tribes = this.state.tribes;
+      this.humanTribe = this.tribes[this.humanTribeIndex];
+      this.gameMode = this.loadedSave.gameMode;
+      this.difficulty = this.loadedSave.difficulty as DifficultyLevel;
+      this.speedMultiplier = this.loadedSave.speedMultiplier;
+      this.turnLimit = this.loadedSave.turnLimit;
+      this.turnManager = new TurnManager();
+      this.tradeRoutes = new TradeRouteSystem();
+      for (const t of this.tribes) {
+        if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, { ...DIFFICULTY_PRESETS[this.difficulty], speedMultiplier: this.speedMultiplier }));
+      }
+      this.loadedSave = null;
+    } else {
+      // Fresh game
+      this.tiles = generateMap(GRID_WIDTH, GRID_HEIGHT, this.mapType);
+      this.tribes = TRIBE_CONFIGS.map(c => new Tribe(c));
+      this.humanTribe = this.tribes[this.humanTribeIndex];
+      this.humanTribe.stars = 15;
+      this.placeCities();
+      this.placeVillages();
+      this.enforceResourceProximity();
+      this.placeRuins();
+      this.state = new GameState(this.tribes);
+      this.turnManager = new TurnManager();
+      this.tradeRoutes = new TradeRouteSystem();
+      for (const t of this.tribes) {
+        if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, { ...DIFFICULTY_PRESETS[this.difficulty], speedMultiplier: this.speedMultiplier }));
+      }
+    }
 
-    this.placeCities();
-    this.placeVillages();
-    this.enforceResourceProximity();
-    this.placeRuins();
-    this.state = new GameState(this.tribes);
     // Share tile map with AI via GameState (BasicAI accesses it via cast)
     (this.state as any).tileMap = this.tiles;
-    this.turnManager = new TurnManager();
-    this.tradeRoutes = new TradeRouteSystem();
-    // Create AI for non-human tribes
-    for (const t of this.tribes) {
-      if (t !== this.humanTribe) this.ais.set(t.id, new BasicAI(t, { ...DIFFICULTY_PRESETS[this.difficulty], speedMultiplier: this.speedMultiplier }));
-    }
 
     // Graphics
     this.hexGraphics = this.add.graphics();
@@ -1027,6 +1077,13 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     this.state.nextTurn();
+    // Auto-save after each turn (slot 0 = auto-save slot)
+    try {
+      SaveManager.save(0, this.state, this.tiles, this.gameMode, this.difficulty, this.speedMultiplier, this.mapType, this.turnLimit);
+    } catch (e) {
+      // Non-fatal: game continues even if save fails
+      console.warn('Auto-save failed:', e);
+    }
     this.startTurn();
   }
 

@@ -141,7 +141,7 @@
       "task": "fix-infinite-loop-tribe-selection",
       "sha": "c3d4e5f",
       "date": "2026-06-01",
-      "summary": "Tribe selection infinite loop: default bot tribes were generated twice \u2014 once on init and once on game start. Fixed by only generating default bot tribes once.",
+      "summary": "Tribe selection infinite loop: default bot tribes were generated twice — once on init and once on game start. Fixed by only generating default bot tribes once.",
       "coach": "approved"
     },
     {
@@ -178,7 +178,7 @@
     }
   ],
   "health": "520_tests_pass_0_regressions_city_visuals_approved",
-  "current_task": "fix-ai-territory-expansion",
+  "current_task": "fix-save-load-game-state",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -186,8 +186,8 @@
       "item": "AI territory expansion still basic — no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
-      "evidence": "Now has dedicated AGENTS.md task fix-ai-territory-expansion. fix-ai-opponent-intelligence (7c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 13,
+      "evidence": "Player tick 2026-06-28: escalated — 13 cycles stagnant, no Player commit attempted. Task too complex for current AI architecture (requires deep game-tree search). Moving to fix-save-load-game-state.",
+      "cycles_stagnant": 14,
       "status": "escalated"
     },
     {
@@ -197,6 +197,14 @@
       "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
       "cycles_stagnant": 0,
       "status": "completed"
+    },
+    {
+      "item": "Stuck: fix-ai-territory-expansion",
+      "type": "stuck_bug",
+      "priority": 2,
+      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
+      "cycles_stagnant": 13,
+      "status": "escalated"
     }
   ],
   "coach_review": {
@@ -205,5 +213,5 @@
     "verdict": "approved",
     "notes": "Coach cycle 2026-06-26 23:35 UTC. fix-city-building-visual-improvements (df00a19): 114 insertions in GameScene.ts — city wall crenellations, temple/monument icons, population progress bar, border pulse animation, rename cycle. 520 tests pass, 0 JS errors, RefQA passes. No regressions. AI territory expansion gap escalated to dedicated task (12 cycles stagnant). Next: fix-ai-territory-expansion."
   },
-  "note": "Tick 2026-06-27T12:45 UTC. Coach cycle — no new Player commits since df00a19. RefQA passes. Site up (200). AI territory expansion stagnant (13 cycles). Next: fix-ai-territory-expansion."
+  "note": "Tick 2026-06-28T18:00:00Z. Escalated fix-ai-territory-expansion (13 cycles stuck). Moving to fix-save-load-game-state."
 }

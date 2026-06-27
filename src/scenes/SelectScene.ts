@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MAP_TYPES } from '../hex/MapGenerator';
 import { TRIBE_CONFIGS } from '../entities/Tribe';
 import SoundManager from '../audio/SoundManager';
+import { SaveManager } from '../entities/SaveManager';
 
 export enum GameMode {
   DOMINATION = 'DOMINATION',
@@ -144,5 +145,33 @@ export class SelectScene extends Phaser.Scene {
       hitArea.on('pointerover', () => bg.setAlpha(0.6));
       hitArea.on('pointerout', () => bg.setAlpha(1));
     });
+
+    // Load Game button
+    const hasSave = SaveManager.hasSave(0) || SaveManager.hasSave(1) || SaveManager.hasSave(2);
+    if (hasSave) {
+      const loadBtn = this.add.text(width / 2, height - 40, '📂 LOAD GAME', {
+        fontSize: '18px', color: '#8af', fontFamily: 'monospace',
+        backgroundColor: '#222', padding: { x: 12, y: 6 },
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      loadBtn.on('pointerdown', () => {
+        this.soundManager.playUIclick();
+        // Load from the most recent slot
+        const slots = SaveManager.getSlotInfo();
+        const newest = slots
+          .filter(s => s.savedAt !== null)
+          .sort((a, b) => (b.savedAt ?? '').localeCompare(a.savedAt ?? ''))[0];
+        if (newest) {
+          const data = SaveManager.load(newest.slot);
+          if (data) {
+            this.scene.start('GameScene', {
+              loadSave: true,
+              saveData: data,
+            });
+          }
+        }
+      });
+      loadBtn.on('pointerover', () => loadBtn.setStyle({ color: '#fff' }));
+      loadBtn.on('pointerout', () => loadBtn.setStyle({ color: '#8af' }));
+    }
   }
 }
