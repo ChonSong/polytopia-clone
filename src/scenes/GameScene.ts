@@ -106,6 +106,24 @@ export class GameScene extends Phaser.Scene {
     TurnPhase.END,
   ];
 
+  // Responsive HUD: store references and reposition on resize
+  private hudElements: {
+    bg: Phaser.GameObjects.Graphics;
+    tribeText: Phaser.GameObjects.Text;
+    phaseText: Phaser.GameObjects.Text;
+    infoText: Phaser.GameObjects.Text;
+    waitBtn: Phaser.GameObjects.Text;
+    convertBtn: Phaser.GameObjects.Text;
+    healBtn: Phaser.GameObjects.Text;
+    submergeBtn: Phaser.GameObjects.Text;
+    emergeBtn: Phaser.GameObjects.Text;
+    infiltrateBtn: Phaser.GameObjects.Text;
+    enchantBtn: Phaser.GameObjects.Text;
+    endTurnBtn: Phaser.GameObjects.Text;
+    techBtn: Phaser.GameObjects.Text;
+    muteBtn: Phaser.GameObjects.Text;
+  } | null = null;
+
   constructor() {
     super({ key: 'GameScene' });
   }
@@ -193,7 +211,7 @@ export class GameScene extends Phaser.Scene {
     const startCity = this.humanTribe.cities[0];
     if (startCity) {
       const cp = startCity.position.toPixel(HEX_SIZE);
-      this.cameras.main.setScroll(cp.x - 400, cp.y - 300);
+      this.cameras.main.setScroll(cp.x - this.scale.width / 2, cp.y - this.scale.height / 2);
     }
     this.entityGraphics = this.add.graphics();
     this.rangeGraphics = this.add.graphics().setDepth(5);
@@ -223,11 +241,9 @@ export class GameScene extends Phaser.Scene {
       this.handleClick(p.x, p.y);
     });
 
-    // HUD — fixed to camera, high-contrast
+    // HUD — fixed to camera, high-contrast (positions set by layoutHUD)
     const s = { fontSize: '16px', color: '#eee', fontFamily: 'monospace' };
     const bg = this.add.graphics().setScrollFactor(0).setDepth(19);
-    bg.fillStyle(0x000, 0.65);
-    bg.fillRoundedRect(4, 4, 320, 72, 6);
 
     this.tribeText = this.add.text(38, 10, '', { ...s, fontSize: '20px', color: '#ffd' })
       .setScrollFactor(0).setDepth(20);
@@ -244,8 +260,6 @@ export class GameScene extends Phaser.Scene {
     this.waitBtn.on('pointerdown', () => {
       this.soundManager.playUIclick();
       if (!this.isPaused && !this.isAiRunning && this.selectedUnit && !this.selectedUnit.hasActed) {
-        // Deselect the unit without marking hasActed = true
-        // Unit stays inactive → eligible for end-of-turn healing (+4 friendly, +2 other)
         this.selectedUnit = null;
         this.selectedHex = null;
         this.renderAll();
@@ -254,7 +268,7 @@ export class GameScene extends Phaser.Scene {
     });
     this.waitBtn.on('pointerover', () => this.waitBtn!.setStyle({ backgroundColor: '#353' }));
     this.waitBtn.on('pointerout', () => this.waitBtn!.setStyle({ backgroundColor: '#232' }));
-    this.waitBtn.setVisible(false); // hidden until a unit is selected
+    this.waitBtn.setVisible(false);
 
     // Convert button (Mind Bender) — camera-fixed
     this.convertBtn = this.add.text(440, 40, '[ CONVERT ]', {
@@ -344,8 +358,8 @@ export class GameScene extends Phaser.Scene {
         this.performEnchantment(this.selectedUnit);
       }
     });
-    this.enchantBtn.on('pointerover', () => this.enchantBtn?.setStyle({ backgroundColor: '#444' }));
-    this.enchantBtn.on('pointerout', () => this.enchantBtn?.setStyle({ backgroundColor: '#232' }));
+    this.enchantBtn.on('pointerover', () => this.enchantBtn!.setStyle({ backgroundColor: '#535' }));
+    this.enchantBtn.on('pointerout', () => this.enchantBtn!.setStyle({ backgroundColor: '#232' }));
     this.enchantBtn.setVisible(false);
 
     // End Turn (camera-fixed)
@@ -388,6 +402,30 @@ export class GameScene extends Phaser.Scene {
     this.muteBtn.on('pointerout', () => this.muteBtn.setAlpha(1));
     this.soundManager.mute = this.sound.mute;
 
+    // Store HUD element references for responsive layout
+    this.hudElements = {
+      bg,
+      tribeText: this.tribeText,
+      phaseText: this.phaseText,
+      infoText: this.infoText,
+      waitBtn: this.waitBtn,
+      convertBtn: this.convertBtn,
+      healBtn: this.healBtn,
+      submergeBtn: this.submergeBtn,
+      emergeBtn: this.emergeBtn,
+      infiltrateBtn: this.infiltrateBtn,
+      enchantBtn: this.enchantBtn,
+      endTurnBtn: btn,
+      techBtn,
+      muteBtn: this.muteBtn,
+    };
+
+    // Apply responsive layout (repositions based on actual canvas size)
+    this.layoutHUD();
+
+    // Listen for resize events
+    this.scale.on('resize', () => this.layoutHUD());
+
     this.renderAll();
     this.updateUI();
     this.startTurn();
@@ -413,6 +451,81 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Responsive HUD layout — repositions all HUD elements based on actual canvas size.
+   * Design basis: 800×600. On smaller canvases, elements scale down and shift to stay visible.
+   */
+  private layoutHUD(): void {
+    if (!this.hudElements) return;
+    const h = this.hudElements;
+    const cw = this.scale.width;   // actual canvas width in px
+    const ch = this.scale.height;  // actual canvas height in px
+    const designW = 800;
+    const designH = 600;
+    // Use the smaller of the two scale factors to keep everything visible
+    const sx = cw / designW;
+    const sy = ch / designH;
+    const s = Math.min(sx, sy); // uniform scale factor
+    // Center offset (when aspect ratio doesn't match, Phaser FIT centers with letterboxing)
+    const offX = (cw - designW * s) / 2;
+    const offY = (ch - designH * s) / 2;
+
+    // Helper: scale a design-coordinate position to actual canvas position
+    const px = (x: number) => offX + x * s;
+    const py = (y: number) => offY + y * s;
+    const fs = (size: number) => Math.max(10, Math.round(size * s)); // font size, min 10px
+
+    // Top-left info panel (tribe/phase/info)
+    const panelW = 320 * s;
+    const panelH = 72 * s;
+    h.bg.clear();
+    h.bg.fillStyle(0x000, 0.65);
+    h.bg.fillRoundedRect(px(4), py(4), panelW, panelH, 6 * s);
+
+    h.tribeText.setPosition(px(38), py(10)).setFontSize(fs(20));
+    h.phaseText.setPosition(px(12), py(36)).setFontSize(fs(16));
+    h.infoText.setPosition(px(12), py(58)).setFontSize(fs(13));
+
+    // Top-right action buttons — stack vertically on small screens
+    const btnFontSize = fs(14);
+    const mainBtnFontSize = fs(16);
+    const bigBtnFontSize = fs(20);
+
+    // End Turn — always top-right
+    h.endTurnBtn.setPosition(px(660), py(10)).setFontSize(bigBtnFontSize);
+    // Tech — left of End Turn
+    h.techBtn.setPosition(px(530), py(10)).setFontSize(mainBtnFontSize);
+    // Wait — below End Turn
+    h.waitBtn.setPosition(px(660), py(10 + 32)).setFontSize(mainBtnFontSize);
+    // Convert — below Wait
+    h.convertBtn.setPosition(px(440), py(40)).setFontSize(btnFontSize);
+    // Heal — below Convert
+    h.healBtn.setPosition(px(560), py(40)).setFontSize(btnFontSize);
+    // Submerge/Emerge — lower row
+    h.submergeBtn.setPosition(px(440), py(70)).setFontSize(btnFontSize);
+    h.emergeBtn.setPosition(px(560), py(70)).setFontSize(btnFontSize);
+    // Infiltrate — lower
+    h.infiltrateBtn.setPosition(px(440), py(100)).setFontSize(btnFontSize);
+    // Enchant — top row right area
+    h.enchantBtn.setPosition(px(560), py(10)).setFontSize(btnFontSize);
+
+    // Sound toggle — always top-left corner
+    h.muteBtn.setPosition(px(10), py(10)).setFontSize(fs(22));
+
+    // Pause overlay — fill entire canvas
+    if (this.pauseBg) {
+      this.pauseBg.clear();
+      this.pauseBg.fillStyle(0x000000, 0.55);
+      this.pauseBg.fillRect(0, 0, cw, ch);
+    }
+    if (this.pauseText) {
+      this.pauseText.setPosition(cw / 2, ch / 2 - 40).setFontSize(Math.max(24, Math.round(48 * s)));
+    }
+    if (this.pauseResumeBtn) {
+      this.pauseResumeBtn.setPosition(cw / 2, ch / 2 + 40).setFontSize(Math.max(14, Math.round(20 * s)));
+    }
+  }
+
   private togglePause(): void {
     if (this.isPaused) {
       this.resumeGame();
@@ -431,17 +544,17 @@ export class GameScene extends Phaser.Scene {
     // Semi-transparent backdrop covering the full viewport
     this.pauseBg = this.add.graphics().setScrollFactor(0).setDepth(100);
     this.pauseBg.fillStyle(0x000000, 0.55);
-    this.pauseBg.fillRect(0, 0, 800, 600);
+    this.pauseBg.fillRect(0, 0, this.scale.width, this.scale.height);
     this.pauseOverlay.add(this.pauseBg);
 
-    // PAUSED title text
-    this.pauseText = this.add.text(400, 240, 'PAUSED', {
+    // PAUSED title text — center of canvas
+    this.pauseText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 40, 'PAUSED', {
       fontSize: '48px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
     this.pauseOverlay.add(this.pauseText);
 
-    // Resume button
-    this.pauseResumeBtn = this.add.text(400, 320, '[ Resume (ESC) ]', {
+    // Resume button — center below title
+    this.pauseResumeBtn = this.add.text(this.scale.width / 2, this.scale.height / 2 + 40, '[ Resume (ESC) ]', {
       fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
       backgroundColor: '#333', padding: { x: 12, y: 8 },
     }).setOrigin(0.5).setScrollFactor(0).setDepth(101)

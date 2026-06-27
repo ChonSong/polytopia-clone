@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Polytopia Clone</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #1a1a2e; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    #game { width: 100%; height: 100%; max-width: 800px; max-height: 600px; }
+    html, body { background: #1a1a2e; overflow: hidden; width: 100%; height: 100%; }
+    body { display: flex; justify-content: center; align-items: center; touch-action: none; }
+    #game { width: 100%; height: 100%; }
+    canvas { display: block; touch-action: none; }
   </style>
 </head>
 <body>

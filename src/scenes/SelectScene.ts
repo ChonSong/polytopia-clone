@@ -105,32 +105,41 @@ export class SelectScene extends Phaser.Scene {
       diffLabels.push(lbl);
     });
 
-    // Tribe cards — sorted alphabetically by name for easier browsing
-    const cardW = 170, gap = 15;
+    // Tribe cards — responsive grid layout
     const sortedTribes = [...TRIBE_CONFIGS].sort((a, b) => a.name.localeCompare(b.name));
+    const gap = Math.min(15, width * 0.02);
+    const cardW = Math.min(170, Math.max(80, (width - 32) / Math.min(sortedTribes.length, 6) - gap));
+    const cardH = Math.min(220, cardW * 1.3);
+    const cols = Math.min(sortedTribes.length, Math.floor((width - 16) / (cardW + gap)));
     const totalCards = sortedTribes.length;
-    const startX = (width - (cardW * totalCards + gap * (totalCards - 1))) / 2;
+    const rows = Math.ceil(totalCards / cols);
+    const gridW = cols * (cardW + gap) - gap;
+    const startX = (width - gridW) / 2;
+    const cardStartY = 220;
     sortedTribes.forEach((cfg, i) => {
-      const cx = startX + i * (cardW + gap);
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const cx = startX + col * (cardW + gap);
+      const cy = cardStartY + row * (cardH + gap);
       const bg = this.add.graphics();
       bg.fillStyle(cfg.color, 0.3);
-      bg.fillRoundedRect(cx, 220, cardW, 220, 8);
+      bg.fillRoundedRect(cx, cy, cardW, cardH, 8);
       bg.lineStyle(2, cfg.color, 0.6);
-      bg.strokeRoundedRect(cx, 220, cardW, 220, 8);
+      bg.strokeRoundedRect(cx, cy, cardW, cardH, 8);
 
-      this.add.text(cx + cardW / 2, 240, cfg.name, {
-        fontSize: '20px', color: '#ffd', fontFamily: 'monospace',
+      this.add.text(cx + cardW / 2, cy + 20, cfg.name, {
+        fontSize: Math.max(14, Math.round(cardW * 0.12)) + 'px', color: '#ffd', fontFamily: 'monospace',
       }).setOrigin(0.5);
 
       const startTech = cfg.id === 'xin-xi' || cfg.id === 'oumaji' ? 'Riding' :
         cfg.id === 'bardur' ? 'Hunting' : cfg.id === 'polaris' ? 'Frostwork' :
         cfg.id === 'cymanti' ? 'Fungiculture' : cfg.id === 'elyrion' ? 'Ecology' : 'Fishing';
-      this.add.text(cx + cardW / 2, 270, `Start: ${startTech}`, {
-        fontSize: '12px', color: '#aaa', fontFamily: 'monospace',
+      this.add.text(cx + cardW / 2, cy + 50, `Start: ${startTech}`, {
+        fontSize: Math.max(10, Math.round(cardW * 0.07)) + 'px', color: '#aaa', fontFamily: 'monospace',
       }).setOrigin(0.5);
 
       // Click handler
-      const hitArea = this.add.rectangle(cx + cardW / 2, 220 + 110, cardW, 220, 0x000, 0)
+      const hitArea = this.add.rectangle(cx + cardW / 2, cy + cardH / 2, cardW, cardH, 0x000, 0)
         .setInteractive({ useHandCursor: true });
       hitArea.on('pointerdown', () => {
         this.soundManager.playTribeSelect();
@@ -146,9 +155,10 @@ export class SelectScene extends Phaser.Scene {
       hitArea.on('pointerout', () => bg.setAlpha(1));
     });
 
-    // Load Game button
+    // Load Game button — responsive positioning at bottom
+    const loadY = cardStartY + rows * (cardH + gap) + 20;
     const hasSave = SaveManager.hasSave(0) || SaveManager.hasSave(1) || SaveManager.hasSave(2);
-    if (hasSave) {
+    if (hasSave && loadY < height - 20) {
       const loadBtn = this.add.text(width / 2, height - 40, '📂 LOAD GAME', {
         fontSize: '18px', color: '#8af', fontFamily: 'monospace',
         backgroundColor: '#222', padding: { x: 12, y: 6 },
