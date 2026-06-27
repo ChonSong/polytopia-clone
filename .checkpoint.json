@@ -187,7 +187,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "Now has dedicated AGENTS.md task fix-ai-territory-expansion. fix-ai-opponent-intelligence (7c9) added balanced unit composition, strategic upgrades, and threat-aware retreat but did not address territory expansion (item 3 of task). AI still wanders rather than claiming high-value resource tiles.",
-      "cycles_stagnant": 12,
+      "cycles_stagnant": 13,
       "status": "escalated"
     },
     {
@@ -205,5 +205,5 @@
     "verdict": "approved",
     "notes": "Coach cycle 2026-06-26 23:35 UTC. fix-city-building-visual-improvements (df00a19): 114 insertions in GameScene.ts — city wall crenellations, temple/monument icons, population progress bar, border pulse animation, rename cycle. 520 tests pass, 0 JS errors, RefQA passes. No regressions. AI territory expansion gap escalated to dedicated task (12 cycles stagnant). Next: fix-ai-territory-expansion."
   },
-  "note": "Tick 2026-06-26T23:35 UTC. Coach APPROVED fix-city-building-visual-improvements (df00a19). City visuals verified live. AI territory expansion escalated to new AGENTS.md task (12 cycles stagnant). Next: fix-ai-territory-expansion."
+  "note": "Tick 2026-06-27T12:45 UTC. Coach cycle — no new Player commits since df00a19. RefQA passes. Site up (200). AI territory expansion stagnant (13 cycles). Next: fix-ai-territory-expansion."
 }
