@@ -173,7 +173,7 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: add-victory-screen (recovery-generated)
 **Priority:** P2
-**Status:** ✅ Implemented — commit (this tick). Full-screen overlay with victory/defeat title, winner announcement, score breakdown, Play Again + Main Menu buttons.
+**Status:** ✅ Implemented — commit f9e68f1. Full-screen overlay with victory/defeat title, winner announcement, score breakdown, Play Again + Main Menu buttons.
 **Description:** Game currently ends with only a text status message. Add a proper victory/defeat overlay:
 1. **Full-screen dimmed overlay** with trophy (victory) or skull (defeat) title
 2. **Winner announcement** — shows which tribe won and by what margin
@@ -189,3 +189,37 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 - Main Menu returns to tribe selection
 - No regression in 522 passing tests
 **Coach checks:** Start a game, trigger victory (conquer all enemy cities). Verify overlay appears with correct title. Click Play Again — verify fresh game starts. Click Main Menu — verify tribe selection appears.
+
+### Task: fix-sound-volume-slider (recovery-generated)
+**Priority:** P3
+**Status:** ❌ Not started
+**Description:** Sound effects and music were added in commit a1b035b with a mute toggle (🔊/🔇) but the task spec included a volume slider. Add a volume slider (0-100%) to control master volume level alongside the existing mute button:
+1. **Volume slider UI** — draggable slider bar next to mute button showing current volume level (0-100%)
+2. **Master volume control** — scale SoundManager's masterGain gain value by slider percentage (0.0-1.0)
+3. **Persist setting** — save volume level to localStorage (polytopia_volume) and restore on load
+4. **Visual feedback** — percentage text next to slider updates as dragged
+
+**Success criteria:**
+- Volume slider appears in-game (top-left or settings area)
+- Dragging slider changes master volume audibly (0% = silent, 50% = half volume, 100% = full)
+- Mute button still works independently (mute + slider at 50% = silent; unmute + slider at 50% = half)
+- Volume persists across page refresh
+- No regression in 522 passing tests
+**Coach checks:** Start a game, verify volume slider renders. Drag to 0% — verify game is silent. Drag to 100% — verify sounds play at full volume. Refresh page — verify slider position restored.
+
+### Task: fix-in-game-settings-panel (recovery-generated)
+**Priority:** P3
+**Status:** ❌ Not started
+**Description:** Game settings (volume, mute, game speed) are scattered across individual HUD buttons without a unified settings panel. Add an accessible settings overlay that collects all adjustable options:
+1. **Settings button** — gear icon ⚙️ in HUD opens settings overlay
+2. **Settings overlay** — semi-transparent panel with sections: Audio (volume slider + mute toggle), Game Speed (display current speed, option to change)
+3. **Speed selector** — show current speed multiplier, allow cycling between Normal (1x), Fast (2x), Slow (0.5x)
+4. **Close** — click outside overlay or X button to close
+
+**Success criteria:**
+- Gear button visible in HUD during gameplay
+- Settings overlay opens on click with volume + speed controls
+- Changing speed in overlay applies immediately
+- Clicking outside overlay closes it
+- No regression in 522 passing tests
+**Coach checks:** Open game, click ⚙️ gear button, verify settings panel appears with volume and speed controls. Change speed to Fast, observe animations accelerate. Close panel.

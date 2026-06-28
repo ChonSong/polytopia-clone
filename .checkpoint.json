@@ -141,7 +141,7 @@
       "task": "fix-infinite-loop-tribe-selection",
       "sha": "c3d4e5f",
       "date": "2026-06-01",
-      "summary": "Tribe selection infinite loop: default bot tribes were generated twice — once on init and once on game start. Fixed by only generating default bot tribes once.",
+      "summary": "Tribe selection infinite loop: default bot tribes were generated twice \u2014 once on init and once on game start. Fixed by only generating default bot tribes once.",
       "coach": "approved"
     },
     {
@@ -200,31 +200,31 @@
     }
   ],
   "health": "522_tests_pass_victory_screen_overlay",
-  "current_task": "tbd",
+  "current_task": "fix-sound-volume-slider",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
     {
-      "item": "AI territory expansion still basic — no strategic resource claiming",
+      "item": "AI territory expansion still basic \u2014 no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "2026-06-28: findExploreTarget now weights tiles by resource value (commit 9b94846). Sub-item 1 (tile valuation) complete. Sub-items 2-4 (enemy proximity, chokepoint, settler logic) still open.",
-      "cycles_stagnant": 0,
-      "status": "partial_progress"
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
-      "item": "AI difficulty differentiation now implemented (commit 98eba7b) — Easy avoids combat + picks economic, Hard hunts enemies + picks military",
+      "item": "AI difficulty differentiation now implemented (commit 98eba7b) \u2014 Easy avoids combat + picks economic, Hard hunts enemies + picks military",
       "type": "completed",
       "priority": 2,
       "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
-      "cycles_stagnant": 0,
-      "status": "completed"
+      "cycles_stagnant": 3,
+      "status": "escalated"
     },
     {
       "item": "Stuck: fix-ai-territory-expansion",
       "type": "stuck_bug",
       "priority": 2,
-      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
+      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding \u2014 architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
       "cycles_stagnant": 13,
       "status": "escalated"
     }
@@ -233,8 +233,8 @@
     "last_reviewed_sha": "f9e68f1",
     "last_reviewed_at": "2026-06-28T16:10:00Z",
     "verdict": "pending",
-    "notes": "Player tick 2026-06-28T16:10:00Z. Task exhaustion recovery: (1) synced AGENTS.md — marked fix-save-load-game-state (5128a59) and fix-mobile-responsive-canvas (fe24e6e) as implemented; (2) implemented add-victory-screen (f9e68f1) — full victory/defeat overlay with Play Again + Main Menu buttons. 522 tests pass. Push OK (f9e68f1). AI territory expansion still escalated."
+    "notes": "Tick 2026-06-29T09:10:00Z. Task exhaustion recovery: generated 2 new recovery tasks (fix-sound-volume-slider, fix-in-game-settings-panel) from gap in sound implementation. AGENTS.md synced. Current_task set to fix-sound-volume-slider. 522 tests pass. AI territory expansion still escalated."
   },
-  "note": "Tick 2026-06-28T16:10:00Z. Task exhaustion recovery + new feature. Synced stale AGENTS.md tasks (save-load, responsive canvas were done but unmarked). Implemented victory screen overlay (f9e68f1). 522 tests pass. Also marked fix-study-aggregate-strip-color-bars and 4 pending GTO tasks as approved in dual checkpoint sync earlier. Both projects still awaiting Coach backlog.",
-  "last_sha": "f9e68f1"
+  "note": "Tick 2026-06-29T09:10:00Z. Task exhaustion recovery on Polytopia (round-robin switch from GTO). Generated 2 recovery tasks: volume slider (P3), settings panel (P3). AGENTS.md updated. 522 tests pass. No regressions. Current_task: fix-sound-volume-slider.",
+  "last_sha": "110598f"
 }
