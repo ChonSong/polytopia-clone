@@ -81,6 +81,9 @@ export class GameScene extends Phaser.Scene {
   // Border expansion animation state
   private borderPulses: { x: number; y: number; progress: number; tribeColor: number }[] = [];
 
+  // Victory overlay state
+  private victoryOverlay: Phaser.GameObjects.Group | null = null;
+
   // Pause overlay state
   private isPaused = false;
   private pauseOverlay: Phaser.GameObjects.Group | null = null;
@@ -1180,13 +1183,13 @@ export class GameScene extends Phaser.Scene {
   private advanceTurn(): void {
     const winner = this.turnManager.checkWinCondition(this.tribes);
     if (winner) {
-      this.setStatus(`🏆 ${winner.name} wins!`);
-      this.isAiRunning = true;
+      this.showVictoryOverlay(winner);
       return;
     }
-    // Perfection mode turn limit
+    // Perfection mode turn limit — highest score wins
     if (this.gameMode === 'PERFECTION' && this.state.turn >= this.turnLimit) {
-      this.showFinalScore();
+      const sorted = [...this.tribes].sort((a, b) => this.calcScore(b) - this.calcScore(a));
+      this.showVictoryOverlay(sorted[0], true);
       return;
     }
     this.state.nextTurn();
@@ -1283,6 +1286,104 @@ export class GameScene extends Phaser.Scene {
     y += 4;
     this.add.text(colName, y, 'TOTAL', totalStyle).setScrollFactor(0).setDepth(51);
     this.add.text(colSub, y, `${breakdown.getTotal()} pts`, totalStyle).setScrollFactor(0).setDepth(51);
+  }
+
+  /**
+   * Show a full-screen victory/defeat overlay with final scores and action buttons.
+   * Replaces the plain-text status message that previously ended the game.
+   */
+  private showVictoryOverlay(winner: Tribe, isPerfection: boolean = false): void {
+    this.isAiRunning = true;
+    const cw = this.scale.width;
+    const ch = this.scale.height;
+
+    // Dim background
+    this.victoryOverlay = this.add.group();
+    const bg = this.add.rectangle(cw / 2, ch / 2, cw, ch, 0x000000, 0.75)
+      .setScrollFactor(0).setDepth(100);
+    this.victoryOverlay.add(bg);
+
+    // Title
+    const isHumanWinner = winner === this.humanTribe;
+    const titleText = isPerfection
+      ? '⏱ TIME\'S UP!'
+      : isHumanWinner
+        ? '🏆 VICTORY!'
+        : '💀 DEFEAT';
+    const titleColor = isHumanWinner ? '#ffd700' : '#e53935';
+    const title = this.add.text(cw / 2, ch * 0.15, titleText, {
+      fontSize: Math.max(28, Math.round(cw * 0.06)) + 'px',
+      color: titleColor,
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    this.victoryOverlay.add(title);
+
+    // Winner announcement
+    const winLine = isPerfection
+      ? `${winner.name} wins with ${this.calcScore(winner)} pts!`
+      : `${winner.name} conquers all!`;
+    const winText = this.add.text(cw / 2, ch * 0.25, winLine, {
+      fontSize: Math.max(16, Math.round(cw * 0.03)) + 'px',
+      color: '#eee',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    this.victoryOverlay.add(winText);
+
+    // Score breakdown for human tribe
+    const humanTribe = this.humanTribe ?? winner;
+    this.renderScoreBreakdown(humanTribe, []);
+
+    // Buttons
+    const btnW = Math.max(180, cw * 0.3);
+    const btnH = 44;
+    const btnY = ch * 0.78;
+    const gap = 20;
+
+    // Play Again button
+    const playBtnX = cw / 2 - btnW - gap / 2;
+    const playBg = this.add.rectangle(playBtnX, btnY, btnW, btnH, 0x00C853, 1)
+      .setOrigin(0.5).setScrollFactor(0).setDepth(101)
+      .setInteractive({ useHandCursor: true });
+    const playText = this.add.text(playBtnX, btnY, '🔄 PLAY AGAIN', {
+      fontSize: '18px', color: '#fff', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    playBg.on('pointerover', () => playBg.setFillStyle(0x00E676, 1));
+    playBg.on('pointerout', () => playBg.setFillStyle(0x00C853, 1));
+    playBg.on('pointerdown', () => {
+      this.soundManager.playUIclick();
+      this.victoryOverlay?.destroy(true);
+      this.victoryOverlay = null;
+      // Restart with same settings
+      this.scene.restart({
+        humanTribeId: this.humanTribe ? TRIBE_CONFIGS.find(c => c.id === this.humanTribe!.id)?.id : undefined,
+        mapType: this.mapType,
+        gameMode: this.gameMode,
+        difficulty: this.difficulty,
+        speed: this.speedMultiplier === 0.5 ? 'fast' : this.speedMultiplier === 2 ? 'slow' : 'normal',
+      });
+    });
+    this.victoryOverlay.add(playBg);
+    this.victoryOverlay.add(playText);
+
+    // Main Menu button
+    const menuBtnX = cw / 2 + gap / 2;
+    const menuBg = this.add.rectangle(menuBtnX, btnY + btnH + gap, btnW, btnH, 0x37474F, 1)
+      .setOrigin(0.5).setScrollFactor(0).setDepth(101)
+      .setInteractive({ useHandCursor: true });
+    const menuText = this.add.text(menuBtnX, btnY + btnH + gap, '🏠 MAIN MENU', {
+      fontSize: '18px', color: '#fff', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(102);
+    menuBg.on('pointerover', () => menuBg.setFillStyle(0x546E7A, 1));
+    menuBg.on('pointerout', () => menuBg.setFillStyle(0x37474F, 1));
+    menuBg.on('pointerdown', () => {
+      this.soundManager.playUIclick();
+      this.victoryOverlay?.destroy(true);
+      this.victoryOverlay = null;
+      this.scene.start('SelectScene');
+    });
+    this.victoryOverlay.add(menuBg);
+    this.victoryOverlay.add(menuText);
   }
 
   /** GDD §8 — Reveal tiles within vision range of all units and cities of a tribe. */

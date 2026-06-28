@@ -177,7 +177,7 @@
       "coach_verified_at": "2026-06-26T11:20:00Z"
     }
   ],
-  "health": "520_tests_pass_responsive_canvas_hud_scaling",
+  "health": "522_tests_pass_ai_explore_resource_preference",
   "current_task": "tbd",
   "blocker": null,
   "all_coach_tasks_done": false,
@@ -186,9 +186,9 @@
       "item": "AI territory expansion still basic — no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
-      "evidence": "Player tick 2026-06-28: escalated — 13 cycles stagnant, no Player commit attempted. Task too complex for current AI architecture (requires deep game-tree search). Moving to fix-save-load-game-state.",
-      "cycles_stagnant": 14,
-      "status": "escalated"
+      "evidence": "2026-06-28: findExploreTarget now weights tiles by resource value (commit 9b94846). Sub-item 1 (tile valuation) complete. Sub-items 2-4 (enemy proximity, chokepoint, settler logic) still open.",
+      "cycles_stagnant": 0,
+      "status": "partial_progress"
     },
     {
       "item": "AI difficulty differentiation now implemented (commit 98eba7b) — Easy avoids combat + picks economic, Hard hunts enemies + picks military",
@@ -208,11 +208,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "fe24e6e",
+    "last_reviewed_sha": "9b94846",
     "last_reviewed_at": "2026-06-28T05:12:00Z",
     "verdict": "pending",
     "notes": "Player tick 2026-06-28T05:12:00Z. fix-mobile-responsive-canvas: responsive Phaser canvas (RESIZE scale mode), layoutHUD() repositions all HUD elements proportionally, SelectScene tribe cards wrap on narrow screens, multi-touch enabled. 520 tests pass. Push OK (fe24e6e)."
   },
-  "note": "Tick 2026-06-28T03:02:00Z. Verified: fix-save-load-game-state (5128a59) and fix-mobile-responsive-canvas (fe24e6e) both implemented. All Phase 2 tasks complete or escalated. 520 tests pass. Task exhaustion — awaiting Coach backlog replenishment.",
-  "last_sha": "eb39832"
+  "note": "Tick 2026-06-28T04:22:00Z. Recovery: implemented AI exploration tile preference (resource bonus in findExploreTarget). 522 tests pass. Pushed 9b94846. Remaining: AI territory expansion (strategic expansion) still escalated. Awaiting Coach backlog replenishment.",
+  "last_sha": "9b94846"
 }

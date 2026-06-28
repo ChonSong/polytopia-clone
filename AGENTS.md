@@ -141,6 +141,7 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-save-load-game-state
 **Priority:** P3
+**Status:** ✅ Implemented — commit 5128a59. SaveManager handles serialization, auto-save after each turn, load from SelectScene.
 **Description:** Games cannot be saved and resumed. Add localStorage-based save/load:
 1. **Auto-save** — save game state after each turn
 2. **Save slots** — 3 save slots accessible from main menu
@@ -156,6 +157,7 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-mobile-responsive-canvas
 **Priority:** P3
+**Status:** ✅ Implemented — commit fe24e6e. RESIZE scale mode, layoutHUD(), responsive tribe cards, multi-touch.
 **Description:** The Phaser canvas is fixed-size and doesn't scale on mobile/small viewports. Add responsive canvas scaling:
 1. **Aspect-ratio aware** — maintain game aspect ratio while fitting viewport
 2. **Touch controls** — map pan (touch drag), unit select (tap), unit move (tap destination)
@@ -168,3 +170,22 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 - Unit selection and movement works via tap
 - HUD elements are readable on small screens
 **Coach checks:** Resize browser to 375×667 (iPhone SE). Verify canvas scales, HUD is usable. Test touch interactions.
+
+### Task: add-victory-screen (recovery-generated)
+**Priority:** P2
+**Status:** ✅ Implemented — commit (this tick). Full-screen overlay with victory/defeat title, winner announcement, score breakdown, Play Again + Main Menu buttons.
+**Description:** Game currently ends with only a text status message. Add a proper victory/defeat overlay:
+1. **Full-screen dimmed overlay** with trophy (victory) or skull (defeat) title
+2. **Winner announcement** — shows which tribe won and by what margin
+3. **Score breakdown** — reuses existing renderScoreBreakdown for human tribe
+4. **Play Again** — restarts with same tribe/map/mode/difficulty settings
+5. **Main Menu** — returns to SelectScene
+6. **Perfection mode** — highest-scoring tribe shown as winner when turn limit hits
+
+**Success criteria:**
+- Overlay appears on elimination victory and Perfection turn limit
+- "VICTORY!" in gold when human wins, "DEFEAT" in red when AI wins
+- Play Again restarts game with same settings
+- Main Menu returns to tribe selection
+- No regression in 522 passing tests
+**Coach checks:** Start a game, trigger victory (conquer all enemy cities). Verify overlay appears with correct title. Click Play Again — verify fresh game starts. Click Main Menu — verify tribe selection appears.
