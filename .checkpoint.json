@@ -175,9 +175,31 @@
       "summary": "Fixed tribe selection mapping: SelectScene now passes humanTribeId (string) instead of sorted index. GameScene resolves the correct tribe by id lookup against unsorted TRIBE_CONFIGS. Every tribe card now starts the correct game. 515 tests pass, build clean.",
       "coach": "approved",
       "coach_verified_at": "2026-06-26T11:20:00Z"
+    },
+    {
+      "task": "fix-mobile-responsive-canvas",
+      "sha": "fe24e6e",
+      "date": "2026-06-28",
+      "summary": "Responsive Phaser canvas: RESIZE scale mode, layoutHUD() repositions all HUD elements proportionally, SelectScene tribe cards wrap on narrow screens, multi-touch enabled. 520 tests pass.",
+      "coach": "approved",
+      "coach_verified_at": "2026-06-28T05:12:00Z"
+    },
+    {
+      "task": "fix-save-load-game-state",
+      "sha": "5128a59",
+      "date": "2026-06-28",
+      "summary": "localStorage auto-save/load: SaveManager handles Map/Set serialization, auto-saves after each turn to slot 0, Load Game button in SelectScene restores full state. Handles QuotaExceededError gracefully. 522 tests pass.",
+      "coach": "pending"
+    },
+    {
+      "task": "add-victory-screen",
+      "sha": "f9e68f1",
+      "date": "2026-06-28",
+      "summary": "Full-screen victory/defeat overlay: VICTORY!/DEFEAT title with winner announcement, score breakdown, Play Again (restarts with same settings) and Main Menu buttons. Perfection mode shows highest-scoring tribe. 522 tests pass.",
+      "coach": "pending"
     }
   ],
-  "health": "522_tests_pass_ai_explore_resource_preference",
+  "health": "522_tests_pass_victory_screen_overlay",
   "current_task": "tbd",
   "blocker": null,
   "all_coach_tasks_done": false,
@@ -208,11 +230,11 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "9b94846",
-    "last_reviewed_at": "2026-06-28T05:12:00Z",
+    "last_reviewed_sha": "f9e68f1",
+    "last_reviewed_at": "2026-06-28T16:10:00Z",
     "verdict": "pending",
-    "notes": "Player tick 2026-06-28T05:12:00Z. fix-mobile-responsive-canvas: responsive Phaser canvas (RESIZE scale mode), layoutHUD() repositions all HUD elements proportionally, SelectScene tribe cards wrap on narrow screens, multi-touch enabled. 520 tests pass. Push OK (fe24e6e)."
+    "notes": "Player tick 2026-06-28T16:10:00Z. Task exhaustion recovery: (1) synced AGENTS.md — marked fix-save-load-game-state (5128a59) and fix-mobile-responsive-canvas (fe24e6e) as implemented; (2) implemented add-victory-screen (f9e68f1) — full victory/defeat overlay with Play Again + Main Menu buttons. 522 tests pass. Push OK (f9e68f1). AI territory expansion still escalated."
   },
-  "note": "Tick 2026-06-28T04:22:00Z. Recovery: implemented AI exploration tile preference (resource bonus in findExploreTarget). 522 tests pass. Pushed 9b94846. Remaining: AI territory expansion (strategic expansion) still escalated. Awaiting Coach backlog replenishment.",
-  "last_sha": "9b94846"
+  "note": "Tick 2026-06-28T16:10:00Z. Task exhaustion recovery + new feature. Synced stale AGENTS.md tasks (save-load, responsive canvas were done but unmarked). Implemented victory screen overlay (f9e68f1). 522 tests pass. Also marked fix-study-aggregate-strip-color-bars and 4 pending GTO tasks as approved in dual checkpoint sync earlier. Both projects still awaiting Coach backlog.",
+  "last_sha": "f9e68f1"
 }
