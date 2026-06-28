@@ -596,8 +596,14 @@ export class BasicAI {
   }
 
   /**
-   * Find a tile to explore: the closest unseen walkable tile.
+   * Find a tile to explore: prefer high-value resource tiles over empty ones.
+   *
+   * Uses effective distance: `dist - resourceBonus`. A resource bonus of 1.5
+   * means a resource tile at distance 2 is preferred over an empty tile at
+   * distance 1.5, matching original Polytopia AI behavior.
    */
+  private readonly EXPLORE_RESOURCE_BONUS = 1.5;
+
   private findExploreTarget(
     unit: Unit,
     tileMap: Map<string, TileData>,
@@ -605,7 +611,7 @@ export class BasicAI {
   ): HexCoord | null {
     const walkable = unit.isNaval ? NAVAL_BIOMES : WALKABLE_BIOMES;
     let best: HexCoord | null = null;
-    let bestDist = Infinity;
+    let bestEffectiveDist = Infinity;
 
     for (const [key, tile] of tileMap) {
       if (!walkable.has(tile.biome)) continue;
@@ -613,8 +619,14 @@ export class BasicAI {
       const [q, r] = key.split(',').map(Number);
       const coord = new HexCoord(q, r);
       const dist = unit.position.distanceTo(coord);
-      if (dist < bestDist && dist > 0) {
-        bestDist = dist;
+      if (dist <= 0) continue;
+
+      // Resource tiles are valued: reduce effective distance so AI prioritizes them
+      const resourceBonus = tile.resource ? this.EXPLORE_RESOURCE_BONUS : 0;
+      const effectiveDist = dist - resourceBonus;
+
+      if (effectiveDist < bestEffectiveDist) {
+        bestEffectiveDist = effectiveDist;
         best = coord;
       }
     }

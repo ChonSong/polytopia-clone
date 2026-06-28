@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { HexCoord } from '../src/hex/HexCoord';
-import { TileData, Biome } from '../src/hex/Tile';
+import { TileData, Biome, Resource } from '../src/hex/Tile';
 import { Tribe } from '../src/entities/Tribe';
 import { City } from '../src/entities/City';
 import { Unit, UnitType } from '../src/entities/Unit';
@@ -836,6 +836,71 @@ describe('BasicAI', () => {
       // After move, unit should be closer to (14,10)
       const distToEnemy = Math.abs(warrior.position.q - 14) + Math.abs(warrior.position.r - 10);
       expect(distToEnemy).toBeLessThan(4);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Recovery: AI exploration resource preference
+  // ---------------------------------------------------------------------------
+  describe('AI exploration resource preference', () => {
+    it('prefers resource tile at dist 2-3 over closer empty tile at dist 1', () => {
+      // Unit at (0,0) has vision radius 2 — tiles within distance 2 are already visible.
+      // Place empty tile at distance 3 (unseen) and fruit tile at distance 4 (unseen).
+      // Resource bonus (1.5) makes effective distance of fruit tile: 4 - 1.5 = 2.5
+      // vs empty tile effective distance: 3 - 0 = 3. Fruit tile is preferred.
+      const tileMap = new Map<string, TileData>();
+      // Fill a 9x9 grid centered at (0,0) with grass
+      for (let q = -4; q <= 4; q++) {
+        for (let r = -4; r <= 4; r++) {
+          tileMap.set(`${q},${r}`, { biome: Biome.GRASS, elevation: 0.5 });
+        }
+      }
+      // Empty tile at distance 3 (unseen by unit at 0,0)
+      // Already grass — no need to set explicitly
+      // Fruit tile at distance 4 (unseen), with resource
+      tileMap.set('4,0', { biome: Biome.GRASS, elevation: 0.5, resource: Resource.FRUIT });
+
+      const aiTribe = new Tribe({ id: 'test', name: 'Test', color: 0xffffff });
+      const unit = new Unit(new HexCoord(0, 0), UnitType.WARRIOR, 'test');
+      aiTribe.units.push(unit);
+
+      const ai = new BasicAI(aiTribe, { difficulty: 'medium' });
+      const actions = ai.decide(
+        { tileMap, tribes: [aiTribe] } as unknown as GameState,
+        TurnPhase.MOVE,
+      );
+
+      // Should produce a move action toward the fruit tile at (4,0)
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('MOVE');
+      const moveAction = actions[0];
+      // The unit should move toward (4,0) — increasing q from 0
+      expect(moveAction.params.toQ).toBeGreaterThan(0);
+    });
+
+    it('falls back to nearest empty tile when no resources exist', () => {
+      // Unit at (0,0), all tiles are grass, no resources
+      // Should still move toward nearest unseen tile
+      const tileMap = new Map<string, TileData>();
+      for (let q = -3; q <= 3; q++) {
+        for (let r = -3; r <= 3; r++) {
+          tileMap.set(`${q},${r}`, { biome: Biome.GRASS, elevation: 0.5 });
+        }
+      }
+
+      const aiTribe = new Tribe({ id: 'test', name: 'Test', color: 0xffffff });
+      const unit = new Unit(new HexCoord(0, 0), UnitType.WARRIOR, 'test');
+      aiTribe.units.push(unit);
+
+      const ai = new BasicAI(aiTribe, { difficulty: 'medium' });
+      const actions = ai.decide(
+        { tileMap, tribes: [aiTribe] } as unknown as GameState,
+        TurnPhase.MOVE,
+      );
+
+      // Should still move (to nearest empty unseen tile at distance 3)
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('MOVE');
     });
   });
 });
