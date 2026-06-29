@@ -95,6 +95,12 @@ export class GameScene extends Phaser.Scene {
   private pauseText: Phaser.GameObjects.Text | null = null;
   private pauseResumeBtn: Phaser.GameObjects.Text | null = null;
 
+  // Settings overlay state
+  private settingsBtn: Phaser.GameObjects.Text | null = null;
+  private settingsOverlay: Phaser.GameObjects.Group | null = null;
+  private settingsBg: Phaser.GameObjects.Graphics | null = null;
+  private onSettingsClosed: (() => void) | null = null;
+
   private loadedSave: {
     state: GameState;
     tiles: Map<string, import('../hex/Tile').TileData>;
@@ -132,6 +138,7 @@ export class GameScene extends Phaser.Scene {
     volumeSlider: Phaser.GameObjects.Graphics;
     volumeText: Phaser.GameObjects.Text;
     sliderZone: Phaser.GameObjects.Zone;
+    settingsBtn: Phaser.GameObjects.Text;
   } | null = null;
 
   constructor() {
@@ -501,7 +508,23 @@ export class GameScene extends Phaser.Scene {
       volumeSlider: this.volumeSlider,
       volumeText: this.volumeText,
       sliderZone: this.sliderZone,
+      settingsBtn: null as any, // placeholder — real button created below
     };
+
+    // Gear button — opens settings overlay (top-right, above End Turn)
+    this.settingsBtn = this.add.text(730, 10, '⚙️', {
+      fontSize: '22px',
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.settingsBtn.on('pointerdown', () => {
+      if (this.isPaused || this.settingsOverlay) return;
+      this.soundManager.playUIclick();
+      this.openSettingsPanel();
+    });
+    this.settingsBtn.on('pointerover', () => this.settingsBtn!.setAlpha(0.8));
+    this.settingsBtn.on('pointerout', () => this.settingsBtn!.setAlpha(1));
+
+    // Replace placeholder with actual button reference
+    if (this.hudElements) this.hudElements.settingsBtn = this.settingsBtn;
 
     // Apply responsive layout (repositions based on actual canvas size)
     this.layoutHUD();
@@ -531,6 +554,190 @@ export class GameScene extends Phaser.Scene {
         if (this.isAiRunning) return; // Don't pause during AI processing
         this.togglePause();
       });
+    }
+  }
+
+  // ─── Settings Overlay ───
+
+  private speedLabel(): string {
+    if (this.speedMultiplier <= 0.5) return 'Fast';
+    if (this.speedMultiplier >= 2) return 'Slow';
+    return 'Normal';
+  }
+
+  private speedKey(): 'normal' | 'fast' | 'slow' {
+    if (this.speedMultiplier <= 0.5) return 'fast';
+    if (this.speedMultiplier >= 2) return 'slow';
+    return 'normal';
+  }
+
+  private nextSpeed(): number {
+    // Cycle: Normal (1.0) → Fast (0.5) → Slow (2.0) → Normal
+    const cur = this.speedKey();
+    if (cur === 'normal') return 0.5;
+    if (cur === 'fast') return 2.0;
+    return 1.0;
+  }
+
+  /** Open the in-game settings overlay (audio + speed). */
+  private openSettingsPanel(): void {
+    if (this.settingsOverlay) return;
+
+    const cw = this.scale.width;
+    const ch = this.scale.height;
+    const s = Math.min(cw / 800, ch / 600);
+    const panelW = 320 * s;
+    const panelH = 280 * s;
+    const panelX = (cw - panelW) / 2;
+    const panelY = (ch - panelH) / 2;
+    const fs = (size: number) => Math.max(10, Math.round(size * s));
+
+    this.settingsOverlay = this.add.group();
+
+    // Full-screen dimmed backdrop (click to close)
+    this.settingsBg = this.add.graphics().setScrollFactor(0).setDepth(200);
+    this.settingsBg.fillStyle(0x000000, 0.6);
+    this.settingsBg.fillRect(0, 0, cw, ch);
+    this.settingsOverlay.add(this.settingsBg);
+
+    // Panel background
+    const panelGfx = this.add.graphics().setScrollFactor(0).setDepth(201);
+    panelGfx.fillStyle(0x222222, 0.95);
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    panelGfx.lineStyle(2, 0x4caf50, 0.8);
+    panelGfx.strokeRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    this.settingsOverlay.add(panelGfx);
+
+    // Title
+    const title = this.add.text(cw / 2, panelY + 14 * s, '�️ SETTINGS', {
+      fontSize: fs(20) + 'px', color: '#4caf50', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(title);
+
+    // Close (X) button
+    const xBtn = this.add.text(panelX + panelW - 20 * s, panelY + 10 * s, '�', {
+      fontSize: fs(18) + 'px', color: '#aaa', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
+    xBtn.on('pointerdown', () => { this.closeSettingsPanel(); });
+    xBtn.on('pointerover', () => xBtn.setStyle({ color: '#fff' }));
+    xBtn.on('pointerout', () => xBtn.setStyle({ color: '#aaa' }));
+    this.settingsOverlay.add(xBtn);
+
+    let curY = panelY + 50 * s;
+
+    // ── Audio Section ──
+    const audioLabel = this.add.text(panelX + 16 * s, curY, 'AUDIO', {
+      fontSize: fs(14) + 'px', color: '#ffd', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(audioLabel);
+    curY += 26 * s;
+
+    // Mute toggle (relocated from HUD into panel)
+    const muteLabel = this.add.text(panelX + 24 * s, curY, this.soundManager.mute ? '🔇 Muted' : '� Sound On', {
+      fontSize: fs(14) + 'px', color: '#eee', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
+    muteLabel.on('pointerdown', () => {
+      this.soundManager.mute = !this.soundManager.mute;
+      try { localStorage.setItem('polytopia_mute', String(this.soundManager.mute)); } catch { /* noop */ }
+      muteLabel.setText(this.soundManager.mute ? '🔇 Muted' : '🔊 Sound On');
+      // Also update the HUD mute button if it exists
+      if (this.muteBtn) this.muteBtn.setText(this.soundManager.mute ? '�' : '🔊');
+    });
+    this.settingsOverlay.add(muteLabel);
+    curY += 24 * s;
+
+    // Volume slider in panel
+    const sliderW = 200 * s;
+    const sliderH = 8 * s;
+    const sliderX = panelX + 24 * s;
+    const sliderY = curY + 8 * s;
+    const volGfx = this.add.graphics().setScrollFactor(0).setDepth(202);
+    const drawPanelSlider = () => {
+      volGfx.clear();
+      volGfx.fillStyle(0x444444, 0.8);
+      volGfx.fillRoundedRect(sliderX, sliderY - sliderH / 2, sliderW, sliderH, 3 * s);
+      const fillW = Math.round(sliderW * this.soundManager.volume);
+      if (fillW > 0) {
+        volGfx.fillStyle(0x4caf50, 1);
+        volGfx.fillRoundedRect(sliderX, sliderY - sliderH / 2, fillW, sliderH, 3 * s);
+      }
+      volGfx.fillStyle(0xffffff, 1);
+      volGfx.fillCircle(sliderX + fillW, sliderY, 6 * s);
+    };
+    drawPanelSlider();
+    this.settingsOverlay.add(volGfx);
+
+    const volText = this.add.text(sliderX + sliderW + 12 * s, sliderY - 6 * s, `${Math.round(this.soundManager.volume * 100)}%`, {
+      fontSize: fs(12) + 'px', color: '#ccc', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(volText);
+
+    // Interactive zone for the slider
+    const panelSliderZone = this.add.zone(sliderX + sliderW / 2, sliderY, sliderW + 30 * s, 24 * s)
+      .setScrollFactor(0).setDepth(203).setInteractive();
+    const setPanelVol = (p: Phaser.Input.Pointer) => {
+      const localX = p.x - sliderX;
+      this.soundManager.volume = Math.max(0, Math.min(1, localX / sliderW));
+      drawPanelSlider();
+      volText.setText(`${Math.round(this.soundManager.volume * 100)}%`);
+      // Sync HUD slider if available
+      if (this.hudElements) this.layoutHUD();
+    };
+    panelSliderZone.on('pointerdown', (p: Phaser.Input.Pointer) => setPanelVol(p));
+    panelSliderZone.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (p.isDown) setPanelVol(p);
+    });
+    // Stash zone ref on overlay group for cleanup
+    (this.settingsOverlay as any)._panelSliderZone = panelSliderZone;
+    this.settingsOverlay.add(panelSliderZone);
+
+    curY += 50 * s;
+
+    // ── Game Speed Section ──
+    const speedLabel = this.add.text(panelX + 16 * s, curY, 'GAME SPEED', {
+      fontSize: fs(14) + 'px', color: '#ffd', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(speedLabel);
+    curY += 26 * s;
+
+    const speedValueText = this.add.text(panelX + 24 * s, curY, `${this.speedLabel()} (×${this.speedMultiplier})`, {
+      fontSize: fs(14) + 'px', color: '#8f8', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
+    speedValueText.on('pointerdown', () => {
+      this.cycleSpeed();
+      speedValueText.setText(`${this.speedLabel()} (×${this.speedMultiplier})`);
+    });
+    speedValueText.on('pointerover', () => speedValueText.setAlpha(0.8));
+    speedValueText.on('pointerout', () => speedValueText.setAlpha(1));
+    this.settingsOverlay.add(speedValueText);
+
+    const speedHint = this.add.text(panelX + 24 * s, curY + 18 * s, 'Click to cycle: Normal → Fast → Slow', {
+      fontSize: fs(10) + 'px', color: '#888', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(speedHint);
+
+    // Close on backdrop click (but not panel click)
+    this.settingsBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, cw, ch), Phaser.Geom.Rectangle.Contains);
+    this.settingsBg.on('pointerdown', () => this.closeSettingsPanel());
+
+    // Prevent panel clicks from bubbling to backdrop
+    panelGfx.setInteractive(new Phaser.Geom.Rectangle(panelX, panelY, panelW, panelH), Phaser.Geom.Rectangle.Contains);
+  }
+
+  private closeSettingsPanel(): void {
+    if (this.settingsOverlay) {
+      this.settingsOverlay.destroy(true);
+      this.settingsOverlay = null;
+    }
+    this.settingsBg = null;
+  }
+
+  /** Cycle speed multiplier Normal→Fast→Slow→Normal and apply to game. */
+  private cycleSpeed(): void {
+    this.speedMultiplier = this.nextSpeed();
+    // Update AI configs so they pick up the new speed
+    for (const [id, ai] of this.ais) {
+      (ai as any).speedMultiplier = this.speedMultiplier;
     }
   }
 
@@ -591,6 +798,9 @@ export class GameScene extends Phaser.Scene {
     h.infiltrateBtn.setPosition(px(440), py(100)).setFontSize(btnFontSize);
     // Enchant — top row right area
     h.enchantBtn.setPosition(px(560), py(10)).setFontSize(btnFontSize);
+
+    // Gear / Settings button — top-right, left of End Turn
+    h.settingsBtn.setPosition(px(730), py(10)).setFontSize(fs(22));
 
     // Sound toggle — always top-left corner
     h.muteBtn.setPosition(px(10), py(10)).setFontSize(fs(22));
