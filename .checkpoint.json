@@ -275,7 +275,7 @@
     "watchdog_bypass": false
   },
   "note": "Tick 2026-06-30T02:30:00Z. Completed add-end-turn-confirmation. Confirmation dialog with unactioned unit count, settings toggle, smart skip. 522/522 tests pass, build clean, live verified. Next: fix-settings-speed-labels-agents-spec.",
-  "last_sha": "pending",
+  "last_sha": "74508ca",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
