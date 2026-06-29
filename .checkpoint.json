@@ -242,7 +242,7 @@
     },
     {
       "task": "add-in-game-stats-panel",
-      "sha": "PENDING_COMMIT",
+      "sha": "f800baf",
       "date": "2026-06-30",
       "summary": "Added in-game statistics panel: 📊 button in HUD (next to ⚙️), semi-transparent overlay with per-tribe metrics (tribe name with color dot, cities, units alive, techs researched, stars, score). Human player row highlighted (brighter bg). Close via X button or backdrop click. Follows settings panel overlay pattern. 522/522 tests pass, build clean.",
       "coach": "pending"
@@ -279,7 +279,7 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "PENDING_COMMIT",
+    "last_reviewed_sha": "f800baf",
     "last_reviewed_at": "2026-06-30T09:15:00Z",
     "verdict": "APPROVE",
     "findings_count": 0,
@@ -290,7 +290,7 @@
     "watchdog_bypass": false
   },
   "note": "Tick 2026-06-30T09:12:00Z. Player implemented add-in-game-stats-panel: 📊 button in HUD, semi-transparent overlay with per-tribe metrics (name+color, cities, units, techs, stars, score). Human row highlighted. 522/522 tests pass, build clean, 0 JS errors. Backlog exhausted — current_task=tbd, all_coach_tasks_done=true. Coach must generate new tasks or approve recovery.",
-  "last_sha": "261e4be",
+  "last_sha": "f800baf",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
