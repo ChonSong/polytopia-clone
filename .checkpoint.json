@@ -199,10 +199,17 @@
       "summary": "Full-screen victory/defeat overlay: VICTORY!/DEFEAT title with winner announcement, score breakdown, Play Again (restarts with same settings) and Main Menu buttons. Perfection mode shows highest-scoring tribe. 522 tests pass.",
       "coach": "approved",
       "coach_verified_at": "2026-06-28T23:36:00Z"
+    },
+    {
+      "task": "fix-sound-volume-slider",
+      "sha": "c6af629",
+      "date": "2026-06-29",
+      "summary": "Added volume slider (0-100%) below mute button with draggable thumb. SoundManager decoupled: volume and mute are independent controls. Mute+slider=50% = silent; unmute+50% = half volume. Volume persisted to localStorage (polytopia_volume), default 70%. Responsive layout redraws slider at scaled position. 522 tests pass.",
+      "coach": "pending"
     }
   ],
-  "health": "522_tests_pass_victory_screen_overlay",
-  "current_task": "fix-sound-volume-slider",
+  "health": "522_tests_pass_volume_slider",
+  "current_task": "fix-in-game-settings-panel",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -237,6 +244,6 @@
     "verdict": "APPROVE",
     "notes": "Tick 2026-06-28T23:36:00Z. Coach APPROVED pending tasks: fix-save-load-game-state (5128a59), add-victory-screen (f9e68f1). Minor P3 bug: Play Again speed mapping inverted (always resets to normal). 522 tests pass, RefQA passes, hex.codeovertcp.com HTTP 200. Remaining: AI territory expansion (14 cycles stagnant), 2 recovery tasks (sound volume slider, settings panel). CFS 0.988 stable."
   },
-  "note": "Tick 2026-06-29T09:10:00Z. Task exhaustion recovery on Polytopia (round-robin switch from GTO). Generated 2 recovery tasks: volume slider (P3), settings panel (P3). AGENTS.md updated. 522 tests pass. No regressions. Current_task: fix-sound-volume-slider.",
-  "last_sha": "98d9b3a"
+  "note": "Tick 2026-06-29T10:06:00Z. Completed fix-sound-volume-slider (c6af629): volume slider with persistence, decoupled mute/volume. Advanced to fix-in-game-settings-panel. 522 tests pass. No regressions.",
+  "last_sha": "c6af629"
 }
