@@ -215,10 +215,18 @@
       "summary": "Added ⚙️ gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal→Fast→Slow→Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas. 522 tests pass, build clean.",
       "coach": "approved",
       "coach_verified_at": "2026-06-29T23:45:00Z"
+    },
+    {
+      "task": "add-keyboard-shortcuts",
+      "sha": "3c1dbf9",
+      "date": "2026-06-30",
+      "summary": "Added keyboard shortcuts: Enter/E end turn, Tab/Shift+Tab cycle units (wrap around, center camera), Arrow keys pan camera (16px, bounded, hold-repeat), Space selects nearest unactioned unit (or acts at selectedHex). All handlers respect pause/AI guards. 522/522 tests pass, no regressions to W/ESC shortcuts.",
+      "coach": "pending",
+      "coach_verified_at": null
     }
   ],
   "health": "522_tests_pass_settings_panel",
-  "current_task": "add-keyboard-shortcuts",
+  "current_task": "add-end-turn-confirmation",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -258,6 +266,6 @@
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Tick 2026-06-29T12:07:53Z. Task exhaustion recovery: generated 3 Phase 3 tasks (keyboard shortcuts, end-turn confirmation, in-game stats panel). 522/522 tests pass, site HTTP 200. Coach review pending — last reviewed 12h ago.",
-  "last_sha": "683587a"
+  "note": "Tick 2026-06-30T00:10:00Z. Completed add-keyboard-shortcuts (3c1dbf9). Enter/E ends turn, Tab/Shift+Tab cycles units, Arrow keys pan camera, Space selects unit. All verified on live site. 522/522 tests pass, no regressions. Next: add-end-turn-confirmation.",
+  "last_sha": "3c1dbf9"
 }
