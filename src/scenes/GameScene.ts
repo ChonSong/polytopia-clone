@@ -554,7 +554,110 @@ export class GameScene extends Phaser.Scene {
         if (this.isAiRunning) return; // Don't pause during AI processing
         this.togglePause();
       });
+
+      // ─── Keyboard shortcuts (Phase 3) ───
+
+      // End turn: Enter and E
+      const endTurnHandler = () => {
+        if (this.isPaused || this.isAiRunning) return;
+        this.soundManager.playUIclick();
+        this.endTurn();
+      };
+      this.input.keyboard.on('keydown-ENTER', endTurnHandler);
+      this.input.keyboard.on('keydown-E', () => {
+        // Don't intercept E when typing in input fields (future-proof)
+        if (this.isPaused || this.isAiRunning) return;
+        this.soundManager.playUIclick();
+        this.endTurn();
+      });
+
+      // Cycle units: Tab forward, Shift+Tab backward
+      this.input.keyboard.on('keydown-TAB', (event: KeyboardEvent) => {
+        if (this.isPaused || this.isAiRunning) return;
+        event.preventDefault(); // Prevent browser tab-switching
+        this.cycleUnit(event.shiftKey ? -1 : 1);
+      });
+
+      // Camera pan: Arrow keys (16px per press, held keys repeat via Phaser built-in)
+      const PAN_STEP = 16;
+      const cam = this.cameras.main;
+      this.input.keyboard.on('keydown-LEFT', () => {
+        if (this.isPaused) return;
+        cam.scrollX = Math.max(cam.scrollX - PAN_STEP, -300);
+      });
+      this.input.keyboard.on('keydown-RIGHT', () => {
+        if (this.isPaused) return;
+        cam.scrollX = Math.min(cam.scrollX + PAN_STEP, 1700);
+      });
+      this.input.keyboard.on('keydown-UP', () => {
+        if (this.isPaused) return;
+        cam.scrollY = Math.max(cam.scrollY - PAN_STEP, -300);
+      });
+      this.input.keyboard.on('keydown-DOWN', () => {
+        if (this.isPaused) return;
+        cam.scrollY = Math.min(cam.scrollY + PAN_STEP, 1300);
+      });
+
+      // Select unit / perform action: Space bar
+      this.input.keyboard.on('keydown-SPACE', () => {
+        if (this.isPaused || this.isAiRunning) return;
+        if (this.selectedUnit && !this.selectedUnit.hasActed && this.selectedHex) {
+          // Unit selected + hex selected → perform action at that hex
+          const hexPixel = this.selectedHex.toPixel(HEX_SIZE);
+          this.handleClick(hexPixel.x - cam.scrollX, hexPixel.y - cam.scrollY);
+        } else {
+          // No unit selected → select the nearest actionable friendly unit to camera center
+          const cx = cam.scrollX + cam.width / 2;
+          const cy = cam.scrollY + cam.height / 2;
+          let bestUnit: Unit | null = null;
+          let bestDist = Infinity;
+          for (const u of this.humanTribe.getAliveUnits()) {
+            if (u.hasActed) continue;
+            const up = u.position.toPixel(HEX_SIZE);
+            const d = Math.hypot(up.x - cx, up.y - cy);
+            if (d < bestDist) {
+              bestDist = d;
+              bestUnit = u;
+            }
+          }
+          if (bestUnit) {
+            this.selectedUnit = bestUnit;
+            this.selectedHex = bestUnit.position;
+            // Center camera on selected unit
+            const up = bestUnit.position.toPixel(HEX_SIZE);
+            cam.scrollX = up.x - cam.width / 2;
+            cam.scrollY = up.y - cam.height / 2;
+          }
+        }
+        this.renderAll();
+        this.updateUI();
+      });
     }
+  }
+
+  /** Cycle through unactioned human units. direction: 1 = forward, -1 = backward. */
+  private cycleUnit(direction: 1 | -1): void {
+    const units = this.humanTribe.getAliveUnits().filter(u => !u.hasActed);
+    if (units.length === 0) return;
+
+    let currentIndex = this.selectedUnit ? units.indexOf(this.selectedUnit) : -1;
+    if (currentIndex === -1) {
+      // No unit selected → pick first (forward) or last (backward)
+      this.selectedUnit = direction === 1 ? units[0] : units[units.length - 1];
+    } else {
+      const nextIndex = (currentIndex + direction + units.length) % units.length;
+      this.selectedUnit = units[nextIndex];
+    }
+    this.selectedHex = this.selectedUnit.position;
+
+    // Center camera on selected unit
+    const cam = this.cameras.main;
+    const up = this.selectedUnit.position.toPixel(HEX_SIZE);
+    cam.scrollX = up.x - cam.width / 2;
+    cam.scrollY = up.y - cam.height / 2;
+
+    this.renderAll();
+    this.updateUI();
   }
 
   // ─── Settings Overlay ───

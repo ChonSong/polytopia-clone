@@ -204,22 +204,23 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-in-game-settings-panel (recovery-generated)
 **Priority:** P3
-**Status:** ✅ Implemented — commit 683587a. Gear button ⚙️ in HUD opens unified settings overlay with Audio (mute + volume slider) and Game Speed (Normal→Fast→Slow cycle). 522 tests pass.
-**Description:** Game settings (volume, mute, game speed) are scattered across individual HUD buttons without a unified settings panel. Add an accessible settings overlay that collects all adjustable options:
-1. **Settings button** — gear icon ⚙️ in HUD opens settings overlay
-2. **Settings overlay** — semi-transparent panel with sections: Audio (volume slider + mute toggle), Game Speed (display current speed, option to change)
-3. **Speed selector** — show current speed multiplier, allow cycling between Normal (1x), Fast (2x), Slow (0.5x)
-4. **Close** — click outside overlay or X button to close
+**Status:** ✅ Coach APPROVED 2026-06-29T23:45:00Z — commit 683587a
+**Description:** Added ⚙️ gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal→Fast→Slow→Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas.
 
-**Success criteria:**
-- Gear button visible in HUD during gameplay
-- Settings overlay opens on click with volume + speed controls
-- Changing speed in overlay applies immediately
-- Clicking outside overlay closes it
-- No regression in 522 passing tests
-**Coach checks:** Open game, click ⚙️ gear button, verify settings panel appears with volume and speed controls. Change speed to Fast, observe animations accelerate. Close panel.
+**Verification:** 522/522 tests pass, build clean, Deploy HTTP 200, 0 JS console errors. Settings panel opens/closes via gear button. Volume slider draggable, updates percentage live. Speed cycling works (Normal→Fast→Slow). Game state preserved after panel close. P3 finding: speed labels use cost multipliers (Fast=×0.5, Slow=×2) instead of speed multipliers as spec'd.
+**Coach checks:** Open game, click ⚙️ gear button, verify settings panel appears. Test volume slider drag. Cycle speed through Normal/Fast/Slow. Click backdrop to close.
 
 ## Phase 3 — Keyboard, UX Polish, Stats
+
+### Task: fix-settings-speed-labels-agents-spec (coach-generated)
+**Priority:** P3
+**Status:** Not started
+**Description:** The speed display labels in the settings panel use cost multipliers (Fast=×0.5, Slow=×2) but the AGENTS.md task spec for the settings panel says speed multipliers (Fast=×2, Slow=×0.5). The implementation is functionally correct — cost-multiplier 0.5 means half-cost moves = twice as fast — but the display convention is inconsistent with the spec. Either update the labels to show speed multipliers (invert: Fast shows ×2, Slow shows ×0.5) or update the spec to document cost multipliers as the convention.
+**Success criteria:**
+- Speed labels match the documented convention consistently
+- Either code labels change (Fast=×0.5→×2, Slow=×2→×0.5) OR AGENTS.md spec updated to match current behavior
+- No regression in 522 passing tests
+**Coach checks:** Open settings panel, verify speed labels are internally consistent with the documented convention.
 
 ### Task: add-keyboard-shortcuts (recovery-generated)
 **Priority:** P3

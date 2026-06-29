@@ -213,7 +213,8 @@
       "sha": "683587a",
       "date": "2026-06-29",
       "summary": "Added ⚙️ gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal→Fast→Slow→Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas. 522 tests pass, build clean.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-29T23:45:00Z"
     }
   ],
   "health": "522_tests_pass_settings_panel",
@@ -247,10 +248,15 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c6af629",
-    "last_reviewed_at": "2026-06-29T00:13:07Z",
+    "last_reviewed_sha": "683587a",
+    "last_reviewed_at": "2026-06-29T23:45:00Z",
     "verdict": "APPROVE",
-    "notes": "Tick 2026-06-29T00:13:07Z. Coach APPROVED fix-sound-volume-slider (c6af629). 522/522 tests pass. CFS 0.973 stable. Next task: fix-in-game-settings-panel."
+    "findings_count": 3,
+    "has_evidence": true,
+    "notes": "Tick 2026-06-29T23:45:00Z. Coach APPROVED fix-in-game-settings-panel (683587a). Settings panel open/close works, volume slider draggable, speed cycling works (Normal↔Fast↔Slow). 522/522 tests pass, CFS 0.9843 stable, 0 console errors. P3 findings: speed labels use cost multipliers (Fast=×0.5 not ×2), gear icon slight overlap with END TURN, no Start Game button on select screen.",
+    "commit_pending": true,
+    "watchdog_verified": false,
+    "watchdog_bypass": false
   },
   "note": "Tick 2026-06-29T12:07:53Z. Task exhaustion recovery: generated 3 Phase 3 tasks (keyboard shortcuts, end-turn confirmation, in-game stats panel). 522/522 tests pass, site HTTP 200. Coach review pending — last reviewed 12h ago.",
   "last_sha": "683587a"
