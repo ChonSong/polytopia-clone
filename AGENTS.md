@@ -254,18 +254,45 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: add-in-game-stats-panel (recovery-generated)
 **Priority:** P3
-**Status:** ✅ Implemented — pending Coach review
-**Description:** The game shows a score breakdown at victory/defeat but no live stats during gameplay. Added an in-game statistics panel showing per-tribe metrics accessible from the HUD.
-1. **Stats button** — 📊 icon in HUD opens a semi-transparent stats overlay
-2. **Stats content** — per-tribe rows showing: tribe name + color, cities owned, units alive (count), techs researched, total stars earned, score
-3. **Human highlight** — human player's row highlighted (brighter bg)
-4. **Close** — click outside overlay or X button to close
+**Status:** ✅ Coach APPROVED 2026-06-30T09:23:00+10:00 — commit f800baf
+**Description:** Added in-game statistics panel showing per-tribe metrics accessible from the HUD. 📊 button in HUD (left of ⚙️), semi-transparent overlay with per-tribe metrics (tribe name with color dot, cities, units, techs, stars, score). Human player row highlighted (brighter bg, bold gold text). Close via X button or backdrop click.
+
+**Verification:** All structural gates pass (522/522 tests, build clean, HTTP 200, no secrets/injection). Browser QA verified: stats panel opens, 7 tribes listed with correct Turn 1 and Turn 2 metrics, human row highlighted, X/backdrop close works, 0 JS console errors. RefQA 4/4 smoke pass. CFS 0.9793 (degrading — see findings).
+
+## Phase 4 — AI, Polish, Tooltips (Coach-generated 2026-06-30)
+
+### Task: fix-ai-proximity-weighting
+**Priority:** P2
+**Status:** Not started
+**Description:** AI territory expansion has been stuck for 15 cycles. Break into first achievable step: add enemy proximity weighting to findExploreTarget(). Tiles near enemy cities/units should be devalued (safer expansion away from threats). This is the next sub-item after tile valuation (already complete from commit 9b94846, sub-item 1/4). No settler logic yet — just the weighting function.
 
 **Success criteria:**
-- 📊 stats button visible in HUD during gameplay
-- Stats overlay shows all active tribes with metrics
-- Human player row is visually distinct
-- Metrics update in real-time (or on open) reflecting current game state
+- AI explorers and units prefer tiles farther from enemy cities and units
+- Observable behavior: AI tribes expand away from enemies rather than toward them
 - No regression in 522 passing tests
 
-**Coach checks:** Start a game, play a few turns, click 📊 button, verify all tribes listed with correct metrics. Verify human row highlighted.
+**Coach checks:** Start a game on Hard difficulty, observe AI expansion direction over 5 turns. AI should avoid expanding directly toward enemy capitals.
+
+### Task: fix-tribe-select-grid-balance
+**Priority:** P3
+**Status:** Not started
+**Description:** Tribe selection grid currently shows 7 tribe cards as 6 on top row + 1 lonely card on bottom row (Xin-xi). Redistribute grid to be more balanced — either 4+3 split or center the single card on its row. Match original Polytopia's tribe grid layout where rows are evenly filled.
+
+**Success criteria:**
+- All 7 tribe cards are visually balanced
+- No single orphan card on a row
+- Grid looks intentionally laid out rather than overflowing from a fixed column count
+
+**Coach checks:** Open tribe selection screen, verify all 7 cards are evenly distributed. Test with narrow screen (responsive) to verify wrapping still works.
+
+### Task: add-tribe-card-tooltips
+**Priority:** P3
+**Status:** Not started
+**Description:** Tribe cards in SelectScene show 'Start: <tech>' but don't explain what the starting tech provides. Add hover tooltip or expanded card detail showing the tech's bonus effect (e.g., 'Hunting: +1 ★ per animal in territory'). This helps new players make informed tribe choices.
+
+**Success criteria:**
+- Hovering or long-pressing a tribe card shows a tooltip with the starting tech's effect
+- Tooltip appears near the card and dismisses on mouse-out or touch-up
+- Does not interfere with click-to-start behavior
+
+**Coach checks:** Hover over each tribe card, verify tooltip appears with tech effect description. Click card to start game — verify tooltip does not block interaction.
