@@ -65,6 +65,10 @@ export class GameScene extends Phaser.Scene {
   private selectedCity: City | null = null;
   private techPanel: Phaser.GameObjects.Group | null = null;
   private muteBtn!: Phaser.GameObjects.Text;
+  private volumeSlider!: Phaser.GameObjects.Graphics;
+  private volumeText!: Phaser.GameObjects.Text;
+  private sliderZone!: Phaser.GameObjects.Zone;
+  private sliderDragging = false;
   private soundManager = new SoundManager();
 
   private tribeText!: Phaser.GameObjects.Text;
@@ -125,6 +129,9 @@ export class GameScene extends Phaser.Scene {
     endTurnBtn: Phaser.GameObjects.Text;
     techBtn: Phaser.GameObjects.Text;
     muteBtn: Phaser.GameObjects.Text;
+    volumeSlider: Phaser.GameObjects.Graphics;
+    volumeText: Phaser.GameObjects.Text;
+    sliderZone: Phaser.GameObjects.Zone;
   } | null = null;
 
   constructor() {
@@ -405,6 +412,76 @@ export class GameScene extends Phaser.Scene {
     this.muteBtn.on('pointerout', () => this.muteBtn.setAlpha(1));
     this.soundManager.mute = this.sound.mute;
 
+    // Volume slider — below mute button, camera-fixed
+    this.soundManager.loadVolume();
+    const SLIDER_W = 90;
+    const SLIDER_H = 6;
+    const SLIDER_Y_OFF = 38; // below mute button
+    const SLIDER_X_OFF = 40; // right of mute emoji
+
+    this.volumeSlider = this.add.graphics().setScrollFactor(0).setDepth(20);
+
+    this.volumeText = this.add.text(SLIDER_X_OFF + SLIDER_W + 4, SLIDER_Y_OFF - 4, `${Math.round(this.soundManager.volume * 100)}%`, {
+      fontSize: '10px',
+      color: '#ccc',
+    }).setScrollFactor(0).setDepth(20);
+
+    this.sliderZone = this.add.zone(SLIDER_X_OFF + SLIDER_W / 2, SLIDER_Y_OFF, SLIDER_W + 8, 16)
+      .setScrollFactor(0).setDepth(21).setInteractive();
+
+    // Draw slider track and filled portion
+    const drawSlider = (): void => {
+      const vol = this.soundManager.volume;
+      this.volumeSlider.clear();
+      // Track background
+      this.volumeSlider.fillStyle(0x333333, 0.8);
+      this.volumeSlider.fillRoundedRect(SLIDER_X_OFF, SLIDER_Y_OFF - SLIDER_H / 2, SLIDER_W, SLIDER_H, 3);
+      // Filled portion
+      const fillW = Math.round(SLIDER_W * vol);
+      if (fillW > 0) {
+        this.volumeSlider.fillStyle(0x4caf50, 1); // green fill
+        this.volumeSlider.fillRoundedRect(SLIDER_X_OFF, SLIDER_Y_OFF - SLIDER_H / 2, fillW, SLIDER_H, 3);
+      }
+      // Thumb dot
+      this.volumeSlider.fillStyle(0xffffff, 1);
+      const thumbX = SLIDER_X_OFF + fillW;
+      this.volumeSlider.fillCircle(thumbX, SLIDER_Y_OFF, 5);
+      // Update label
+      this.volumeText.setText(`${Math.round(vol * 100)}%`);
+    };
+    drawSlider();
+
+    // Slider drag handling
+    const setVolumeFromPointer = (pointer: Phaser.Input.Pointer): void => {
+      // Convert pointer (canvas pixels) → design coordinates
+      const cw = this.scale.width;
+      const ch = this.scale.height;
+      const s = Math.min(cw / 800, ch / 600);
+      const offX = (cw - 800 * s) / 2;
+      const localX = (pointer.x - offX) / s;
+      const vol = Math.max(0, Math.min(1, (localX - SLIDER_X_OFF) / SLIDER_W));
+      this.soundManager.volume = vol;
+      drawSlider();
+    };
+
+    this.sliderZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (this.isPaused) return;
+      this.sliderDragging = true;
+      setVolumeFromPointer(pointer);
+    });
+    this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (!this.sliderDragging) return;
+      setVolumeFromPointer(pointer);
+    });
+    this.input.on('pointerup', () => {
+      this.sliderDragging = false;
+    });
+
+    // Update slider visual when mute toggles
+    this.muteBtn.on('pointerdown', () => {
+      drawSlider(); // refresh visual after mute change
+    });
+
     // Store HUD element references for responsive layout
     this.hudElements = {
       bg,
@@ -421,6 +498,9 @@ export class GameScene extends Phaser.Scene {
       endTurnBtn: btn,
       techBtn,
       muteBtn: this.muteBtn,
+      volumeSlider: this.volumeSlider,
+      volumeText: this.volumeText,
+      sliderZone: this.sliderZone,
     };
 
     // Apply responsive layout (repositions based on actual canvas size)
@@ -514,6 +594,30 @@ export class GameScene extends Phaser.Scene {
 
     // Sound toggle — always top-left corner
     h.muteBtn.setPosition(px(10), py(10)).setFontSize(fs(22));
+
+    // Volume slider — below mute button, top-left
+    const SLIDER_W = 90;
+    const SLIDER_H = 6;
+    const SLIDER_X_OFF = 40;
+    const SLIDER_Y_OFF = 38;
+
+    // Redraw slider at scaled position
+    const vol = this.soundManager.volume;
+    const scaledSliderW = SLIDER_W * s;
+    const scaledSliderH = SLIDER_H * s;
+    h.volumeSlider.clear();
+    h.volumeSlider.fillStyle(0x333333, 0.8);
+    h.volumeSlider.fillRoundedRect(px(SLIDER_X_OFF), py(SLIDER_Y_OFF) - scaledSliderH / 2, scaledSliderW, scaledSliderH, 3 * s);
+    const fillW = Math.round(scaledSliderW * vol);
+    if (fillW > 0) {
+      h.volumeSlider.fillStyle(0x4caf50, 1);
+      h.volumeSlider.fillRoundedRect(px(SLIDER_X_OFF), py(SLIDER_Y_OFF) - scaledSliderH / 2, fillW, scaledSliderH, 3 * s);
+    }
+    h.volumeSlider.fillStyle(0xffffff, 1);
+    h.volumeSlider.fillCircle(px(SLIDER_X_OFF) + fillW, py(SLIDER_Y_OFF), 5 * s);
+
+    h.volumeText.setPosition(px(SLIDER_X_OFF + SLIDER_W + 4), py(SLIDER_Y_OFF - 4)).setFontSize(fs(10));
+    h.sliderZone.setPosition(px(SLIDER_X_OFF + SLIDER_W / 2), py(SLIDER_Y_OFF)).setSize(scaledSliderW + 8 * s, 16 * s);
 
     // Pause overlay — fill entire canvas
     if (this.pauseBg) {

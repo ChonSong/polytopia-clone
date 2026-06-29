@@ -10,14 +10,40 @@ export default class SoundManager {
   private masterGain: GainNode | null = null;
   private musicPlaying = false;
   private musicStopFlag = false;
+  private _muted = false;
+  private _volume = 0.7; // default 70%
+
+  /** Volume level 0–1. Defaults to 0.7, persisted via localStorage. */
+  get volume(): number {
+    return this._volume;
+  }
+  set volume(v: number) {
+    this._volume = Math.max(0, Math.min(1, v));
+    try { localStorage.setItem('polytopia_volume', String(this._volume)); } catch { /* unavailable */ }
+    this.applyGain();
+  }
 
   /** When true the master gain is silenced (oscillators still run, output is 0). */
   get mute(): boolean {
-    return this.masterGain !== null && this.masterGain.gain.value === 0;
+    return this._muted;
   }
   set mute(value: boolean) {
-    this.ensureInit();
-    this.masterGain!.gain.value = value ? 0 : 1;
+    this._muted = value;
+    this.applyGain();
+  }
+
+  /** Apply current volume × mute state to the master gain node. */
+  private applyGain(): void {
+    if (!this.masterGain) return;
+    this.masterGain.gain.value = this._muted ? 0 : this._volume;
+  }
+
+  /** Read persisted volume from localStorage (call once at startup). */
+  loadVolume(): void {
+    try {
+      const saved = localStorage.getItem('polytopia_volume');
+      if (saved !== null) this._volume = Math.max(0, Math.min(1, parseFloat(saved)));
+    } catch { /* localStorage unavailable */ }
   }
 
   // ── helpers ──────────────────────────────────────────────────────────
