@@ -101,6 +101,10 @@ export class GameScene extends Phaser.Scene {
   private settingsBg: Phaser.GameObjects.Graphics | null = null;
   private onSettingsClosed: (() => void) | null = null;
 
+  // End turn confirmation state
+  private confirmEndTurn: boolean;
+  private endTurnConfirmOverlay: Phaser.GameObjects.Group | null = null;
+
   private loadedSave: {
     state: GameState;
     tiles: Map<string, import('../hex/Tile').TileData>;
@@ -143,6 +147,10 @@ export class GameScene extends Phaser.Scene {
 
   constructor() {
     super({ key: 'GameScene' });
+    // Load confirm-end-turn pref (default: enabled)
+    this.confirmEndTurn = typeof localStorage !== 'undefined'
+      ? localStorage.getItem('polytopia_confirm_end_turn') !== 'false'
+      : true;
   }
 
   init(data: {
@@ -690,7 +698,7 @@ export class GameScene extends Phaser.Scene {
     const ch = this.scale.height;
     const s = Math.min(cw / 800, ch / 600);
     const panelW = 320 * s;
-    const panelH = 280 * s;
+    const panelH = 350 * s;
     const panelX = (cw - panelW) / 2;
     const panelY = (ch - panelH) / 2;
     const fs = (size: number) => Math.max(10, Math.round(size * s));
@@ -818,6 +826,30 @@ export class GameScene extends Phaser.Scene {
       fontSize: fs(10) + 'px', color: '#888', fontFamily: 'monospace',
     }).setScrollFactor(0).setDepth(202);
     this.settingsOverlay.add(speedHint);
+
+    curY += 50 * s;
+
+    // ── Gameplay Section ──
+    const gameplayLabel = this.add.text(panelX + 16 * s, curY, 'GAMEPLAY', {
+      fontSize: fs(14) + 'px', color: '#ffd', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setScrollFactor(0).setDepth(202);
+    this.settingsOverlay.add(gameplayLabel);
+    curY += 26 * s;
+
+    // Confirm End Turn toggle
+    const statusText = this.confirmEndTurn ? 'ON' : 'OFF';
+    const confirmLabel = this.add.text(panelX + 24 * s, curY, `Confirm End Turn: ${statusText}`, {
+      fontSize: fs(14) + 'px', color: this.confirmEndTurn ? '#8f8' : '#888', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
+    confirmLabel.on('pointerdown', () => {
+      this.confirmEndTurn = !this.confirmEndTurn;
+      try { localStorage.setItem('polytopia_confirm_end_turn', String(this.confirmEndTurn)); } catch { /* noop */ }
+      confirmLabel.setText(`Confirm End Turn: ${this.confirmEndTurn ? 'ON' : 'OFF'}`);
+      confirmLabel.setStyle({ color: this.confirmEndTurn ? '#8f8' : '#888' });
+    });
+    confirmLabel.on('pointerover', () => confirmLabel.setAlpha(0.8));
+    confirmLabel.on('pointerout', () => confirmLabel.setAlpha(1));
+    this.settingsOverlay.add(confirmLabel);
 
     // Close on backdrop click (but not panel click)
     this.settingsBg.setInteractive(new Phaser.Geom.Rectangle(0, 0, cw, ch), Phaser.Geom.Rectangle.Contains);
@@ -1492,8 +1524,100 @@ export class GameScene extends Phaser.Scene {
 
   private endTurn(): void {
     if (this.isAiRunning) return;
+
+    // Confirmation gate: if enabled and unactioned units exist, show dialog
+    if (this.confirmEndTurn) {
+      const unactioned = this.humanTribe.getAliveUnits().filter(u => !u.hasActed).length;
+      if (unactioned > 0) {
+        this.showEndTurnConfirmDialog(unactioned);
+        return;
+      }
+    }
+
     this.collectHumanResources();
     this.advanceTurn();
+  }
+
+  /** Show confirmation dialog: "End Turn? You have N unactioned units" */
+  private showEndTurnConfirmDialog(unactioned: number): void {
+    if (this.endTurnConfirmOverlay) return;
+
+    const cw = this.scale.width;
+    const ch = this.scale.height;
+    const s = Math.min(cw / 800, ch / 600);
+    const panelW = 340 * s;
+    const panelH = 150 * s;
+    const panelX = (cw - panelW) / 2;
+    const panelY = (ch - panelH) / 2;
+    const fs = (size: number) => Math.max(10, Math.round(size * s));
+
+    this.endTurnConfirmOverlay = this.add.group();
+
+    // Dimmed backdrop
+    const bg = this.add.graphics().setScrollFactor(0).setDepth(300);
+    bg.fillStyle(0x000000, 0.7);
+    bg.fillRect(0, 0, cw, ch);
+    bg.setInteractive(new Phaser.Geom.Rectangle(0, 0, cw, ch), Phaser.Geom.Rectangle.Contains);
+    bg.on('pointerdown', () => this.closeEndTurnConfirm());
+    this.endTurnConfirmOverlay.add(bg);
+
+    // Panel background
+    const panelGfx = this.add.graphics().setScrollFactor(0).setDepth(301);
+    panelGfx.fillStyle(0x2a2a2a, 0.95);
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    panelGfx.lineStyle(2, 0xff6600, 0.8);
+    panelGfx.strokeRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    panelGfx.setInteractive(new Phaser.Geom.Rectangle(panelX, panelY, panelW, panelH), Phaser.Geom.Rectangle.Contains);
+    this.endTurnConfirmOverlay.add(panelGfx);
+
+    // Title
+    const title = this.add.text(cw / 2, panelY + 16 * s, '⏳ End Turn?', {
+      fontSize: fs(20) + 'px', color: '#ffd', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(302);
+    this.endTurnConfirmOverlay.add(title);
+
+    // Unactioned units message
+    const msg = this.add.text(cw / 2, panelY + 44 * s, `You have ${unactioned} unactioned unit${unactioned !== 1 ? 's' : ''}.`, {
+      fontSize: fs(14) + 'px', color: '#ccc', fontFamily: 'monospace',
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(302);
+    this.endTurnConfirmOverlay.add(msg);
+
+    // Yes button — green
+    const btnW = 100 * s;
+    const yesBtn = this.add.text(cw / 2 + 4 * s, panelY + 80 * s, 'Yes, End Turn', {
+      fontSize: fs(16) + 'px', color: '#0f0', fontFamily: 'monospace', fontStyle: 'bold',
+      backgroundColor: '#1a3a1a', padding: { x: 10 * s, y: 6 * s },
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(302).setInteractive({ useHandCursor: true });
+    yesBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
+      this.closeEndTurnConfirm();
+      this.collectHumanResources();
+      this.advanceTurn();
+    });
+    yesBtn.on('pointerover', () => yesBtn.setStyle({ backgroundColor: '#2a5a2a' }));
+    yesBtn.on('pointerout', () => yesBtn.setStyle({ backgroundColor: '#1a3a1a' }));
+    this.endTurnConfirmOverlay.add(yesBtn);
+
+    // No button — gray
+    const noBtn = this.add.text(cw / 2 - btnW - 4 * s, panelY + 80 * s, 'Cancel', {
+      fontSize: fs(16) + 'px', color: '#aaa', fontFamily: 'monospace',
+      backgroundColor: '#333', padding: { x: 10 * s, y: 6 * s },
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(302).setInteractive({ useHandCursor: true });
+    noBtn.on('pointerdown', () => {
+      this.soundManager.playUIclick();
+      this.closeEndTurnConfirm();
+    });
+    noBtn.on('pointerover', () => noBtn.setStyle({ backgroundColor: '#555' }));
+    noBtn.on('pointerout', () => noBtn.setStyle({ backgroundColor: '#333' }));
+    this.endTurnConfirmOverlay.add(noBtn);
+  }
+
+  /** Close the end-turn confirmation dialog */
+  private closeEndTurnConfirm(): void {
+    if (this.endTurnConfirmOverlay) {
+      this.endTurnConfirmOverlay.destroy(true);
+      this.endTurnConfirmOverlay = null;
+    }
   }
 
   /** Heal units that did not act this turn: +4 in friendly territory, +2 otherwise. Also fortifies them. */

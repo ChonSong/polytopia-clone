@@ -223,10 +223,18 @@
       "summary": "Added keyboard shortcuts: Enter/E end turn, Tab/Shift+Tab cycle units (wrap around, center camera), Arrow keys pan camera (16px, bounded, hold-repeat), Space selects nearest unactioned unit (or acts at selectedHex). All handlers respect pause/AI guards. 522/522 tests pass, no regressions to W/ESC shortcuts.",
       "coach": "pending",
       "coach_verified_at": null
+    },
+    {
+      "task": "add-end-turn-confirmation",
+      "sha": "pending",
+      "date": "2026-06-30",
+      "summary": "Added end-turn confirmation dialog with unactioned unit count. Settings panel toggle (GAMEPLAY section) enables/disables. Smart skip when 0 unactioned units. Keyboard Enter/E also triggers dialog. localStorage persisted (polytopia_confirm_end_turn). Live verified: dialog appears when enabled + has unactioned unit, Cancel dismisses without ending turn, Yes ends turn. 522/522 tests pass, build clean.",
+      "coach": "pending",
+      "coach_verified_at": null
     }
   ],
-  "health": "522_tests_pass_settings_panel",
-  "current_task": "add-end-turn-confirmation",
+  "health": "522_tests_pass_end_turn_confirm",
+  "current_task": "fix-settings-speed-labels-agents-spec",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -256,16 +264,23 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "683587a",
-    "last_reviewed_at": "2026-06-29T23:45:00Z",
+    "last_reviewed_sha": "3c1dbf9",
+    "last_reviewed_at": "2026-06-30T00:17:00+10:00",
     "verdict": "APPROVE",
-    "findings_count": 3,
+    "findings_count": 1,
     "has_evidence": true,
-    "notes": "Tick 2026-06-29T23:45:00Z. Coach APPROVED fix-in-game-settings-panel (683587a). Settings panel open/close works, volume slider draggable, speed cycling works (Normal↔Fast↔Slow). 522/522 tests pass, CFS 0.9843 stable, 0 console errors. P3 findings: speed labels use cost multipliers (Fast=×0.5 not ×2), gear icon slight overlap with END TURN, no Start Game button on select screen.",
+    "notes": "Tick 2026-06-30T00:17+10:00. Coach APPROVED add-keyboard-shortcuts (3c1dbf9). All 5 shortcuts verified live: Enter/E end turn, Tab/Shift+Tab cycle units (camera centers), Arrow keys pan (16px/step bounded), Space selects nearest unactioned unit. Pause/AI guards prevent interference. 522/522 tests pass, 0 JS console errors, CFS 0.9864 improving. RefQA 4/4 pass. P3 finding: gear icon overlap with END TURN (pre-existing, not regression).",
     "commit_pending": true,
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Tick 2026-06-30T00:10:00Z. Completed add-keyboard-shortcuts (3c1dbf9). Enter/E ends turn, Tab/Shift+Tab cycles units, Arrow keys pan camera, Space selects unit. All verified on live site. 522/522 tests pass, no regressions. Next: add-end-turn-confirmation.",
-  "last_sha": "3c1dbf9"
+  "note": "Tick 2026-06-30T02:30:00Z. Completed add-end-turn-confirmation. Confirmation dialog with unactioned unit count, settings toggle, smart skip. 522/522 tests pass, build clean, live verified. Next: fix-settings-speed-labels-agents-spec.",
+  "last_sha": "pending",
+  "fidelity_history": [
+    {
+      "sha": "3c1dbf9",
+      "cfs": 0.9864,
+      "timestamp": "2026-06-30T00:17:00+10:00"
+    }
+  ]
 }
