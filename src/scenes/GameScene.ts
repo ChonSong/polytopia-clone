@@ -690,6 +690,14 @@ export class GameScene extends Phaser.Scene {
     return 1.0;
   }
 
+  /** Display multiplier for speed label — inverts cost multiplier to show speed factor.
+   *  Fast (0.5 cost) → 2× speed, Slow (2.0 cost) → 0.5× speed, Normal → 1×. */
+  private speedDisplayMultiplier(): number {
+    if (this.speedMultiplier <= 0.5) return 2.0;
+    if (this.speedMultiplier >= 2) return 0.5;
+    return 1.0;
+  }
+
   /** Open the in-game settings overlay (audio + speed). */
   private openSettingsPanel(): void {
     if (this.settingsOverlay) return;
@@ -811,12 +819,12 @@ export class GameScene extends Phaser.Scene {
     this.settingsOverlay.add(speedLabel);
     curY += 26 * s;
 
-    const speedValueText = this.add.text(panelX + 24 * s, curY, `${this.speedLabel()} (×${this.speedMultiplier})`, {
+    const speedValueText = this.add.text(panelX + 24 * s, curY, `${this.speedLabel()} (×${this.speedDisplayMultiplier()})`, {
       fontSize: fs(14) + 'px', color: '#8f8', fontFamily: 'monospace', fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
     speedValueText.on('pointerdown', () => {
       this.cycleSpeed();
-      speedValueText.setText(`${this.speedLabel()} (×${this.speedMultiplier})`);
+      speedValueText.setText(`${this.speedLabel()} (×${this.speedDisplayMultiplier()})`);
     });
     speedValueText.on('pointerover', () => speedValueText.setAlpha(0.8));
     speedValueText.on('pointerout', () => speedValueText.setAlpha(1));

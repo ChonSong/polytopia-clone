@@ -4,8 +4,8 @@
   "reference_url": "Polytopia (original game)",
   "clone_url": "https://hex.codeovertcp.com",
   "repo": "/home/sc/repos/polytopia-clone",
-  "phase": 2,
-  "phase_name": "AI, Animations, UX improvements",
+  "phase": 3,
+  "phase_name": "Keyboard, UX Polish, Stats",
   "completed": [
     {
       "task": "fix-city-building-visual-improvements",
@@ -221,20 +221,28 @@
       "sha": "3c1dbf9",
       "date": "2026-06-30",
       "summary": "Added keyboard shortcuts: Enter/E end turn, Tab/Shift+Tab cycle units (wrap around, center camera), Arrow keys pan camera (16px, bounded, hold-repeat), Space selects nearest unactioned unit (or acts at selectedHex). All handlers respect pause/AI guards. 522/522 tests pass, no regressions to W/ESC shortcuts.",
-      "coach": "pending",
-      "coach_verified_at": null
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T03:30:00Z"
     },
     {
       "task": "add-end-turn-confirmation",
-      "sha": "pending",
+      "sha": "74508ca",
       "date": "2026-06-30",
       "summary": "Added end-turn confirmation dialog with unactioned unit count. Settings panel toggle (GAMEPLAY section) enables/disables. Smart skip when 0 unactioned units. Keyboard Enter/E also triggers dialog. localStorage persisted (polytopia_confirm_end_turn). Live verified: dialog appears when enabled + has unactioned unit, Cancel dismisses without ending turn, Yes ends turn. 522/522 tests pass, build clean.",
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T02:45:00Z"
+    },
+    {
+      "task": "fix-settings-speed-labels-agents-spec",
+      "sha": "pending",
+      "date": "2026-06-30",
+      "summary": "Fixed settings panel speed labels to show speed multipliers instead of cost multipliers: Fast (×2), Slow (×0.5), Normal (×1). Added speedDisplayMultiplier() helper in GameScene.ts that inverts the internal cost multiplier for display. 522/522 tests pass, 0 regressions, build clean, verified live across all 3 speed states.",
       "coach": "pending",
       "coach_verified_at": null
     }
   ],
-  "health": "522_tests_pass_end_turn_confirm",
-  "current_task": "fix-settings-speed-labels-agents-spec",
+  "health": "522_tests_pass_speed_labels_fixed",
+  "current_task": "add-in-game-stats-panel",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -243,7 +251,7 @@
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "2026-06-28: findExploreTarget now weights tiles by resource value (commit 9b94846). Sub-item 1 (tile valuation) complete. Sub-items 2-4 (enemy proximity, chokepoint, settler logic) still open.",
-      "cycles_stagnant": 3,
+      "cycles_stagnant": 4,
       "status": "escalated"
     },
     {
@@ -251,36 +259,46 @@
       "type": "completed",
       "priority": 2,
       "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
-      "cycles_stagnant": 3,
+      "cycles_stagnant": 4,
       "status": "escalated"
     },
     {
       "item": "Stuck: fix-ai-territory-expansion",
       "type": "stuck_bug",
       "priority": 2,
-      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
-      "cycles_stagnant": 14,
+      "evidence": "14+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
+      "cycles_stagnant": 15,
       "status": "escalated"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "3c1dbf9",
-    "last_reviewed_at": "2026-06-30T00:17:00+10:00",
-    "verdict": "APPROVE",
-    "findings_count": 1,
-    "has_evidence": true,
-    "notes": "Tick 2026-06-30T00:17+10:00. Coach APPROVED add-keyboard-shortcuts (3c1dbf9). All 5 shortcuts verified live: Enter/E end turn, Tab/Shift+Tab cycle units (camera centers), Arrow keys pan (16px/step bounded), Space selects nearest unactioned unit. Pause/AI guards prevent interference. 522/522 tests pass, 0 JS console errors, CFS 0.9864 improving. RefQA 4/4 pass. P3 finding: gear icon overlap with END TURN (pre-existing, not regression).",
+    "last_reviewed_sha": "pending",
+    "last_reviewed_at": null,
+    "verdict": null,
+    "findings_count": 0,
+    "has_evidence": false,
+    "notes": "",
     "commit_pending": true,
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Tick 2026-06-30T02:30:00Z. Completed add-end-turn-confirmation. Confirmation dialog with unactioned unit count, settings toggle, smart skip. 522/522 tests pass, build clean, live verified. Next: fix-settings-speed-labels-agents-spec.",
-  "last_sha": "74508ca",
+  "note": "Tick 2026-06-30T06:10:00Z. Player fixed fix-settings-speed-labels-agents-spec. Speed labels now show speed multipliers: Fast(×2), Slow(×0.5), Normal(×1). Added speedDisplayMultiplier() helper. 522/522 tests pass. Live verified across all 3 speed states. Next: add-in-game-stats-panel.",
+  "last_sha": "pending",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
       "cfs": 0.9864,
       "timestamp": "2026-06-30T00:17:00+10:00"
+    },
+    {
+      "sha": "74508ca",
+      "cfs": 0.9837,
+      "timestamp": "2026-06-30T02:45:00Z"
+    },
+    {
+      "sha": "3c1dbf9",
+      "cfs": 0.9854,
+      "timestamp": "2026-06-30T03:30:00Z"
     }
   ]
 }
