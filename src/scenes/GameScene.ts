@@ -98,6 +98,10 @@ export class GameScene extends Phaser.Scene {
   // Settings overlay state
   private settingsBtn: Phaser.GameObjects.Text | null = null;
   private settingsOverlay: Phaser.GameObjects.Group | null = null;
+
+  // Stats overlay state
+  private statsBtn: Phaser.GameObjects.Text | null = null;
+  private statsOverlay: Phaser.GameObjects.Group | null = null;
   private settingsBg: Phaser.GameObjects.Graphics | null = null;
   private onSettingsClosed: (() => void) | null = null;
 
@@ -143,6 +147,7 @@ export class GameScene extends Phaser.Scene {
     volumeText: Phaser.GameObjects.Text;
     sliderZone: Phaser.GameObjects.Zone;
     settingsBtn: Phaser.GameObjects.Text;
+    statsBtn: Phaser.GameObjects.Text;
   } | null = null;
 
   constructor() {
@@ -517,6 +522,7 @@ export class GameScene extends Phaser.Scene {
       volumeText: this.volumeText,
       sliderZone: this.sliderZone,
       settingsBtn: null as any, // placeholder — real button created below
+      statsBtn: null as any, // placeholder — real button created below
     };
 
     // Gear button — opens settings overlay (top-right, above End Turn)
@@ -533,6 +539,21 @@ export class GameScene extends Phaser.Scene {
 
     // Replace placeholder with actual button reference
     if (this.hudElements) this.hudElements.settingsBtn = this.settingsBtn;
+
+    // Stats button — opens stats overlay (top-right, left of settings gear)
+    this.statsBtn = this.add.text(700, 10, '📊', {
+      fontSize: '22px',
+    }).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+    this.statsBtn.on('pointerdown', () => {
+      if (this.isPaused) return;
+      this.soundManager.playUIclick();
+      this.openStatsPanel();
+    });
+    this.statsBtn.on('pointerover', () => this.statsBtn!.setAlpha(0.8));
+    this.statsBtn.on('pointerout', () => this.statsBtn!.setAlpha(1));
+
+    // Replace placeholder with actual button reference
+    if (this.hudElements) this.hudElements.statsBtn = this.statsBtn;
 
     // Apply responsive layout (repositions based on actual canvas size)
     this.layoutHUD();
@@ -875,6 +896,129 @@ export class GameScene extends Phaser.Scene {
     this.settingsBg = null;
   }
 
+  /** Open the in-game stats panel showing per-tribe metrics. */
+  private openStatsPanel(): void {
+    if (this.statsOverlay) return; // already open
+
+    const cw = this.scale.width;
+    const ch = this.scale.height;
+    const s = Math.min(cw / 800, ch / 600);
+    const panelW = 420 * s;
+    const panelH = 340 * s;
+    const panelX = (cw - panelW) / 2;
+    const panelY = (ch - panelH) / 2;
+    const fs = (size: number) => Math.max(10, Math.round(size * s));
+
+    this.statsOverlay = this.add.group();
+
+    // Full-screen dimmed backdrop (click to close)
+    const backdrop = this.add.graphics().setScrollFactor(0).setDepth(200);
+    backdrop.fillStyle(0x000000, 0.6);
+    backdrop.fillRect(0, 0, cw, ch);
+    backdrop.setInteractive(new Phaser.Geom.Rectangle(0, 0, cw, ch), Phaser.Geom.Rectangle.Contains);
+    backdrop.on('pointerdown', () => this.closeStatsPanel());
+    this.statsOverlay.add(backdrop);
+
+    // Panel background
+    const panelGfx = this.add.graphics().setScrollFactor(0).setDepth(201);
+    panelGfx.fillStyle(0x222222, 0.95);
+    panelGfx.fillRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    panelGfx.lineStyle(2, 0xff9800, 0.8);
+    panelGfx.strokeRoundedRect(panelX, panelY, panelW, panelH, 8 * s);
+    panelGfx.setInteractive(new Phaser.Geom.Rectangle(panelX, panelY, panelW, panelH), Phaser.Geom.Rectangle.Contains);
+    this.statsOverlay.add(panelGfx);
+
+    // Title
+    const title = this.add.text(cw / 2, panelY + 14 * s, '📊 STATISTICS', {
+      fontSize: fs(20) + 'px', color: '#ff9800', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(202);
+    this.statsOverlay.add(title);
+
+    // Close (X) button
+    const xBtn = this.add.text(panelX + panelW - 20 * s, panelY + 10 * s, '✕', {
+      fontSize: fs(18) + 'px', color: '#aaa', fontFamily: 'monospace',
+    }).setScrollFactor(0).setDepth(202).setInteractive({ useHandCursor: true });
+    xBtn.on('pointerdown', () => { this.closeStatsPanel(); });
+    xBtn.on('pointerover', () => xBtn.setStyle({ color: '#fff' }));
+    xBtn.on('pointerout', () => xBtn.setStyle({ color: '#aaa' }));
+    this.statsOverlay.add(xBtn);
+
+    // Column headers
+    const headerY = panelY + 50 * s;
+    const colX = [panelX + 10 * s, panelX + 100 * s, panelX + 170 * s, panelX + 230 * s, panelX + 290 * s, panelX + 350 * s];
+    const headerStyle = { fontSize: fs(11) + 'px', color: '#aaa', fontFamily: 'monospace', fontStyle: 'bold' as const };
+    const headers = ['Tribe', 'Cities', 'Units', 'Techs', 'Stars', 'Score'];
+    headers.forEach((hdr, i) => {
+      const hdrText = this.add.text(colX[i], headerY, hdr, headerStyle)
+        .setScrollFactor(0).setDepth(202);
+      this.statsOverlay!.add(hdrText);
+    });
+
+    // Divider line
+    const dividerY = headerY + 18 * s;
+    const dividerGfx = this.add.graphics().setScrollFactor(0).setDepth(201);
+    dividerGfx.lineStyle(1, 0x444444, 0.5);
+    dividerGfx.lineBetween(panelX + 10 * s, dividerY, panelX + panelW - 10 * s, dividerY);
+    this.statsOverlay.add(dividerGfx);
+
+    // Data rows — only active (non-defeated) tribes
+    const activeTribes = this.tribes.filter(t => !t.isDefeated());
+    const rowH = 22 * s;
+    const isHuman = (t: Tribe) => t.id === this.humanTribe.id;
+
+    activeTribes.forEach((tribe, idx) => {
+      const rowY = dividerY + 8 * s + idx * rowH;
+      const humanRow = isHuman(tribe);
+
+      // Row highlight background for human
+      if (humanRow) {
+        const highlightGfx = this.add.graphics().setScrollFactor(0).setDepth(200);
+        highlightGfx.fillStyle(0x333333, 0.6);
+        highlightGfx.fillRoundedRect(panelX + 6 * s, rowY - 2 * s, panelW - 12 * s, rowH + 2 * s, 3 * s);
+        this.statsOverlay!.add(highlightGfx);
+      }
+
+      const colorStr = '#' + tribe.color.toString(16).padStart(6, '0');
+      const rowStyle = {
+        fontSize: fs(12) + 'px',
+        color: humanRow ? '#ffd' : '#ccc',
+        fontFamily: 'monospace',
+        fontStyle: (humanRow ? 'bold' as const : 'normal' as const),
+      };
+
+      // Tribe name with color dot
+      const dot = this.add.text(colX[0], rowY, '●', {
+        fontSize: fs(14) + 'px', color: colorStr, fontFamily: 'monospace',
+      }).setScrollFactor(0).setDepth(202);
+      this.statsOverlay!.add(dot);
+
+      const nameText = this.add.text(colX[0] + 14 * s, rowY, tribe.name, rowStyle)
+        .setScrollFactor(0).setDepth(202);
+      this.statsOverlay!.add(nameText);
+
+      const cities = tribe.cities.filter(c => !c.captured).length;
+      const units = tribe.getAliveUnits().length;
+      const techs = tribe.techs.size;
+      const stars = tribe.stars;
+      const score = computeTribeScore(tribe).getTotal();
+
+      const values = [String(cities), String(units), String(techs), String(stars), String(score)];
+      values.forEach((val, vi) => {
+        const vt = this.add.text(colX[vi + 1], rowY, val, rowStyle)
+          .setScrollFactor(0).setDepth(202);
+        this.statsOverlay!.add(vt);
+      });
+    });
+  }
+
+  /** Close the stats overlay. */
+  private closeStatsPanel(): void {
+    if (this.statsOverlay) {
+      this.statsOverlay.destroy(true);
+      this.statsOverlay = null;
+    }
+  }
+
   /** Cycle speed multiplier Normal→Fast→Slow→Normal and apply to game. */
   private cycleSpeed(): void {
     this.speedMultiplier = this.nextSpeed();
@@ -944,6 +1088,9 @@ export class GameScene extends Phaser.Scene {
 
     // Gear / Settings button — top-right, left of End Turn
     h.settingsBtn.setPosition(px(730), py(10)).setFontSize(fs(22));
+
+    // Stats button — top-right, left of settings gear
+    h.statsBtn.setPosition(px(700), py(10)).setFontSize(fs(22));
 
     // Sound toggle — always top-left corner
     h.muteBtn.setPosition(px(10), py(10)).setFontSize(fs(22));

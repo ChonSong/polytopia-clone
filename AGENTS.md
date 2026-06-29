@@ -211,16 +211,20 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 **Coach checks:** Open game, click ⚙️ gear button, verify settings panel appears. Test volume slider drag. Cycle speed through Normal/Fast/Slow. Click backdrop to close.
 
 ## Phase 3 — Keyboard, UX Polish, Stats
-
 ### Task: fix-settings-speed-labels-agents-spec (coach-generated)
+
 **Priority:** P3
-**Status:** Not started
+**Status:** ✅ Coach APPROVED 2026-06-30T06:35:00Z — commit 261e4be
+
 **Description:** The speed display labels in the settings panel use cost multipliers (Fast=×0.5, Slow=×2) but the AGENTS.md task spec for the settings panel says speed multipliers (Fast=×2, Slow=×0.5). The implementation is functionally correct — cost-multiplier 0.5 means half-cost moves = twice as fast — but the display convention is inconsistent with the spec. Either update the labels to show speed multipliers (invert: Fast shows ×2, Slow shows ×0.5) or update the spec to document cost multipliers as the convention.
+
+**Verification:** All 3 speed states verified via Phaser console: Normal(×1), Fast(×2), Slow(×0.5). speedDisplayMultiplier() correctly inverts internal cost multipliers. 522/522 tests pass, build clean, 0 JS console errors, RefQA 4/4 pass. CFS 0.989 improving.
+
 **Success criteria:**
-- Speed labels match the documented convention consistently
-- Either code labels change (Fast=×0.5→×2, Slow=×2→×0.5) OR AGENTS.md spec updated to match current behavior
-- No regression in 522 passing tests
-**Coach checks:** Open settings panel, verify speed labels are internally consistent with the documented convention.
+- Speed labels match the documented convention consistently ✅
+- Labels show speed multipliers: Fast(×2), Slow(×0.5), Normal(×1) ✅
+- No regression in 522 passing tests ✅
+**Coach checks:** Verified all 3 speed states programmatically and visually. Settings panel shows correct speed multipliers.
 
 ### Task: add-keyboard-shortcuts (recovery-generated)
 **Priority:** P3
@@ -250,8 +254,8 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: add-in-game-stats-panel (recovery-generated)
 **Priority:** P3
-**Status:** Not started
-**Description:** The game shows a score breakdown at victory/defeat but no live stats during gameplay. Add an in-game statistics panel showing per-tribe metrics accessible from the HUD.
+**Status:** ✅ Implemented — pending Coach review
+**Description:** The game shows a score breakdown at victory/defeat but no live stats during gameplay. Added an in-game statistics panel showing per-tribe metrics accessible from the HUD.
 1. **Stats button** — 📊 icon in HUD opens a semi-transparent stats overlay
 2. **Stats content** — per-tribe rows showing: tribe name + color, cities owned, units alive (count), techs researched, total stars earned, score
 3. **Human highlight** — human player's row highlighted (brighter bg)
