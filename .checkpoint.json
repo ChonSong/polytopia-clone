@@ -234,7 +234,7 @@
     },
     {
       "task": "fix-settings-speed-labels-agents-spec",
-      "sha": "pending",
+      "sha": "261e4be",
       "date": "2026-06-30",
       "summary": "Fixed settings panel speed labels to show speed multipliers instead of cost multipliers: Fast (×2), Slow (×0.5), Normal (×1). Added speedDisplayMultiplier() helper in GameScene.ts that inverts the internal cost multiplier for display. 522/522 tests pass, 0 regressions, build clean, verified live across all 3 speed states.",
       "coach": "pending",
@@ -272,7 +272,7 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "pending",
+    "last_reviewed_sha": "261e4be",
     "last_reviewed_at": null,
     "verdict": null,
     "findings_count": 0,
@@ -283,7 +283,7 @@
     "watchdog_bypass": false
   },
   "note": "Tick 2026-06-30T06:10:00Z. Player fixed fix-settings-speed-labels-agents-spec. Speed labels now show speed multipliers: Fast(×2), Slow(×0.5), Normal(×1). Added speedDisplayMultiplier() helper. 522/522 tests pass. Live verified across all 3 speed states. Next: add-in-game-stats-panel.",
-  "last_sha": "pending",
+  "last_sha": "261e4be",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
