@@ -204,7 +204,7 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-in-game-settings-panel (recovery-generated)
 **Priority:** P3
-**Status:** ❌ Not started
+**Status:** ✅ Implemented — commit 683587a. Gear button ⚙️ in HUD opens unified settings overlay with Audio (mute + volume slider) and Game Speed (Normal→Fast→Slow cycle). 522 tests pass.
 **Description:** Game settings (volume, mute, game speed) are scattered across individual HUD buttons without a unified settings panel. Add an accessible settings overlay that collects all adjustable options:
 1. **Settings button** — gear icon ⚙️ in HUD opens settings overlay
 2. **Settings overlay** — semi-transparent panel with sections: Audio (volume slider + mute toggle), Game Speed (display current speed, option to change)
