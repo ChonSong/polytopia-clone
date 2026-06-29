@@ -243,21 +243,10 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: add-end-turn-confirmation (recovery-generated)
 **Priority:** P3
-**Status:** Not started
-**Description:** Players can accidentally click "End Turn" and waste a turn with unactioned units. Add an optional confirmation dialog. This is a quality-of-life improvement for strategy games.
-1. **Confirmation dialog** — "End Turn? You have N unactioned units" with Yes/No buttons
-2. **Toggle in settings** — gear ⚙️ → settings overlay → "Confirm End Turn" checkbox (persisted to localStorage)
-3. **Smart skip** — skip the dialog if all units have acted (no unactioned units remaining)
-4. **Keyboard aware** — Enter/E triggers the dialog too (not bypasses it)
+**Status:** ✅ Coach APPROVED 2026-06-30 — commit 74508ca
+**Description:** Players can accidentally click "End Turn" and waste a turn with unactioned units. Added optional confirmation dialog with settings toggle and smart skip.
 
-**Success criteria:**
-- When enabled, clicking "End Turn" shows confirmation dialog with unactioned unit count
-- Dialog has Yes (proceed) and No (cancel) buttons
-- "Confirm End Turn" toggle in settings overlay persists across sessions
-- Dialog is skipped when no unactioned units remain
-- No regression in 522 passing tests
-
-**Coach checks:** Enable "Confirm End Turn" in settings. Click End Turn with unactioned units → verify dialog appears. Click Yes → verify turn ends. Disable toggle → verify End Turn works directly.
+**Verification:** 522/522 tests pass, build clean, 0 JS console errors. Confirmation dialog renders correctly (dimmed backdrop, orange-bordered panel, ⏳ title, unactioned unit count, Yes/Cancel buttons). Cancel dismisses without ending turn. Yes advances turn. Settings toggle ON/OFF works with localStorage persistence. Smart skip bypasses dialog when 0 unactioned units. RefQA 4/4 pass.
 
 ### Task: add-in-game-stats-panel (recovery-generated)
 **Priority:** P3
