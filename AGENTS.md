@@ -192,19 +192,14 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-sound-volume-slider (recovery-generated)
 **Priority:** P3
-**Status:** ❌ Not started
+**Status:** ✅ Coach APPROVED 2026-06-29 — commit c6af629
 **Description:** Sound effects and music were added in commit a1b035b with a mute toggle (🔊/🔇) but the task spec included a volume slider. Add a volume slider (0-100%) to control master volume level alongside the existing mute button:
 1. **Volume slider UI** — draggable slider bar next to mute button showing current volume level (0-100%)
 2. **Master volume control** — scale SoundManager's masterGain gain value by slider percentage (0.0-1.0)
 3. **Persist setting** — save volume level to localStorage (polytopia_volume) and restore on load
 4. **Visual feedback** — percentage text next to slider updates as dragged
 
-**Success criteria:**
-- Volume slider appears in-game (top-left or settings area)
-- Dragging slider changes master volume audibly (0% = silent, 50% = half volume, 100% = full)
-- Mute button still works independently (mute + slider at 50% = silent; unmute + slider at 50% = half)
-- Volume persists across page refresh
-- No regression in 522 passing tests
+**Verification:** 522/522 tests pass, build clean, Deploy HTTP 200. Code review confirmed: SoundManager volume getter/setter with localStorage persistence, clamped [0,1], decoupled from mute. GameScene slider UI with green fill, white thumb, draggable zone, responsive redraw in layoutHUD(). CFS 0.973 stable.
 **Coach checks:** Start a game, verify volume slider renders. Drag to 0% — verify game is silent. Drag to 100% — verify sounds play at full volume. Refresh page — verify slider position restored.
 
 ### Task: fix-in-game-settings-panel (recovery-generated)
