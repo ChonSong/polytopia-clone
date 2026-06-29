@@ -218,3 +218,60 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 - Clicking outside overlay closes it
 - No regression in 522 passing tests
 **Coach checks:** Open game, click ⚙️ gear button, verify settings panel appears with volume and speed controls. Change speed to Fast, observe animations accelerate. Close panel.
+
+## Phase 3 — Keyboard, UX Polish, Stats
+
+### Task: add-keyboard-shortcuts (recovery-generated)
+**Priority:** P3
+**Status:** 🔜 Next up
+**Description:** GameScene already has W=wait and ESC=pause. Add commonly expected keyboard shortcuts to improve accessibility and power-user flow:
+1. **End turn** — Enter and E keys end the current player's turn (same as clicking "End Turn" button)
+2. **Cycle units** — Tab cycles forward through unactioned units, Shift+Tab cycles backward
+3. **Camera pan** — Arrow keys pan the camera (16px per keypress, held keys repeat)
+4. **Select unit** — Space bar performs the default action (select/move/attack) on the currently highlighted unit or hex
+
+**Success criteria:**
+- Pressing Enter or E ends the turn (skips to AI or next phase)
+- Tab cycles through unactioned units, camera centers on each
+- Arrow keys pan the camera in all 4 directions
+- Holding arrow keys continues panning (key repeat)
+- No interference with existing W (wait) and ESC (pause) shortcuts
+- No regression in 522 passing tests
+
+**Coach checks:** Start a game, press Tab to cycle units, press Enter to end turn. Verify arrow keys pan the camera. Check console for errors.
+
+### Task: add-end-turn-confirmation (recovery-generated)
+**Priority:** P3
+**Status:** Not started
+**Description:** Players can accidentally click "End Turn" and waste a turn with unactioned units. Add an optional confirmation dialog. This is a quality-of-life improvement for strategy games.
+1. **Confirmation dialog** — "End Turn? You have N unactioned units" with Yes/No buttons
+2. **Toggle in settings** — gear ⚙️ → settings overlay → "Confirm End Turn" checkbox (persisted to localStorage)
+3. **Smart skip** — skip the dialog if all units have acted (no unactioned units remaining)
+4. **Keyboard aware** — Enter/E triggers the dialog too (not bypasses it)
+
+**Success criteria:**
+- When enabled, clicking "End Turn" shows confirmation dialog with unactioned unit count
+- Dialog has Yes (proceed) and No (cancel) buttons
+- "Confirm End Turn" toggle in settings overlay persists across sessions
+- Dialog is skipped when no unactioned units remain
+- No regression in 522 passing tests
+
+**Coach checks:** Enable "Confirm End Turn" in settings. Click End Turn with unactioned units → verify dialog appears. Click Yes → verify turn ends. Disable toggle → verify End Turn works directly.
+
+### Task: add-in-game-stats-panel (recovery-generated)
+**Priority:** P3
+**Status:** Not started
+**Description:** The game shows a score breakdown at victory/defeat but no live stats during gameplay. Add an in-game statistics panel showing per-tribe metrics accessible from the HUD.
+1. **Stats button** — 📊 icon in HUD opens a semi-transparent stats overlay
+2. **Stats content** — per-tribe rows showing: tribe name + color, cities owned, units alive (count), techs researched, total stars earned, score
+3. **Human highlight** — human player's row highlighted (brighter bg)
+4. **Close** — click outside overlay or X button to close
+
+**Success criteria:**
+- 📊 stats button visible in HUD during gameplay
+- Stats overlay shows all active tribes with metrics
+- Human player row is visually distinct
+- Metrics update in real-time (or on open) reflecting current game state
+- No regression in 522 passing tests
+
+**Coach checks:** Start a game, play a few turns, click 📊 button, verify all tribes listed with correct metrics. Verify human row highlighted.

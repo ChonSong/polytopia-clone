@@ -141,7 +141,7 @@
       "task": "fix-infinite-loop-tribe-selection",
       "sha": "c3d4e5f",
       "date": "2026-06-01",
-      "summary": "Tribe selection infinite loop: default bot tribes were generated twice \u2014 once on init and once on game start. Fixed by only generating default bot tribes once.",
+      "summary": "Tribe selection infinite loop: default bot tribes were generated twice — once on init and once on game start. Fixed by only generating default bot tribes once.",
       "coach": "approved"
     },
     {
@@ -207,15 +207,22 @@
       "summary": "Added volume slider (0-100%) below mute button with draggable thumb. SoundManager decoupled: volume and mute are independent controls. Mute+slider=50% = silent; unmute+50% = half volume. Volume persisted to localStorage (polytopia_volume), default 70%. Responsive layout redraws slider at scaled position. 522 tests pass.",
       "coach": "approved",
       "coach_verified_at": "2026-06-29T00:13:07Z"
+    },
+    {
+      "task": "fix-in-game-settings-panel",
+      "sha": "683587a",
+      "date": "2026-06-29",
+      "summary": "Added ⚙️ gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal→Fast→Slow→Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas. 522 tests pass, build clean.",
+      "coach": "pending"
     }
   ],
-  "health": "522_tests_pass_volume_slider",
-  "current_task": "fix-in-game-settings-panel",
+  "health": "522_tests_pass_settings_panel",
+  "current_task": "add-keyboard-shortcuts",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
     {
-      "item": "AI territory expansion still basic \u2014 no strategic resource claiming",
+      "item": "AI territory expansion still basic — no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "2026-06-28: findExploreTarget now weights tiles by resource value (commit 9b94846). Sub-item 1 (tile valuation) complete. Sub-items 2-4 (enemy proximity, chokepoint, settler logic) still open.",
@@ -223,7 +230,7 @@
       "status": "escalated"
     },
     {
-      "item": "AI difficulty differentiation now implemented (commit 98eba7b) \u2014 Easy avoids combat + picks economic, Hard hunts enemies + picks military",
+      "item": "AI difficulty differentiation now implemented (commit 98eba7b) — Easy avoids combat + picks economic, Hard hunts enemies + picks military",
       "type": "completed",
       "priority": 2,
       "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
@@ -234,7 +241,7 @@
       "item": "Stuck: fix-ai-territory-expansion",
       "type": "stuck_bug",
       "priority": 2,
-      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding \u2014 architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
+      "evidence": "13+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
       "cycles_stagnant": 14,
       "status": "escalated"
     }
@@ -243,8 +250,8 @@
     "last_reviewed_sha": "c6af629",
     "last_reviewed_at": "2026-06-29T00:13:07Z",
     "verdict": "APPROVE",
-    "notes": "Tick 2026-06-29T00:13:07Z. Coach APPROVED fix-sound-volume-slider (c6af629). Volume slider with 0-100% draggable thumb, green fill, white dot, green text label. SoundManager decoupled mute/volume. localStorage persistence (polytopia_volume, default 70%). Responsive redraw in layoutHUD(). 522 tests pass, build clean, RefQA passes, hex.codeovertcp.com HTTP 200. CFS 0.973 stable (prev 0.988). Next task: fix-in-game-settings-panel."
+    "notes": "Tick 2026-06-29T00:13:07Z. Coach APPROVED fix-sound-volume-slider (c6af629). 522/522 tests pass. CFS 0.973 stable. Next task: fix-in-game-settings-panel."
   },
-  "note": "Tick 2026-06-29T00:13:07Z. Coach APPROVED fix-sound-volume-slider (c6af629): volume slider with persistence, decoupled mute/volume. 522/522 tests pass. No regressions. CFS 0.973 stable. Next: fix-in-game-settings-panel.",
-  "last_sha": "c6af629"
+  "note": "Tick 2026-06-29T12:07:53Z. Task exhaustion recovery: generated 3 Phase 3 tasks (keyboard shortcuts, end-turn confirmation, in-game stats panel). 522/522 tests pass, site HTTP 200. Coach review pending — last reviewed 12h ago.",
+  "last_sha": "683587a"
 }
