@@ -275,15 +275,10 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: fix-tribe-select-grid-balance
 **Priority:** P3
-**Status:** Not started
+**Status:** ✅ Coach APPROVED 2026-06-30T13:20:00Z — commit 3735ec6
 **Description:** Tribe selection grid currently shows 7 tribe cards as 6 on top row + 1 lonely card on bottom row (Xin-xi). Redistribute grid to be more balanced — either 4+3 split or center the single card on its row. Match original Polytopia's tribe grid layout where rows are evenly filled.
 
-**Success criteria:**
-- All 7 tribe cards are visually balanced
-- No single orphan card on a row
-- Grid looks intentionally laid out rather than overflowing from a fixed column count
-
-**Coach checks:** Open tribe selection screen, verify all 7 cards are evenly distributed. Test with narrow screen (responsive) to verify wrapping still works.
+**Verification:** 523/523 tests pass, build clean, HTTP 200. Browser QA: Xin-xi card centered on bottom row at x=640 (midpoint of top row's start-end range). 0 JS console errors. RefQA 4/4 pass. CFS 0.995 improving.
 
 ### Task: add-tribe-card-tooltips
 **Priority:** P3

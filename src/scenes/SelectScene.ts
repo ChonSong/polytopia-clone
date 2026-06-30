@@ -3,6 +3,7 @@ import { MAP_TYPES } from '../hex/MapGenerator';
 import { TRIBE_CONFIGS } from '../entities/Tribe';
 import SoundManager from '../audio/SoundManager';
 import { SaveManager } from '../entities/SaveManager';
+import { TECH_DEFS, TRIBE_STARTING_TECHS } from '../entities/TechTree';
 
 export enum GameMode {
   DOMINATION = 'DOMINATION',
@@ -143,6 +144,11 @@ export class SelectScene extends Phaser.Scene {
         fontSize: Math.max(10, Math.round(cardW * 0.07)) + 'px', color: '#aaa', fontFamily: 'monospace',
       }).setOrigin(0.5);
 
+      // Compute starting tech tooltip
+      const startingTechId = TRIBE_STARTING_TECHS[cfg.id]?.[0];
+      const techDef = startingTechId ? TECH_DEFS[startingTechId] : null;
+      const tooltipLabel = techDef ? `${techDef.name}: ${techDef.description}` : null;
+
       // Click handler
       const hitArea = this.add.rectangle(cx + cardW / 2, cy + cardH / 2, cardW, cardH, 0x000, 0)
         .setInteractive({ useHandCursor: true });
@@ -156,8 +162,32 @@ export class SelectScene extends Phaser.Scene {
           difficulty: selectedDifficulty,
         });
       });
-      hitArea.on('pointerover', () => bg.setAlpha(0.6));
-      hitArea.on('pointerout', () => bg.setAlpha(1));
+
+      let tooltipText: Phaser.GameObjects.Text | null = null;
+      const destroyTooltip = () => {
+        if (tooltipText) { tooltipText.destroy(); tooltipText = null; }
+      };
+
+      hitArea.on('pointerover', () => {
+        bg.setAlpha(0.6);
+        if (tooltipLabel) {
+          destroyTooltip();
+          const fontSize = Math.max(9, Math.round(cardW * 0.065));
+          tooltipText = this.add.text(cx + cardW / 2, cy + cardH + 4, tooltipLabel, {
+            fontSize: fontSize + 'px',
+            color: '#ffd',
+            fontFamily: 'monospace',
+            backgroundColor: '#1a1a2e',
+            padding: { x: 6, y: 4 },
+            wordWrap: { width: cardW + 40 },
+            align: 'center',
+          }).setOrigin(0.5, 0).setDepth(10);
+        }
+      });
+      hitArea.on('pointerout', () => {
+        bg.setAlpha(1);
+        destroyTooltip();
+      });
     });
 
     // Load Game button — responsive positioning at bottom

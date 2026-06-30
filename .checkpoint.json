@@ -261,7 +261,8 @@
       "sha": "3735ec6",
       "date": "2026-06-30",
       "summary": "Centered orphan tribe cards in incomplete grid rows. For 7 tribes on desktop (cols=6), Xin-xi now centered on bottom row instead of left-aligned. Last row cards get lastRowStartX computed from their own row width vs viewport. Full rows unchanged. 523/523 tests pass.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T13:20:00Z"
     }
   ],
   "health": "523_tests_pass_grid_centered",
@@ -295,12 +296,12 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c62f35c",
-    "last_reviewed_at": "2026-06-30T02:35:00Z",
+    "last_reviewed_sha": "3735ec6",
+    "last_reviewed_at": "2026-06-30T13:20:00Z",
     "verdict": "APPROVE",
     "findings_count": 1,
     "has_evidence": true,
-    "notes": "Coach review 2026-06-30T02:35:00Z. Verdict APPROVE. Reviewed fix-ai-proximity-weighting (c62f35c): AI explorers devalue tiles near enemy cities/units via linear decay penalty. Structural gates: 523/523 tests pass (14 files), build clean, HTTP 200, no secrets/injection. Browser QA: tribe selection -> Bardur game -> Turn 1 -> end turn confirm -> Turn 2 with AI processed. Stats panel, settings, end-turn confirm all functional. 0 JS console errors. RefQA 4/4 pass. CFS 0.989 stable. Minor P3: settings gear overlaps END TURN text (pre-existing). Next: fix-tribe-select-grid-balance (P3).",
+    "notes": "Coach review 2026-06-30T13:20:00Z. Verdict APPROVE. Reviewed fix-tribe-select-grid-balance (3735ec6): centered orphan Xin-xi card on bottom row instead of left-aligned. Structural gates: 523/523 tests pass, build clean, HTTP 200, no secrets/injection. Browser QA: tribe grid shows 6+1 layout with Xin-xi centered (x=640, midpoint of top row). Bardur game started correctly (Turn 1), end turn processed (AI advanced to Turn 2). 0 JS console errors. RefQA 4/4 pass. CFS 0.995 improving. P3 note: 6+1 grid layout still visually sparse on bottom row but centering was acceptable per task spec. Next: add-tribe-card-tooltips.",
     "commit_pending": true,
     "watchdog_verified": false,
     "watchdog_bypass": false
