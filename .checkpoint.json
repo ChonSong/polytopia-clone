@@ -257,18 +257,17 @@
       "coach_verified_at": "2026-06-30T02:35:00Z"
     },
     {
-      "task": "fix-tribe-select-grid-balance",
-      "sha": "3735ec6",
+      "task": "add-tribe-card-tooltips",
+      "sha": "94211dd",
       "date": "2026-06-30",
-      "summary": "Centered orphan tribe cards in incomplete grid rows. For 7 tribes on desktop (cols=6), Xin-xi now centered on bottom row instead of left-aligned. Last row cards get lastRowStartX computed from their own row width vs viewport. Full rows unchanged. 523/523 tests pass.",
-      "coach": "approved",
-      "coach_verified_at": "2026-06-30T13:20:00Z"
+      "summary": "Added hover tooltips to tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Bardur→Hunting: Wild animal resources, Cymanti→Fungiculture: Unlocks Fungi Farm • Organic economy, etc. Tooltip appears below card on pointerover with dark background, word wrap, responsive font; destroys on pointerout. Click-to-start unaffected. 523/523 tests pass, 0 regressions.",
+      "coach": "pending"
     }
   ],
-  "health": "523_tests_pass_grid_centered",
-  "current_task": "add-tribe-card-tooltips",
+  "health": "523_tests_pass_tooltips_added",
+  "current_task": "tbd",
   "blocker": null,
-  "all_coach_tasks_done": false,
+  "all_coach_tasks_done": true,
   "spec_gaps": [
     {
       "item": "AI territory expansion still basic — no strategic resource claiming",
@@ -302,12 +301,12 @@
     "findings_count": 1,
     "has_evidence": true,
     "notes": "Coach review 2026-06-30T13:20:00Z. Verdict APPROVE. Reviewed fix-tribe-select-grid-balance (3735ec6): centered orphan Xin-xi card on bottom row instead of left-aligned. Structural gates: 523/523 tests pass, build clean, HTTP 200, no secrets/injection. Browser QA: tribe grid shows 6+1 layout with Xin-xi centered (x=640, midpoint of top row). Bardur game started correctly (Turn 1), end turn processed (AI advanced to Turn 2). 0 JS console errors. RefQA 4/4 pass. CFS 0.995 improving. P3 note: 6+1 grid layout still visually sparse on bottom row but centering was acceptable per task spec. Next: add-tribe-card-tooltips.",
-    "commit_pending": true,
+    "commit_pending": false,
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Implemented fix-tribe-select-grid-balance (3735ec6): Centered orphan tribe cards in incomplete grid rows. Xin-xi now centered bottom row. 523/523 tests pass. Moved to add-tribe-card-tooltips. Leave coach:pending.",
-  "last_sha": "3735ec6",
+  "note": "Implemented add-tribe-card-tooltips (94211dd): Hover tooltips on tribe cards showing starting tech effects (Bardur→Hunting: Wild animal resources, etc.). 523/523 tests pass. Backlog exhausted — current_task set to tbd. Leave coach:pending.",
+  "last_sha": "94211dd",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
