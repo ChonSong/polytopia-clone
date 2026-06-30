@@ -566,7 +566,11 @@ export class BasicAI {
       // Priority 3: Explore — move toward nearest unseen walkable tile
       if (!target) {
         const visible = getVisibleTiles(this.tribe, tileMap);
-        const unseenTarget = this.findExploreTarget(unit, tileMap, visible);
+        const enemyPositions: HexCoord[] = [
+          ...enemyCities.map(c => c.position),
+          ...enemyUnits.map(u => u.position),
+        ];
+        const unseenTarget = this.findExploreTarget(unit, tileMap, visible, enemyPositions);
         if (unseenTarget) {
           target = unseenTarget;
         }
@@ -604,10 +608,16 @@ export class BasicAI {
    */
   private readonly EXPLORE_RESOURCE_BONUS = 1.5;
 
+  /** Radius (in hexes) within which enemy proximity penalizes exploration tiles. */
+  private readonly PROXIMITY_PENALTY_RADIUS = 5;
+  /** Maximum penalty applied when a tile is at distance 0 from an enemy. */
+  private readonly PROXIMITY_PENALTY_MAX = 3.0;
+
   private findExploreTarget(
     unit: Unit,
     tileMap: Map<string, TileData>,
     visible: Set<string>,
+    enemyPositions: HexCoord[],
   ): HexCoord | null {
     const walkable = unit.isNaval ? NAVAL_BIOMES : WALKABLE_BIOMES;
     let best: HexCoord | null = null;
@@ -623,7 +633,23 @@ export class BasicAI {
 
       // Resource tiles are valued: reduce effective distance so AI prioritizes them
       const resourceBonus = tile.resource ? this.EXPLORE_RESOURCE_BONUS : 0;
-      const effectiveDist = dist - resourceBonus;
+
+      // Enemy proximity penalty: devalue tiles near enemy cities/units
+      let proximityPenalty = 0;
+      if (enemyPositions.length > 0) {
+        let minDistToEnemy = Infinity;
+        for (const ep of enemyPositions) {
+          const d = coord.distanceTo(ep);
+          if (d < minDistToEnemy) minDistToEnemy = d;
+        }
+        if (minDistToEnemy < this.PROXIMITY_PENALTY_RADIUS) {
+          proximityPenalty =
+            this.PROXIMITY_PENALTY_MAX *
+            (1 - minDistToEnemy / this.PROXIMITY_PENALTY_RADIUS);
+        }
+      }
+
+      const effectiveDist = dist - resourceBonus + proximityPenalty;
 
       if (effectiveDist < bestEffectiveDist) {
         bestEffectiveDist = effectiveDist;

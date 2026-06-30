@@ -245,13 +245,21 @@
       "sha": "f800baf",
       "date": "2026-06-30",
       "summary": "Added in-game statistics panel: 📊 button in HUD (next to ⚙️), semi-transparent overlay with per-tribe metrics (tribe name with color dot, cities, units alive, techs researched, stars, score). Human player row highlighted (brighter bg). Close via X button or backdrop click. Follows settings panel overlay pattern. 522/522 tests pass, build clean.",
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T09:23:00+10:00"
+    },
+    {
+      "task": "fix-ai-proximity-weighting",
+      "sha": "PENDING",
+      "date": "2026-06-30",
+      "summary": "Added enemy proximity weighting to findExploreTarget(): AI explorers now devalue tiles near enemy cities/units using a linear decay penalty (PROXIMITY_PENALTY_MAX=3.0 within PROXIMITY_PENALTY_RADIUS=5 hexes). Combined enemy city and unit positions passed from decideMove. 523/523 tests pass (new test validates exploration away from enemy units).",
       "coach": "pending"
     }
   ],
-  "health": "522_tests_pass_stats_panel_added",
-  "current_task": "tbd",
+  "health": "523_tests_pass_proximity_weighting_implemented",
+  "current_task": "fix-tribe-select-grid-balance",
   "blocker": null,
-  "all_coach_tasks_done": true,
+  "all_coach_tasks_done": false,
   "spec_gaps": [
     {
       "item": "AI territory expansion still basic — no strategic resource claiming",
@@ -279,18 +287,18 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "f800baf",
-    "last_reviewed_at": "2026-06-30T09:15:00Z",
+    "last_reviewed_sha": "c0904ea",
+    "last_reviewed_at": "2026-06-30T01:36:35Z",
     "verdict": "APPROVE",
     "findings_count": 0,
-    "has_evidence": false,
-    "notes": "Tick 2026-06-30T09:12:00Z. Player implemented add-in-game-stats-panel. ⚠️ Player note: no Coach review yet — this checkpoint update is from the Player tick, not a Coach review. Coach must review before next tick.",
+    "has_evidence": true,
+    "notes": "Coach review 2026-06-30T01:36:35Z. Verdict APPROVE. No new Player code changes — only checkpoint/AGENTS.md updates by previous Coach. All previously approved features (stats panel f800baf, speed labels 261e4be, end-turn confirm 74508ca) verified stable on live. All structural gates pass: 522/522 tests, HTTP 200, no secrets/injection. Browser QA: tribe selection screen renders correctly (7 tribes, settings), Phaser WebGL loaded, 0 JS errors. RefQA 4/4 smoke pass. CFS 0.993 stable. Next: fix-ai-proximity-weighting (P2).",
     "commit_pending": true,
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Tick 2026-06-30T09:12:00Z. Player implemented add-in-game-stats-panel: 📊 button in HUD, semi-transparent overlay with per-tribe metrics (name+color, cities, units, techs, stars, score). Human row highlighted. 522/522 tests pass, build clean, 0 JS errors. Backlog exhausted — current_task=tbd, all_coach_tasks_done=true. Coach must generate new tasks or approve recovery.",
-  "last_sha": "f800baf",
+  "note": "Coach APPROVED add-in-game-stats-panel (f800baf). Generated 3 Phase 4 tasks to replenish backlog. Next: fix-ai-proximity-weighting (P2).",
+  "last_sha": "c0904ea",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
@@ -316,6 +324,12 @@
       "sha": "9c34ecd",
       "cfs": 0.9936,
       "timestamp": "2026-06-30T08:36:00Z"
+    },
+    {
+      "sha": "c0904ea",
+      "cfs": 0.993,
+      "trend": "stable",
+      "timestamp": "2026-06-30T01:36:35Z"
     }
   ]
 }

@@ -902,5 +902,45 @@ describe('BasicAI', () => {
       expect(actions.length).toBe(1);
       expect(actions[0].type).toBe('MOVE');
     });
+
+    it('prefers tiles away from enemy units (proximity weighting)', () => {
+      // Unit at (0,0) has vision radius 2 — tiles at distance 3+ are unseen.
+      // Enemy unit at (5,0) — no enemy city, so Priority 2 (move toward enemy
+      // city) doesn't fire. Medium difficulty skips hunt. Exploration priority
+      // fires with enemy position influencing proximity penalty.
+      // Tile (3,0): dist=3 from unit, dist=2 from enemy → penalty=1.8, eff=4.8
+      // Tile (-3,0): dist=3 from unit, dist=8 from enemy → penalty=0, eff=3.0
+      // AI should prefer (-3,0) over (3,0).
+      const tileMap = new Map<string, TileData>();
+      for (let q = -6; q <= 6; q++) {
+        for (let r = -6; r <= 6; r++) {
+          tileMap.set(`${q},${r}`, { biome: Biome.GRASS, elevation: 0.5 });
+        }
+      }
+
+      const aiTribe = new Tribe({ id: 'test', name: 'Test', color: 0xffffff });
+      const unit = new Unit(new HexCoord(0, 0), UnitType.WARRIOR, 'test');
+      aiTribe.units.push(unit);
+
+      const enemyTribe = new Tribe({ id: 'enemy', name: 'Enemy', color: 0xff0000 });
+      // Enemy unit at (5,0) — no enemy city to avoid Priority 2 hijacking
+      const enemyUnit = new Unit(new HexCoord(5, 0), UnitType.WARRIOR, 'enemy');
+      enemyTribe.units.push(enemyUnit);
+
+      const ai = new BasicAI(aiTribe, { difficulty: 'medium' });
+      const actions = ai.decide(
+        { tileMap, tribes: [aiTribe, enemyTribe] } as unknown as GameState,
+        TurnPhase.MOVE,
+      );
+
+      // Should produce a move action
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe('MOVE');
+      const moveAction = actions[0];
+
+      // Unit should move away from enemy — toward negative q direction
+      // Proximity penalty devalues tiles near the enemy unit at (5,0)
+      expect(moveAction.params.toQ).toBeLessThan(0);
+    });
   });
 });
