@@ -255,10 +255,17 @@
       "summary": "Added enemy proximity weighting to findExploreTarget(): AI explorers now devalue tiles near enemy cities/units using a linear decay penalty (PROXIMITY_PENALTY_MAX=3.0 within PROXIMITY_PENALTY_RADIUS=5 hexes). Combined enemy city and unit positions passed from decideMove. 523/523 tests pass (new test validates exploration away from enemy units).",
       "coach": "approved",
       "coach_verified_at": "2026-06-30T02:35:00Z"
+    },
+    {
+      "task": "fix-tribe-select-grid-balance",
+      "sha": "3735ec6",
+      "date": "2026-06-30",
+      "summary": "Centered orphan tribe cards in incomplete grid rows. For 7 tribes on desktop (cols=6), Xin-xi now centered on bottom row instead of left-aligned. Last row cards get lastRowStartX computed from their own row width vs viewport. Full rows unchanged. 523/523 tests pass.",
+      "coach": "pending"
     }
   ],
-  "health": "523_tests_pass_proximity_weighting_implemented",
-  "current_task": "fix-tribe-select-grid-balance",
+  "health": "523_tests_pass_grid_centered",
+  "current_task": "add-tribe-card-tooltips",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -298,8 +305,8 @@
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Implemented fix-ai-proximity-weighting (c62f35c): AI explorers devalue tiles near enemy cities/units via proximity penalty. 523/523 tests pass. Moved to fix-tribe-select-grid-balance. Leave coach:pending.",
-  "last_sha": "c62f35c",
+  "note": "Implemented fix-tribe-select-grid-balance (3735ec6): Centered orphan tribe cards in incomplete grid rows. Xin-xi now centered bottom row. 523/523 tests pass. Moved to add-tribe-card-tooltips. Leave coach:pending.",
+  "last_sha": "3735ec6",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
