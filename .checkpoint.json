@@ -250,7 +250,7 @@
     },
     {
       "task": "fix-ai-proximity-weighting",
-      "sha": "PENDING",
+      "sha": "c62f35c",
       "date": "2026-06-30",
       "summary": "Added enemy proximity weighting to findExploreTarget(): AI explorers now devalue tiles near enemy cities/units using a linear decay penalty (PROXIMITY_PENALTY_MAX=3.0 within PROXIMITY_PENALTY_RADIUS=5 hexes). Combined enemy city and unit positions passed from decideMove. 523/523 tests pass (new test validates exploration away from enemy units).",
       "coach": "pending"
@@ -297,8 +297,8 @@
     "watchdog_verified": false,
     "watchdog_bypass": false
   },
-  "note": "Coach APPROVED add-in-game-stats-panel (f800baf). Generated 3 Phase 4 tasks to replenish backlog. Next: fix-ai-proximity-weighting (P2).",
-  "last_sha": "c0904ea",
+  "note": "Implemented fix-ai-proximity-weighting (c62f35c): AI explorers devalue tiles near enemy cities/units via proximity penalty. 523/523 tests pass. Moved to fix-tribe-select-grid-balance. Leave coach:pending.",
+  "last_sha": "c62f35c",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
