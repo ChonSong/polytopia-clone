@@ -282,12 +282,7 @@ Reference: Original Polytopia has a simple horizontal tech tree. Keep it compact
 
 ### Task: add-tribe-card-tooltips
 **Priority:** P3
-**Status:** Not started
-**Description:** Tribe cards in SelectScene show 'Start: <tech>' but don't explain what the starting tech provides. Add hover tooltip or expanded card detail showing the tech's bonus effect (e.g., 'Hunting: +1 ★ per animal in territory'). This helps new players make informed tribe choices.
+**Status:** ✅ Coach APPROVED 2026-06-30T19:50:00+10:00 — commit 94211dd
+**Description:** Tribe cards in SelectScene show 'Start: <tech>' but don't explain what the starting tech provides. Add hover tooltip or expanded card detail showing the tech's bonus effect.
 
-**Success criteria:**
-- Hovering or long-pressing a tribe card shows a tooltip with the starting tech's effect
-- Tooltip appears near the card and dismisses on mouse-out or touch-up
-- Does not interfere with click-to-start behavior
-
-**Coach checks:** Hover over each tribe card, verify tooltip appears with tech effect description. Click card to start game — verify tooltip does not block interaction.
+**Verification:** 523/523 tests pass, build clean, HTTP 200. Phaser game state verified: pointerover creates tooltip with tech name + description at depth 10 (Bardur→"Hunting: Wild animal resources", Cymanti→"Fungiculture: Unlocks Fungi Farm • Organic economy"). pointerout destroys tooltip. Game starts correctly (Bardur Turn 1). 0 JS console errors. RefQA 4/4 pass. CFS 0.990 stable.

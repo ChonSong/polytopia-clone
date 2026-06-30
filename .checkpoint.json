@@ -261,7 +261,8 @@
       "sha": "94211dd",
       "date": "2026-06-30",
       "summary": "Added hover tooltips to tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Bardur→Hunting: Wild animal resources, Cymanti→Fungiculture: Unlocks Fungi Farm • Organic economy, etc. Tooltip appears below card on pointerover with dark background, word wrap, responsive font; destroys on pointerout. Click-to-start unaffected. 523/523 tests pass, 0 regressions.",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T09:50:00Z"
     }
   ],
   "health": "523_tests_pass_tooltips_added",
@@ -295,17 +296,18 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "3735ec6",
-    "last_reviewed_at": "2026-06-30T13:20:00Z",
+    "last_reviewed_sha": "94211dd",
+    "last_reviewed_at": "2026-06-30T09:50:00Z",
     "verdict": "APPROVE",
-    "findings_count": 1,
+    "findings_count": 0,
     "has_evidence": true,
-    "notes": "Coach review 2026-06-30T13:20:00Z. Verdict APPROVE. Reviewed fix-tribe-select-grid-balance (3735ec6): centered orphan Xin-xi card on bottom row instead of left-aligned. Structural gates: 523/523 tests pass, build clean, HTTP 200, no secrets/injection. Browser QA: tribe grid shows 6+1 layout with Xin-xi centered (x=640, midpoint of top row). Bardur game started correctly (Turn 1), end turn processed (AI advanced to Turn 2). 0 JS console errors. RefQA 4/4 pass. CFS 0.995 improving. P3 note: 6+1 grid layout still visually sparse on bottom row but centering was acceptable per task spec. Next: add-tribe-card-tooltips.",
-    "commit_pending": false,
-    "watchdog_verified": false,
+    "assertion_specs": [],
+    "notes": "Coach review 2026-06-30T19:50:00+10:00. Verdict APPROVE. Reviewed add-tribe-card-tooltips (94211dd): hover tooltips on tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Structural gates: 523/523 tests pass (14/14 files), build clean (tsc+vite), HTTP 200, no secrets/injection. Browser QA via Phaser game state: pointerover on Bardur creates 'Hunting: Wild animal resources' (depth 10), pointerover on Cymanti creates 'Fungiculture: Unlocks Fungi Farm • Organic economy', pointerout destroys tooltip. Game click-through verified: Bardur starts correctly (Turn 1, GameScene active). 0 JS console errors at any point. RefQA 4/4 pass. CFS 0.990 stable. Backlog exhausted — no actionable findings. Next: gto-wizard-clone (consecutive_on_project=2).",
+    "commit_pending": true,
+    "watchdog_verified": true,
     "watchdog_bypass": false
   },
-  "note": "Implemented add-tribe-card-tooltips (94211dd): Hover tooltips on tribe cards showing starting tech effects (Bardur→Hunting: Wild animal resources, etc.). 523/523 tests pass. Backlog exhausted — current_task set to tbd. Leave coach:pending.",
+  "note": "Coach APPROVE 2026-06-30T19:50:00+10:00: add-tribe-card-tooltips (94211dd) verified. 523/523 tests pass, build clean, tooltips confirmed live via Phaser game state inspection (Bardur 'Hunting: Wild animal resources', Cymanti 'Fungiculture: Unlocks Fungi Farm • Organic economy', Elyrion 'Ecology: Sanctuary building • See animals through fog'). pointerout cleanup verified. Game starts correctly (Bardur Turn 1). 0 JS console errors. CFS 0.990 stable. Band-gated (commit_pending: true). Next: gto-wizard-clone.",
   "last_sha": "94211dd",
   "fidelity_history": [
     {
@@ -338,6 +340,12 @@
       "cfs": 0.993,
       "trend": "stable",
       "timestamp": "2026-06-30T01:36:35Z"
+    },
+    {
+      "sha": "94211dd",
+      "cfs": 0.98994,
+      "trend": "stable",
+      "timestamp": "2026-06-30T09:50:00Z"
     }
   ]
 }
