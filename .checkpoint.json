@@ -253,7 +253,8 @@
       "sha": "c62f35c",
       "date": "2026-06-30",
       "summary": "Added enemy proximity weighting to findExploreTarget(): AI explorers now devalue tiles near enemy cities/units using a linear decay penalty (PROXIMITY_PENALTY_MAX=3.0 within PROXIMITY_PENALTY_RADIUS=5 hexes). Combined enemy city and unit positions passed from decideMove. 523/523 tests pass (new test validates exploration away from enemy units).",
-      "coach": "pending"
+      "coach": "approved",
+      "coach_verified_at": "2026-06-30T02:35:00Z"
     }
   ],
   "health": "523_tests_pass_proximity_weighting_implemented",
@@ -287,12 +288,12 @@
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "c0904ea",
-    "last_reviewed_at": "2026-06-30T01:36:35Z",
+    "last_reviewed_sha": "c62f35c",
+    "last_reviewed_at": "2026-06-30T02:35:00Z",
     "verdict": "APPROVE",
-    "findings_count": 0,
+    "findings_count": 1,
     "has_evidence": true,
-    "notes": "Coach review 2026-06-30T01:36:35Z. Verdict APPROVE. No new Player code changes — only checkpoint/AGENTS.md updates by previous Coach. All previously approved features (stats panel f800baf, speed labels 261e4be, end-turn confirm 74508ca) verified stable on live. All structural gates pass: 522/522 tests, HTTP 200, no secrets/injection. Browser QA: tribe selection screen renders correctly (7 tribes, settings), Phaser WebGL loaded, 0 JS errors. RefQA 4/4 smoke pass. CFS 0.993 stable. Next: fix-ai-proximity-weighting (P2).",
+    "notes": "Coach review 2026-06-30T02:35:00Z. Verdict APPROVE. Reviewed fix-ai-proximity-weighting (c62f35c): AI explorers devalue tiles near enemy cities/units via linear decay penalty. Structural gates: 523/523 tests pass (14 files), build clean, HTTP 200, no secrets/injection. Browser QA: tribe selection -> Bardur game -> Turn 1 -> end turn confirm -> Turn 2 with AI processed. Stats panel, settings, end-turn confirm all functional. 0 JS console errors. RefQA 4/4 pass. CFS 0.989 stable. Minor P3: settings gear overlaps END TURN text (pre-existing). Next: fix-tribe-select-grid-balance (P3).",
     "commit_pending": true,
     "watchdog_verified": false,
     "watchdog_bypass": false

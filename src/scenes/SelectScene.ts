@@ -116,10 +116,15 @@ export class SelectScene extends Phaser.Scene {
     const gridW = cols * (cardW + gap) - gap;
     const startX = (width - gridW) / 2;
     const cardStartY = 220;
+    // Center orphan cards in the last row when it's incomplete
+    const cardsInLastRow = totalCards % cols || cols;
+    const lastRowWidth = cardsInLastRow * (cardW + gap) - gap;
+    const lastRowStartX = (width - lastRowWidth) / 2;
     sortedTribes.forEach((cfg, i) => {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      const cx = startX + col * (cardW + gap);
+      const rowStartX = row === rows - 1 ? lastRowStartX : startX;
+      const cx = rowStartX + col * (cardW + gap);
       const cy = cardStartY + row * (cardH + gap);
       const bg = this.add.graphics();
       bg.fillStyle(cfg.color, 0.3);
