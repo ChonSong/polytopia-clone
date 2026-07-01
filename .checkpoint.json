@@ -8,6 +8,13 @@
   "phase_name": "Multiplayer Foundation",
   "completed": [
     {
+      "task": "add-websocket-game-server",
+      "sha": "f777a38",
+      "date": "2026-07-01",
+      "summary": "Added Node.js WebSocket server (ws library) with room lifecycle (create/join/leave, 6-char codes), connection management (ping-pong heartbeat every 15s, 10s pong timeout), typed JSON protocol (CREATE_ROOM/JOIN/LEAVE/ROOM_CREATED/ROOM_JOINED/ROOM_UPDATE), max 8 players/room, graceful disconnect cleanup. Client-side WebSocketClient.ts with auto-reconnect, message routing, send queue. 12 new unit tests + 535/535 existing pass. Server verified end-to-end: connect→create room→join→broadcast.",
+      "coach": "pending"
+    },
+    {
       "task": "fix-city-building-visual-improvements",
       "sha": "df00a19",
       "date": "2026-06-26",
@@ -265,8 +272,8 @@
       "coach_verified_at": "2026-06-30T09:50:00Z"
     }
   ],
-  "health": "523_tests_pass_tooltips_added",
-  "current_task": "add-websocket-game-server",
+  "health": "535_tests_pass_ws_server_added",
+  "current_task": "add-game-state-delta-sync",
   "blocker": null,
   "all_coach_tasks_done": false,
   "spec_gaps": [
@@ -307,8 +314,8 @@
     "watchdog_verified": true,
     "watchdog_bypass": false
   },
-  "note": "Phase 5 generated 2026-07-01: 5 multiplayer foundation tasks (WebSocket server, state sync, lobby, UI, turn mgmt). current_task->add-websocket-game-server (P1). Backlog replenished.",
-  "last_sha": "94211dd",
+  "note": "Tick 2026-07-01: add-websocket-game-server (P1) complete. WS server + client manager added (835 lines, 5 files). 535 tests pass (523 existing + 12 new). Server verified E2E. Advanced to add-game-state-delta-sync (P1). Stale uncommitted changes in GameScene.ts from prior tick (port auto-embark, territory visuals) left unstaged.",
+  "last_sha": "f777a38",
   "fidelity_history": [
     {
       "sha": "3c1dbf9",
