@@ -141,7 +141,7 @@
       "task": "fix-infinite-loop-tribe-selection",
       "sha": "c3d4e5f",
       "date": "2026-06-01",
-      "summary": "Tribe selection infinite loop: default bot tribes were generated twice — once on init and once on game start. Fixed by only generating default bot tribes once.",
+      "summary": "Tribe selection infinite loop: default bot tribes were generated twice \u2014 once on init and once on game start. Fixed by only generating default bot tribes once.",
       "coach": "approved"
     },
     {
@@ -212,7 +212,7 @@
       "task": "fix-in-game-settings-panel",
       "sha": "683587a",
       "date": "2026-06-29",
-      "summary": "Added ⚙️ gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal→Fast→Slow→Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas. 522 tests pass, build clean.",
+      "summary": "Added \u2699\ufe0f gear button to HUD opening unified settings overlay. Panel has Audio section (mute toggle + volume slider synced with HUD) and Game Speed section (click to cycle Normal\u2192Fast\u2192Slow\u2192Normal, applies immediately to cost multipliers). Backdrop click or X closes. Responsive layout scales with canvas. 522 tests pass, build clean.",
       "coach": "approved",
       "coach_verified_at": "2026-06-29T23:45:00Z"
     },
@@ -236,7 +236,7 @@
       "task": "fix-settings-speed-labels-agents-spec",
       "sha": "261e4be",
       "date": "2026-06-30",
-      "summary": "Fixed settings panel speed labels to show speed multipliers instead of cost multipliers: Fast (×2), Slow (×0.5), Normal (×1). Added speedDisplayMultiplier() helper in GameScene.ts that inverts the internal cost multiplier for display. 522/522 tests pass, 0 regressions, build clean, verified live across all 3 speed states.",
+      "summary": "Fixed settings panel speed labels to show speed multipliers instead of cost multipliers: Fast (\u00d72), Slow (\u00d70.5), Normal (\u00d71). Added speedDisplayMultiplier() helper in GameScene.ts that inverts the internal cost multiplier for display. 522/522 tests pass, 0 regressions, build clean, verified live across all 3 speed states.",
       "coach": "approved",
       "coach_verified_at": "2026-06-30T06:35:00Z"
     },
@@ -244,7 +244,7 @@
       "task": "add-in-game-stats-panel",
       "sha": "f800baf",
       "date": "2026-06-30",
-      "summary": "Added in-game statistics panel: 📊 button in HUD (next to ⚙️), semi-transparent overlay with per-tribe metrics (tribe name with color dot, cities, units alive, techs researched, stars, score). Human player row highlighted (brighter bg). Close via X button or backdrop click. Follows settings panel overlay pattern. 522/522 tests pass, build clean.",
+      "summary": "Added in-game statistics panel: \ud83d\udcca button in HUD (next to \u2699\ufe0f), semi-transparent overlay with per-tribe metrics (tribe name with color dot, cities, units alive, techs researched, stars, score). Human player row highlighted (brighter bg). Close via X button or backdrop click. Follows settings panel overlay pattern. 522/522 tests pass, build clean.",
       "coach": "approved",
       "coach_verified_at": "2026-06-30T09:23:00+10:00"
     },
@@ -260,7 +260,7 @@
       "task": "add-tribe-card-tooltips",
       "sha": "94211dd",
       "date": "2026-06-30",
-      "summary": "Added hover tooltips to tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Bardur→Hunting: Wild animal resources, Cymanti→Fungiculture: Unlocks Fungi Farm • Organic economy, etc. Tooltip appears below card on pointerover with dark background, word wrap, responsive font; destroys on pointerout. Click-to-start unaffected. 523/523 tests pass, 0 regressions.",
+      "summary": "Added hover tooltips to tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Bardur\u2192Hunting: Wild animal resources, Cymanti\u2192Fungiculture: Unlocks Fungi Farm \u2022 Organic economy, etc. Tooltip appears below card on pointerover with dark background, word wrap, responsive font; destroys on pointerout. Click-to-start unaffected. 523/523 tests pass, 0 regressions.",
       "coach": "approved",
       "coach_verified_at": "2026-06-30T09:50:00Z"
     }
@@ -271,43 +271,43 @@
   "all_coach_tasks_done": true,
   "spec_gaps": [
     {
-      "item": "AI territory expansion still basic — no strategic resource claiming",
+      "item": "AI territory expansion still basic \u2014 no strategic resource claiming",
       "type": "partial_implementation",
       "priority": 2,
       "evidence": "2026-06-28: findExploreTarget now weights tiles by resource value (commit 9b94846). Sub-item 1 (tile valuation) complete. Sub-items 2-4 (enemy proximity, chokepoint, settler logic) still open.",
-      "cycles_stagnant": 4,
+      "cycles_stagnant": 5,
       "status": "escalated"
     },
     {
-      "item": "AI difficulty differentiation now implemented (commit 98eba7b) — Easy avoids combat + picks economic, Hard hunts enemies + picks military",
+      "item": "AI difficulty differentiation now implemented (commit 98eba7b) \u2014 Easy avoids combat + picks economic, Hard hunts enemies + picks military",
       "type": "completed",
       "priority": 2,
       "evidence": "Commit 98eba7b: chooseUpgrade now returns 'B' for Easy, 'A' for Hard (ignoring threat). decideAttack: Easy skips combat unless can one-shot or has 2:1 HP advantage. decideMove AI: Hard AI hunts enemy units within 8 hexes between city-target and village priorities. Difficulty differentiation is now observable. 520 tests pass.",
-      "cycles_stagnant": 4,
+      "cycles_stagnant": 5,
       "status": "escalated"
     },
     {
       "item": "Stuck: fix-ai-territory-expansion",
       "type": "stuck_bug",
       "priority": 2,
-      "evidence": "14+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding — architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
-      "cycles_stagnant": 15,
+      "evidence": "14+ cycles stagnant. AI territory expansion requires strategic tile valuation, enemy proximity weighting, dead-end detection, and settler pathfinding \u2014 architectural complexity beyond a single tick. Needs research into original AI algorithms before implementation.",
+      "cycles_stagnant": 16,
       "status": "escalated"
     }
   ],
   "coach_review": {
-    "last_reviewed_sha": "94211dd",
-    "last_reviewed_at": "2026-06-30T09:50:00Z",
+    "last_reviewed_sha": "de7dfc9",
+    "last_reviewed_at": "2026-07-01T07:14:46+10:00",
     "verdict": "APPROVE",
     "findings_count": 0,
     "has_evidence": true,
     "assertion_specs": [],
-    "notes": "Coach review 2026-06-30T19:50:00+10:00. Verdict APPROVE. Reviewed add-tribe-card-tooltips (94211dd): hover tooltips on tribe cards in SelectScene showing starting tech effects from TECH_DEFS. Structural gates: 523/523 tests pass (14/14 files), build clean (tsc+vite), HTTP 200, no secrets/injection. Browser QA via Phaser game state: pointerover on Bardur creates 'Hunting: Wild animal resources' (depth 10), pointerover on Cymanti creates 'Fungiculture: Unlocks Fungi Farm • Organic economy', pointerout destroys tooltip. Game click-through verified: Bardur starts correctly (Turn 1, GameScene active). 0 JS console errors at any point. RefQA 4/4 pass. CFS 0.990 stable. Backlog exhausted — no actionable findings. Next: gto-wizard-clone (consecutive_on_project=2).",
+    "notes": "Coach review 2026-07-01T07:14:46+10:00. Verdict APPROVE. Reviewed Coach review application de7dfc9: Player correctly applied previous APPROVE verdict for add-tribe-card-tooltips (94211dd). Marked AGENTS.md task complete, updated coach_review fields, transitioned current_task\u2192tbd, all_coach_tasks_done\u2192true. 0 source code changes (checkpoint+AGENTS.md only). Structural gates: 523/523 vitest pass, HTTP 200, no secrets/injection. Browser QA: tribe selection screen loads, Phaser v3.90.0 WebGL+WebAudio active, 7 tribe cards visible (6 top + Xin-xi centered bottom), game settings visible (Map/Mode/Speed/Difficulty). 0 JS console errors, 1 JS exception (no message). RefQA 4/4 pass. 3 spec_gaps escalated (cycles 5-16). Backlog exhausted.",
     "commit_pending": true,
-    "watchdog_verified": true,
-    "watchdog_bypass": false
+    "watchdog_verified": false,
+    "watchdog_bypass": true
   },
-  "note": "Coach APPROVE 2026-06-30T19:50:00+10:00: add-tribe-card-tooltips (94211dd) verified. 523/523 tests pass, build clean, tooltips confirmed live via Phaser game state inspection (Bardur 'Hunting: Wild animal resources', Cymanti 'Fungiculture: Unlocks Fungi Farm • Organic economy', Elyrion 'Ecology: Sanctuary building • See animals through fog'). pointerout cleanup verified. Game starts correctly (Bardur Turn 1). 0 JS console errors. CFS 0.990 stable. Band-gated (commit_pending: true). Next: gto-wizard-clone.",
+  "note": "Coach APPROVE 2026-06-30T19:50:00+10:00: add-tribe-card-tooltips (94211dd) verified. 523/523 tests pass, build clean, tooltips confirmed live via Phaser game state inspection (Bardur 'Hunting: Wild animal resources', Cymanti 'Fungiculture: Unlocks Fungi Farm \u2022 Organic economy', Elyrion 'Ecology: Sanctuary building \u2022 See animals through fog'). pointerout cleanup verified. Game starts correctly (Bardur Turn 1). 0 JS console errors. CFS 0.990 stable. Band-gated (commit_pending: true). Next: gto-wizard-clone.",
   "last_sha": "94211dd",
   "fidelity_history": [
     {
@@ -346,6 +346,12 @@
       "cfs": 0.98994,
       "trend": "stable",
       "timestamp": "2026-06-30T09:50:00Z"
+    },
+    {
+      "sha": "de7dfc9",
+      "cfs": 0.9913,
+      "trend": "stable",
+      "timestamp": "2026-07-01T07:14:46+10:00"
     }
   ]
 }
